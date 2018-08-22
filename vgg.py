@@ -11,7 +11,10 @@ import pydot
 from IPython.display import SVG
 from keras.utils.vis_utils import model_to_dot
 from keras.utils import plot_model
-import h5py
+from sklearn.model_selection import train_test_split
+import glob
+import os
+from PIL import Image
 
 import keras.backend as K
 K.set_image_data_format('channels_last')
@@ -24,23 +27,54 @@ def mean_pred(y_true, y_pred):
 
 
 def load_dataset():
-    train_dataset = h5py.File('datasets/train_happy.h5', "r")
-    train_set_x_orig = np.array(train_dataset["train_set_x"][:])  # your train set features
-    train_set_y_orig = np.array(train_dataset["train_set_y"][:])  # your train set labels
+    path_long_streaks = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/long-streaks'
 
-    test_dataset = h5py.File('datasets/test_happy.h5', "r")
-    test_set_x_orig = np.array(test_dataset["test_set_x"][:])  # your test set features
-    test_set_y_orig = np.array(test_dataset["test_set_y"][:])  # your test set labels
+    # df = pd.read_csv('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/ztf-astreaks-classifications.csv')
+    # data = [eval(s.replace('null', 'None')) for s in df.subject_data]
+    # pattern = r'(strkid\d+._pid\d+._scimref.jpg)'
+    # fss = [re.search(pattern, s.replace('null', 'None')).groups(0)[0] for s in df.subject_data]
 
-    classes = np.array(test_dataset["list_classes"][:])  # the list of classes
+    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
 
-    train_set_y_orig = train_set_y_orig.reshape((1, train_set_y_orig.shape[0]))
-    test_set_y_orig = test_set_y_orig.reshape((1, test_set_y_orig.shape[0]))
+    # cut-outs:
+    x = []
+    # classifications:
+    y = []
 
-    return train_set_x_orig, train_set_y_orig, test_set_x_orig, test_set_y_orig, classes
+    # 08/21/2018: 8 possible classes:
+    classes = {
+        0: "Plausible Asteroid (short streak)",
+        1: "Satellite (long streak - could be partially masked)",
+        2: "Masked bright star",
+        3: "Dementors and ghosts",
+        4: "Cosmic rays",
+        5: "Yin-Yang (multiple badly subtracted stars)",
+        6: "Satellite flashes",
+        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images'"
+    }
+
+    for ls in long_streaks:
+        # resize and normalize:
+        image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
+        x.append(image)
+        image_class = np.zeros(8)
+        image_class[1] = 1
+        y.append(image_class)
+        # raise Exception()
+
+    x = np.array(x)
+    y = np.array(y)
+
+    print(x.shape)
+    print(y.shape)
+
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+    return X_train, X_test, y_train, y_test, classes
 
 
-def HappyModel(input_shape):
+def VGGModel(input_shape):
     """
     Implementation of the HappyModel.
 
@@ -99,20 +133,20 @@ def main():
     print("Y_test shape: " + str(Y_test.shape))
 
     # build model
-    happyModel = HappyModel(image_shape)
+    model = VGGModel(image_shape)
 
-    happyModel.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
 
-    happyModel.fit(x=X_train, y=Y_train, epochs=1, batch_size=16)
+    model.fit(x=X_train, y=Y_train, epochs=1, batch_size=16)
 
-    preds = happyModel.evaluate(x=X_test, y=Y_test)
+    preds = model.evaluate(x=X_test, y=Y_test)
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    print(happyModel.summary())
+    print(model.summary())
 
-    plot_model(happyModel, to_file='HappyModel.png')
-    SVG(model_to_dot(happyModel).create(prog='dot', format='svg'))
+    plot_model(model, to_file='VGG_model.png')
+    SVG(model_to_dot(model).create(prog='dot', format='svg'))
 
 
 if __name__ == '__main__':
