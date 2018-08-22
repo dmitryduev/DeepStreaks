@@ -160,7 +160,8 @@ def main():
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
+    # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
+    model.compile(optimizer=adam, loss='binary_crossentropy', metrics=["accuracy"])
 
     model.fit(x=X_train, y=Y_train, epochs=1, batch_size=16)
 
