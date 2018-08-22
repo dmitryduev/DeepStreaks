@@ -73,7 +73,7 @@ def load_dataset():
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    return X_train, X_test, y_train, y_test, classes
+    return X_train, y_train, X_test, y_test, classes
 
 
 def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=256, n_classes: int=8):
