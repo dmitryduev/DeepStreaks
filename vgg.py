@@ -139,10 +139,6 @@ def main():
     X_train = X_train_orig / 255.
     X_test = X_test_orig / 255.
 
-    # Reshape
-    Y_train = Y_train_orig.T
-    Y_test = Y_test_orig.T
-
     # image shape:
     image_shape = X_train.shape[1:]
     print('image shape:', image_shape)
