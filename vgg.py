@@ -73,6 +73,7 @@ def load_dataset():
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
+    # return X_train, y_train.T, X_test, y_test.T, classes
     return X_train, y_train, X_test, y_test, classes
 
 
@@ -122,7 +123,6 @@ def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=256, 
     # X = Dense(nfc, activation='sigmoid', name='fc3')(X)
 
     # output layer
-    X = Flatten()(X)
     X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
 
     # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
