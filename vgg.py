@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 import glob
 import os
 from PIL import Image
+import json
 
 import keras.backend as K
 K.set_image_data_format('channels_last')
@@ -29,14 +30,11 @@ def mean_pred(y_true, y_pred):
 
 
 def load_dataset():
-    path_long_streaks = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/long-streaks'
+    """
 
-    # df = pd.read_csv('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/ztf-astreaks-classifications.csv')
-    # data = [eval(s.replace('null', 'None')) for s in df.subject_data]
-    # pattern = r'(strkid\d+._pid\d+._scimref.jpg)'
-    # fss = [re.search(pattern, s.replace('null', 'None')).groups(0)[0] for s in df.subject_data]
-
-    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
+    :return:
+    """
+    path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
 
     # cut-outs:
     x = []
@@ -55,6 +53,11 @@ def load_dataset():
         7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images'"
     }
 
+    ''' Long streaks from Quanzhi '''
+    path_long_streaks = os.path.join(path, 'long-streaks')
+
+    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
+
     for ls in long_streaks:
         # resize and normalize:
         image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
@@ -64,20 +67,43 @@ def load_dataset():
         y.append(image_class)
         # raise Exception()
 
+    ''' Stuff from Zooniverse '''
+    # TODO
+    # get json file with classifications
+    zoo_json = os.path.join(path, 'zooniverse.20180822.json')
+    with open(zoo_json) as f:
+        zoo_classifications = json.load(f)
+
+    path_zoo = os.path.join(path, 'zooniverse')
+
+    zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
+
+    for z in zoos:
+        # resize and normalize:
+        image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
+        x.append(image)
+        image_class = np.zeros(8)
+        # TODO: figure out class based on classifications
+        image_class[7] = 1
+        y.append(image_class)
+
+    # numpy-fy and split to test/train
+
     x = np.array(x)
     y = np.array(y)
 
     print(x.shape)
     print(y.shape)
 
+    # TODO: check statistics on different classes
+
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    # return X_train, y_train.T, X_test, y_test.T, classes
     return X_train, y_train, X_test, y_test, classes
 
 
-def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=256, n_classes: int=8):
+def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=128, n_classes: int=8):
     """
     Implementation of the HappyModel.
 
