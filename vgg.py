@@ -50,7 +50,7 @@ def load_dataset():
         4: "Cosmic rays",
         5: "Yin-Yang (multiple badly subtracted stars)",
         6: "Satellite flashes",
-        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images'"
+        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images')"
     }
 
     ''' Long streaks from Quanzhi '''
@@ -84,6 +84,7 @@ def load_dataset():
         x.append(image)
         image_class = np.zeros(8)
         # TODO: figure out class based on classifications
+        # classes = zoo_classifications
         image_class[7] = 1
         y.append(image_class)
 

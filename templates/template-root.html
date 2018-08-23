@@ -1,0 +1,120 @@
+{% extends "template.html" %}
+
+{% block nav_home %}
+    active
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+        <form id="cutouts_form" class="form" method="post">
+            {% for cutout in cutouts %}
+{#            {{ cutouts[cutout] }}#}
+{#            {{ classes }}#}
+            <div class="form-group row">
+                <div class="col-12">
+                    <b>{{cutout}}</b>
+                </div>
+                <div class="col-6">
+                    <img src="/data/zooniverse/{{cutout}}">
+                </div>
+                <div class="col-6">
+                    {% for class in classes %}
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" data-id="{{-cutout-}}"
+                                 value="{{-class-}}"{% if class in cutouts[cutout] %} checked="checked"{% endif %}>
+                          <label class="form-check-label" for="{{-cutout-}}_{{-class-}}">
+                              {{ class }}: {{ cutouts[cutout].count(class) }}
+                          </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <hr>
+            {% endfor %}
+
+            <div class="form-group row">
+                <button type="button" class="btn btn-dark btn-sm" id="save">Save to JSON</button>
+            </div>
+        </form>
+
+    </div>
+
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog"
+         aria-labelledby="modal-query-id" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-query-id"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <pre><code id="modal-body-code" style="font-size:0.75em;"></code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+{#                    <button type="button" class="btn btn-primary">Save changes</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        function construct_json() {
+            var json = {};
+            $("input:checkbox").each(function() {
+                if ( $(this).is(":checked") ) {
+                    {#alert($(this).val());#}
+                    if (!json.hasOwnProperty($(this).data("id"))) {
+                        json[$(this).data("id")] = [$(this).val()];
+                    }
+                    else {
+                        json[$(this).data("id")].push($(this).val());
+                    }
+                }
+            });
+            return json;
+        }
+
+        // submit query
+        $(document).ready(function() {
+            $('#save').click(function () {
+                bootbox.confirm({
+                    message: "Do you want to submit the query?",
+                    buttons: {
+                        cancel: {
+                            label: '<i class="fas fa-times"></i> Cancel'
+                        },
+                        confirm: {
+                            label: '<i class="fas fa-check"></i> Confirm'
+                        }
+                    },
+                    callback: function (result) {
+                        // console.log('This was logged in the callback: ' + result);
+                        // confirmed? emit request to server:
+                        if (result) {
+                            let json = construct_json();
+                            {#$('#cutouts_form').submit();#}
+                            $.ajax({
+                                type: "POST",
+                                url: '/',
+                                data: json,
+                                success: function(data) {
+                                           alert(data['status']);
+                                         }
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
