@@ -1,0 +1,161 @@
+html {
+    position: relative;
+    min-height: 100%;
+    font-weight: lighter !important;
+}
+body {
+    /*font-family: 'Roboto', sans-serif !important;*/
+    /*padding-top: 2.2rem;*/
+    padding-top: 2.9rem;
+    /*!*font-size: 0.9rem;*!*/
+    font-size: 0.9rem;
+    /*font-weight: 300;*/
+    font-weight: lighter !important;
+    /* Margin bottom by footer height */
+    margin-bottom: 50px;
+}
+pre {
+    background-color: #f8f9fa;
+    padding: 0.3rem;
+}
+code {
+    background-color: #e7e8ea;
+}
+.navbar {
+    padding: 0.2rem 2rem !important;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 50px;
+  line-height: 50px; /* Vertically center the text there */
+  background-color: #f5f5f5;
+}
+
+body > .container {
+  padding: 30px 15px 20px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Masonry Grid */
+:root {
+    --vertical-spacing: 20px;
+    /* must change gutter in home_page.html as well */
+    --horizontal-spacing: 20px;
+}
+
+/* 1 column by default */
+.grid-sizer {
+    width: 100%;
+    padding: 1em;
+    /*margin-bottom: var(--vertical-spacing);*/
+}
+/*.grid-item { width: calc(50% - 10px); background: rgba(122, 122, 122, 0.49);
+margin-bottom: var(--vertical-spacing);}*/
+/*.grid-item--width2 { width: calc(100% - 10px); background: #f5f5f5; margin-bottom: var(--vertical-spacing);}*/
+.grid-item {
+    width: 100%;
+    margin-bottom: var(--vertical-spacing);
+    background: rgba(234, 234, 234, 0.26);
+    padding: 1em;
+}
+/*.grid-item--width2 { width: calc(100% - var(--horizontal-spacing)); margin-bottom: var(--vertical-spacing);}*/
+
+.grid-sizer--full-width {
+    width: 100%;
+    padding: 1em;
+}
+.grid-item--full-width {
+    width: 100%;
+    margin-bottom: var(--vertical-spacing);
+    background: rgba(234, 234, 234, 0.26);
+    padding: 1em;
+}
+
+/*!* 2 columns *!*/
+@media screen and (min-width: 768px) {
+    .grid-sizer {
+        /*width: calc(33.333% - var(--horizontal-spacing));*/
+        width: calc(50% - var(--horizontal-spacing));
+        /*width: calc(66.666% - var(--horizontal-spacing));*/
+    }
+
+    .grid-item {
+        /*width: calc(33.333% - var(--horizontal-spacing));*/
+        width: calc(50% - var(--horizontal-spacing));
+        background: rgba(234, 234, 234, 0.26);
+        padding: 1em;
+        margin-bottom: var(--vertical-spacing);
+    }
+
+    .grid-sizer--full-width {
+        /*width: calc(33.333% - var(--horizontal-spacing));*/
+        /*width: calc(50% - var(--horizontal-spacing));*/
+        /*width: calc(66.666% - var(--horizontal-spacing));*/
+        width: 100%;
+    }
+
+    .grid-item--full-width {
+        width: 100%;
+        background: rgba(234, 234, 234, 0.26);
+        padding: 1em;
+        margin-bottom: var(--vertical-spacing);
+    }
+}
+
+.form-signin {
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+    margin-bottom: 10px;
+}
+.form-signin .checkbox {
+    font-weight: 400;
+}
+.form-signin .form-control {
+    position: relative;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+}
+.form-signin .form-control:focus {
+    z-index: 2;
+}
+.form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th {
+    padding: 0.1em;
+    font-size: 0.85em;
+}
+.table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td,
+.table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td {
+    padding: 0.2em;
+    /*padding-top: 0.2em;*/
+    /*padding-bottom: 0.2em;*/
+    font-size: 0.85em;
+}
+
+.th-inner {
+    padding: 0px 8px 0px 8px !important;
+    line-height: 24px !important;;
+}
