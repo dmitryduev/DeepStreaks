@@ -79,12 +79,13 @@ def load_dataset():
     zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
 
     for z in zoos:
-        if z in zoo_classifications:
+        z_fname = os.path.split(z)[1]
+        if z_fname in zoo_classifications:
             # resize and normalize:
             image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
             x.append(image)
             image_class = np.zeros(8)
-            image_class[list(classes.values()).index(zoo_classifications[z])] = 1
+            image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
             y.append(image_class)
 
     # numpy-fy and split to test/train
