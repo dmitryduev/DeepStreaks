@@ -1,6 +1,7 @@
 import json
 import flask
 import os
+import datetime
 
 
 # flask app to see/inspect classifications
@@ -40,20 +41,23 @@ def root():
 
     if flask.request.method == 'GET':
         classifications = dict()
-        i = 0
+        # i = 0
         for crk, crv in classifications_raw.items():
             if os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/zooniverse',
                                            crk)):
                 classifications[crk] = crv
-                i += 1
-            if i > 4:
-                break
+            #     i += 1
+            # if i > 4:
+            #     break
 
         return flask.render_template('template-root.html', logo='ZTF Asteroids',
                                      cutouts=classifications, classes=list(classes.values()))
     elif flask.request.method == 'POST':
-        classifications = flask.request.json
-        print(classifications)
+        classifications = json.loads(flask.request.get_data())
+        classifications = {k: v for k, v in classifications.items() if len(v) > 0}
+        date = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        with open(f'/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/zooniverse.{date}.json', 'w') as f:
+            json.dump(classifications, f, indent=2)
         return flask.jsonify({'status': 'success'})
 
 

@@ -70,7 +70,7 @@ def load_dataset():
     ''' Stuff from Zooniverse '''
     # TODO
     # get json file with classifications
-    zoo_json = os.path.join(path, 'zooniverse.20180822.json')
+    zoo_json = os.path.join(path, 'zooniverse.20180824_010749.json')
     with open(zoo_json) as f:
         zoo_classifications = json.load(f)
 
@@ -79,14 +79,13 @@ def load_dataset():
     zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
 
     for z in zoos:
-        # resize and normalize:
-        image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
-        x.append(image)
-        image_class = np.zeros(8)
-        # TODO: figure out class based on classifications
-        # classes = zoo_classifications
-        image_class[7] = 1
-        y.append(image_class)
+        if z in zoo_classifications:
+            # resize and normalize:
+            image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
+            x.append(image)
+            image_class = np.zeros(8)
+            image_class[list(classes.values()).index(zoo_classifications[z])] = 1
+            y.append(image_class)
 
     # numpy-fy and split to test/train
 
