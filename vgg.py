@@ -1,13 +1,16 @@
 import numpy as np
+from time import time
+import datetime
 from keras import layers
 from keras.layers import Input, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D
 from keras.layers import AveragePooling2D, MaxPooling2D, Dropout, GlobalMaxPooling2D, GlobalAveragePooling2D
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
 from keras.optimizers import Adam
+from keras.callbacks import TensorBoard
 import pydot
 from IPython.display import SVG
 from keras.utils.vis_utils import model_to_dot
@@ -29,7 +32,7 @@ def mean_pred(y_true, y_pred):
     return K.mean(y_pred)
 
 
-def load_dataset():
+def load_dataset(binary: bool=False, test_size=0.1):
     """
 
     :return:
@@ -62,8 +65,14 @@ def load_dataset():
         # resize and normalize:
         image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
         x.append(image)
-        image_class = np.zeros(8)
-        image_class[1] = 1
+
+        if binary:
+            image_class = np.zeros(2)
+            image_class = 1
+        else:
+            image_class = np.zeros(8)
+            image_class = 1
+
         y.append(image_class)
         # raise Exception()
 
@@ -84,8 +93,18 @@ def load_dataset():
             # resize and normalize:
             image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
             x.append(image)
-            image_class = np.zeros(8)
-            image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
+
+            if binary:
+                image_class = np.zeros(2)
+                index = list(classes.values()).index(zoo_classifications[z_fname][0])
+                if index in (0, 1):
+                    image_class = 1
+                else:
+                    image_class = 0
+            else:
+                image_class = np.zeros(8)
+                image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
+
             y.append(image_class)
 
     # numpy-fy and split to test/train
@@ -98,7 +117,8 @@ def load_dataset():
 
     # TODO: check statistics on different classes
 
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     return X_train, y_train, X_test, y_test, classes
@@ -126,16 +146,22 @@ def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=128, 
 
     # CONV -> BN -> RELU Block applied to X
     X = Conv2D(nf1, (f, f), strides=(s, s), padding='same', name='conv0')(X_input)
-    X = BatchNormalization(axis=-1, name='bn0')(X)
+    # X = Conv2D(nf1, (f, f), strides=(s, s), padding='same', name='conv0', data_format=K.image_data_format())(X_input)
+    X = BatchNormalization(axis=-1, name='bn0')(X, training=1)
+    # X = BatchNormalization(axis=-1, name='bn0')(X)
     X = Activation('relu')(X)
+    # X = Activation('sigmoid')(X)
 
     # MAXPOOL
     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool0')(X)
 
     # CONV -> BN -> RELU Block applied to X
     X = Conv2D(nf2, (f, f), strides=(s, s), padding='same', name='conv1')(X)
-    X = BatchNormalization(axis=-1, name='bn1')(X)
+    # X = Conv2D(nf2, (f, f), strides=(s, s), padding='same', name='conv1', data_format=K.image_data_format())(X)
+    X = BatchNormalization(axis=-1, name='bn1')(X, training=1)
+    # X = BatchNormalization(axis=-1, name='bn1')(X)
     X = Activation('relu')(X)
+    # X = Activation('sigmoid')(X)
 
     # MAXPOOL
     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool1')(X)
@@ -150,17 +176,94 @@ def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=128, 
     # X = Dense(nfc, activation='sigmoid', name='fc3')(X)
 
     # output layer
-    X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+    # X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+    X = Dense(n_classes, activation='sigmoid', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
 
     # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
-    model = Model(inputs=X_input, outputs=X, name='model_v1')
+    model = Model(inputs=X_input, outputs=X, name='vgg_model_v1')
 
     return model
 
 
+# def VGGModel_v2(input_shape, nf: tuple=(16, 32, 64), f: int=3, s: int=1, nfc: int=128, n_classes: int=8):
+#     """
+#     Implementation of the HappyModel.
+#
+#     Arguments:
+#     input_shape -- shape of the images of the dataset
+#     f -- filter size
+#     s -- stride
+#
+#     padding is always 'same'
+#
+#     Returns:
+#     model -- a Model() instance in Keras
+#     """
+#
+#     # Define the input placeholder as a tensor with shape input_shape. Think of this as your input image!
+#     X_input = Input(input_shape)
+#
+#     nf1, nf2, nf3 = nf
+#
+#     # CONV -> BN -> RELU Block applied to X
+#     X = Conv2D(nf1, (f, f), strides=(s, s), padding='same', name='conv0')(X_input)
+#     X = BatchNormalization(axis=-1, name='bn0')(X)
+#     # X = Activation('relu')(X)
+#     X = Activation('sigmoid')(X)
+#
+#     # MAXPOOL
+#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool0')(X)
+#
+#     # CONV -> BN -> RELU Block applied to X
+#     X = Conv2D(nf2, (f, f), strides=(s, s), padding='same', name='conv1')(X)
+#     X = BatchNormalization(axis=-1, name='bn1')(X)
+#     # X = Activation('relu')(X)
+#     X = Activation('sigmoid')(X)
+#
+#     # MAXPOOL
+#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool1')(X)
+#
+#     # CONV -> BN -> RELU Block applied to X
+#     X = Conv2D(nf3, (f, f), strides=(s, s), padding='same', name='conv2')(X)
+#     X = BatchNormalization(axis=-1, name='bn2')(X)
+#     # X = Activation('relu')(X)
+#     X = Activation('sigmoid')(X)
+#
+#     # MAXPOOL
+#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool2')(X)
+#
+#     # FLATTEN X (means convert it to a vector)
+#     X = Flatten()(X)
+#
+#     # FULLYCONNECTED
+#     if nfc != 0:
+#         X = Dense(nfc, activation='sigmoid', name='fc2')(X)
+#
+#     # FULLYCONNECTED
+#     # if nfc != 0:
+#     # X = Dense(nfc, activation='sigmoid', name='fc3')(X)
+#
+#     # output layer
+#     # X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+#     X = Dense(n_classes, activation='sigmoid', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+#
+#     # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
+#     model = Model(inputs=X_input, outputs=X, name='vgg_model_v2')
+#
+#     return model
+
+
 def main():
+    K.clear_session()
+
+    # streak / not streak? or with subclasses of bogus?
+    binary_classification = True
+    n_classes = 1 if binary_classification else 8
+    loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
+
     # load data. resize here
-    X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
+    X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset(binary=binary_classification,
+                                                                                 test_size=0.1)
 
     # Normalize image vectors
     X_train = X_train_orig / 255.
@@ -182,24 +285,40 @@ def main():
     print("Y_test shape: " + str(Y_test.shape))
 
     # build model
-    model = VGGModel(image_shape)
+    # model = VGGModel(image_shape, n_classes=n_classes)
+    # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=128, n_classes=n_classes)
+    model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=32, n_classes=n_classes)
+    # model = VGGModel_v2(image_shape, nf=(16, 32, 64), f=3, s=1, nfc=0, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
     # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
-    model.compile(optimizer=adam, loss='binary_crossentropy', metrics=["accuracy"])
 
-    model.fit(x=X_train, y=Y_train, epochs=1, batch_size=16)
+    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
 
-    preds = model.evaluate(x=X_test, y=Y_test)
+    tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
+
+    batch_size = 32
+
+    model.fit(x=X_train, y=Y_train, epochs=3, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+
+    # preds = model.evaluate(x=X_train, y=Y_train)
+    preds = model.evaluate(x=X_test, y=Y_test, batch_size=batch_size)
+    # preds = model.evaluate(x=X_test, y=Y_test, batch_size=X_test.shape[0])
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    print(model.summary())
+    # preds = model.evaluate(x=X_test, y=Y_test)
+    # print("Loss = " + str(preds[0]))
+    # print("Test Accuracy = " + str(preds[1]))
 
-    plot_model(model, to_file='VGG_model_v1.png')
-    SVG(model_to_dot(model).create(prog='dot', format='svg'))
+    # print(model.summary())
+
+    # model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
+
+    # plot_model(model, to_file=f'{model.name}.png')
+    # SVG(model_to_dot(model).create(prog='dot', format='svg'))
 
 
 if __name__ == '__main__':
