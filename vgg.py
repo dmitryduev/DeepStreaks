@@ -67,11 +67,11 @@ def load_dataset(binary: bool=False, test_size=0.1):
         x.append(image)
 
         if binary:
-            image_class = np.zeros(2)
+            # image_class = np.zeros(2)
             image_class = 1
         else:
             image_class = np.zeros(8)
-            image_class = 1
+            image_class[1] = 1
 
         y.append(image_class)
         # raise Exception()
@@ -95,7 +95,7 @@ def load_dataset(binary: bool=False, test_size=0.1):
             x.append(image)
 
             if binary:
-                image_class = np.zeros(2)
+                # image_class = np.zeros(2)
                 index = list(classes.values()).index(zoo_classifications[z_fname][0])
                 if index in (0, 1):
                     image_class = 1
@@ -115,7 +115,11 @@ def load_dataset(binary: bool=False, test_size=0.1):
     print(x.shape)
     print(y.shape)
 
-    # TODO: check statistics on different classes
+    # check statistics on different classes
+    print('\n')
+    for i in classes.keys():
+        print(f'{classes[i]}:', np.sum(y[:, i]))
+    print('\n')
 
     # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
@@ -176,8 +180,8 @@ def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=128, 
     # X = Dense(nfc, activation='sigmoid', name='fc3')(X)
 
     # output layer
-    # X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
-    X = Dense(n_classes, activation='sigmoid', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    X = Dense(n_classes, activation=activation, name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
 
     # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
     model = Model(inputs=X_input, outputs=X, name='vgg_model_v1')
@@ -257,8 +261,10 @@ def main():
     K.clear_session()
 
     # streak / not streak? or with subclasses of bogus?
-    binary_classification = True
+    # binary_classification = True
+    binary_classification = False
     n_classes = 1 if binary_classification else 8
+    n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data. resize here
@@ -287,7 +293,8 @@ def main():
     # build model
     # model = VGGModel(image_shape, n_classes=n_classes)
     # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=128, n_classes=n_classes)
-    model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=32, n_classes=n_classes)
+    # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=32, n_classes=n_classes)
+    model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=n_fc, n_classes=n_classes)
     # model = VGGModel_v2(image_shape, nf=(16, 32, 64), f=3, s=1, nfc=0, n_classes=n_classes)
 
     # set up optimizer:
@@ -301,7 +308,7 @@ def main():
 
     batch_size = 32
 
-    model.fit(x=X_train, y=Y_train, epochs=3, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(x=X_train, y=Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # preds = model.evaluate(x=X_train, y=Y_train)
     preds = model.evaluate(x=X_test, y=Y_test, batch_size=batch_size)
@@ -315,7 +322,7 @@ def main():
 
     # print(model.summary())
 
-    # model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
+    model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
 
     # plot_model(model, to_file=f'{model.name}.png')
     # SVG(model_to_dot(model).create(prog='dot', format='svg'))

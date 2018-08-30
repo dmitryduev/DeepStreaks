@@ -50,7 +50,7 @@ def root():
             # if i > 4:
             #     break
 
-        return flask.render_template('template-root.html', logo='ZTF Asteroids',
+        return flask.render_template('template-root.html', logo='Zwickyverse',
                                      cutouts=classifications, classes=list(classes.values()))
     elif flask.request.method == 'POST':
         classifications = json.loads(flask.request.get_data())
