@@ -37,7 +37,8 @@ def load_dataset(binary: bool=False, test_size=0.1):
 
     :return:
     """
-    path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
+    # path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
+    path = './data-raw/'
 
     # cut-outs:
     x = []
