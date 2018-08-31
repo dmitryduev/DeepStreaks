@@ -309,7 +309,7 @@ def main():
 
     batch_size = 32
 
-    model.fit(x=X_train, y=Y_train, epochs=30, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(x=X_train, y=Y_train, epochs=10, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # preds = model.evaluate(x=X_train, y=Y_train)
     preds = model.evaluate(x=X_test, y=Y_test, batch_size=batch_size)
