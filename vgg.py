@@ -190,72 +190,61 @@ def VGGModel(input_shape, nf: tuple=(16, 32), f: int=3, s: int=1, nfc: int=128, 
     return model
 
 
-# def VGGModel_v2(input_shape, nf: tuple=(16, 32, 64), f: int=3, s: int=1, nfc: int=128, n_classes: int=8):
-#     """
-#     Implementation of the HappyModel.
-#
-#     Arguments:
-#     input_shape -- shape of the images of the dataset
-#     f -- filter size
-#     s -- stride
-#
-#     padding is always 'same'
-#
-#     Returns:
-#     model -- a Model() instance in Keras
-#     """
-#
-#     # Define the input placeholder as a tensor with shape input_shape. Think of this as your input image!
-#     X_input = Input(input_shape)
-#
-#     nf1, nf2, nf3 = nf
-#
-#     # CONV -> BN -> RELU Block applied to X
-#     X = Conv2D(nf1, (f, f), strides=(s, s), padding='same', name='conv0')(X_input)
-#     X = BatchNormalization(axis=-1, name='bn0')(X)
-#     # X = Activation('relu')(X)
-#     X = Activation('sigmoid')(X)
-#
-#     # MAXPOOL
-#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool0')(X)
-#
-#     # CONV -> BN -> RELU Block applied to X
-#     X = Conv2D(nf2, (f, f), strides=(s, s), padding='same', name='conv1')(X)
-#     X = BatchNormalization(axis=-1, name='bn1')(X)
-#     # X = Activation('relu')(X)
-#     X = Activation('sigmoid')(X)
-#
-#     # MAXPOOL
-#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool1')(X)
-#
-#     # CONV -> BN -> RELU Block applied to X
-#     X = Conv2D(nf3, (f, f), strides=(s, s), padding='same', name='conv2')(X)
-#     X = BatchNormalization(axis=-1, name='bn2')(X)
-#     # X = Activation('relu')(X)
-#     X = Activation('sigmoid')(X)
-#
-#     # MAXPOOL
-#     X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool2')(X)
-#
-#     # FLATTEN X (means convert it to a vector)
-#     X = Flatten()(X)
-#
-#     # FULLYCONNECTED
-#     if nfc != 0:
-#         X = Dense(nfc, activation='sigmoid', name='fc2')(X)
-#
-#     # FULLYCONNECTED
-#     # if nfc != 0:
-#     # X = Dense(nfc, activation='sigmoid', name='fc3')(X)
-#
-#     # output layer
-#     # X = Dense(n_classes, activation='softmax', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
-#     X = Dense(n_classes, activation='sigmoid', name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
-#
-#     # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
-#     model = Model(inputs=X_input, outputs=X, name='vgg_model_v2')
-#
-#     return model
+def VGGModel_v2(input_shape, nf: tuple=(16, 32, 64), f: int=3, s: int=1, nfc: tuple=(128,), n_classes: int=8):
+    """
+    Implementation of the HappyModel.
+
+    Arguments:
+    input_shape -- shape of the images of the dataset
+    nf -- number of filters in conv blocks
+    f -- filter size
+    s -- stride
+    nf -- number of neurons in FC layers
+
+    padding is always 'same'
+
+    Returns:
+    model -- a Model() instance in Keras
+    """
+
+    # Define the input placeholder as a tensor with shape input_shape. Think of this as your input image!
+    X_input = Input(input_shape)
+
+    ''' first convolutional block: [CONV] -> [BATCH_NORM] -> [RELU] -> [MAXPOOL] '''
+
+    # CONV -> BN -> RELU Block applied to X
+    X = Conv2D(nf[0], (f, f), strides=(s, s), padding='same', name='conv0')(X_input)
+    X = BatchNormalization(axis=-1, name='bn0')(X, training=1)
+    X = Activation('relu')(X)
+    # X = Activation('sigmoid')(X)
+    # MAXPOOL
+    X = MaxPooling2D((2, 2), strides=(2, 2), name='max_pool0')(X)
+
+    ''' convolutional blocks: [CONV] -> [BATCH_NORM] -> [RELU] -> [MAXPOOL] '''
+    for i in range(1, len(nf)):
+        # CONV -> BN -> RELU Block applied to X
+        X = Conv2D(nf[i], (f, f), strides=(s, s), padding='same', name=f'conv{i}')(X)
+        X = BatchNormalization(axis=-1, name=f'bn{i}')(X, training=1)
+        X = Activation('relu')(X)
+        # X = Activation('sigmoid')(X)
+        # MAXPOOL
+        X = MaxPooling2D((2, 2), strides=(2, 2), name=f'max_pool{i}')(X)
+
+    ''' FLATTEN X (means convert it to a vector) '''
+    X = Flatten()(X)
+
+    ''' FULLYCONNECTED layers '''
+    for i, nfc_i in enumerate(nfc):
+        X = Dense(nfc_i, activation='sigmoid', name=f'fc{i+len(nf)}')(X)
+
+    ''' FULLYCONNECTED output layer '''
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    X = Dense(n_classes, activation=activation, name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+
+    # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
+    model = Model(inputs=X_input, outputs=X, name='vgg_model_v2')
+
+    return model
 
 
 def main():
@@ -295,8 +284,9 @@ def main():
     # model = VGGModel(image_shape, n_classes=n_classes)
     # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=128, n_classes=n_classes)
     # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=32, n_classes=n_classes)
-    model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=n_fc, n_classes=n_classes)
-    # model = VGGModel_v2(image_shape, nf=(16, 32, 64), f=3, s=1, nfc=0, n_classes=n_classes)
+    # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=n_fc, n_classes=n_classes)
+
+    model = VGGModel_v2(image_shape, nf=(16, 32, 64), f=3, s=1, nfc=(256,), n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
