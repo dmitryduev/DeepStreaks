@@ -114,10 +114,11 @@ def load_dataset(binary: bool=False, test_size=0.1):
     print(y.shape)
 
     # check statistics on different classes
-    print('\n')
-    for i in classes.keys():
-        print(f'{classes[i]}:', np.sum(y[:, i]))
-    print('\n')
+    if not binary:
+        print('\n')
+        for i in classes.keys():
+            print(f'{classes[i]}:', np.sum(y[:, i]))
+        print('\n')
 
     # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
