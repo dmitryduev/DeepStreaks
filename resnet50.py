@@ -231,7 +231,7 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     return X
 
 
-def ResNet50(input_shape=(64, 64, 3), classes=6):
+def ResNet50(input_shape=(144, 144, 1), n_classes=8):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -286,7 +286,8 @@ def ResNet50(input_shape=(64, 64, 3), classes=6):
 
     # output layer
     X = Flatten()(X)
-    X = Dense(classes, activation='softmax', name='fc' + str(classes), kernel_initializer=glorot_uniform(seed=0))(X)
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    X = Dense(n_classes, activation=activation, name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
 
     # Create model
     model = Model(inputs=X_input, outputs=X, name='ResNet50')
@@ -330,7 +331,7 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    model = ResNet50(input_shape=(144, 144, 1), classes=n_classes)
+    model = ResNet50(input_shape=(144, 144, 1), n_classes=n_classes)
 
     model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
 
