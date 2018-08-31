@@ -1,6 +1,12 @@
 import numpy as np
+import glob
+import os
+from PIL import Image
+import json
+from sklearn.model_selection import train_test_split
 from keras import layers
-from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
+from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
+                         AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
 from keras.models import Model, load_model
 from keras.preprocessing import image
 from keras.utils import layer_utils
@@ -19,6 +25,103 @@ from matplotlib.pyplot import imshow
 import keras.backend as K
 K.set_image_data_format('channels_last')
 K.set_learning_phase(1)
+
+
+def load_dataset(binary: bool=False, test_size=0.1):
+    """
+
+    :return:
+    """
+    # path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
+    path = './data-raw/'
+
+    # cut-outs:
+    x = []
+    # classifications:
+    y = []
+
+    # 08/21/2018: 8 possible classes:
+    classes = {
+        0: "Plausible Asteroid (short streak)",
+        1: "Satellite (long streak - could be partially masked)",
+        2: "Masked bright star",
+        3: "Dementors and ghosts",
+        4: "Cosmic rays",
+        5: "Yin-Yang (multiple badly subtracted stars)",
+        6: "Satellite flashes",
+        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images')"
+    }
+
+    ''' Long streaks from Quanzhi '''
+    path_long_streaks = os.path.join(path, 'long-streaks')
+
+    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
+
+    for ls in long_streaks:
+        # resize and normalize:
+        image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
+        x.append(image)
+
+        if binary:
+            # image_class = np.zeros(2)
+            image_class = 1
+        else:
+            image_class = np.zeros(8)
+            image_class[1] = 1
+
+        y.append(image_class)
+        # raise Exception()
+
+    ''' Stuff from Zooniverse '''
+    # TODO
+    # get json file with classifications
+    zoo_json = os.path.join(path, 'zooniverse.20180824_010749.json')
+    with open(zoo_json) as f:
+        zoo_classifications = json.load(f)
+
+    path_zoo = os.path.join(path, 'zooniverse')
+
+    zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
+
+    for z in zoos:
+        z_fname = os.path.split(z)[1]
+        if z_fname in zoo_classifications:
+            # resize and normalize:
+            image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
+            x.append(image)
+
+            if binary:
+                # image_class = np.zeros(2)
+                index = list(classes.values()).index(zoo_classifications[z_fname][0])
+                if index in (0, 1):
+                    image_class = 1
+                else:
+                    image_class = 0
+            else:
+                image_class = np.zeros(8)
+                image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
+
+            y.append(image_class)
+
+    # numpy-fy and split to test/train
+
+    x = np.array(x)
+    y = np.array(y)
+
+    print(x.shape)
+    print(y.shape)
+
+    # check statistics on different classes
+    print('\n')
+    for i in classes.keys():
+        print(f'{classes[i]}:', np.sum(y[:, i]))
+    print('\n')
+
+    # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
+    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+    return X_train, y_train, X_test, y_test, classes
 
 
 def identity_block(X, f, filters, stage, block):
@@ -190,19 +293,32 @@ def ResNet50(input_shape=(64, 64, 3), classes=6):
 
 
 if __name__ == '__main__':
-    model = ResNet50(input_shape=(64, 64, 3), classes=6)
+    K.clear_session()
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    ''' load data '''
 
-    X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset()
+    # streak / not streak? or with subclasses of bogus?
+    # binary_classification = True
+    binary_classification = False
+    n_classes = 1 if binary_classification else 8
+    # n_fc = 32 if binary_classification else 128
+    loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
+
+    # load data. resize here
+    X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset(binary=binary_classification,
+                                                                                 test_size=0.1)
 
     # Normalize image vectors
     X_train = X_train_orig / 255.
     X_test = X_test_orig / 255.
 
-    # Convert training and test labels to one hot matrices
-    Y_train = convert_to_one_hot(Y_train_orig, 6).T
-    Y_test = convert_to_one_hot(Y_test_orig, 6).T
+    #
+    Y_train = Y_train_orig
+    Y_test = Y_test_orig
+
+    # image shape:
+    image_shape = X_train.shape[1:]
+    print('image shape:', image_shape)
 
     print("number of training examples = " + str(X_train.shape[0]))
     print("number of test examples = " + str(X_test.shape[0]))
@@ -211,7 +327,12 @@ if __name__ == '__main__':
     print("X_test shape: " + str(X_test.shape))
     print("Y_test shape: " + str(Y_test.shape))
 
-    model.fit(X_train, Y_train, epochs=2, batch_size=32)
+    ''' build model '''
+    model = ResNet50(input_shape=(144, 144, 1), classes=n_classes)
+
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    model.fit(X_train, Y_train, epochs=10, batch_size=32)
 
     preds = model.evaluate(X_test, Y_test)
     print("Loss = " + str(preds[0]))
