@@ -105,7 +105,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
                                        2)
                 x.append(image)
 
-            print(np.max(image))
+            print(np.max(Image.open(image_path)))
 
     # numpy-fy and split to test/train
 
