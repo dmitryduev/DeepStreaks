@@ -311,14 +311,17 @@ def main():
     model.fit(x=X_train, y=Y_train, epochs=2, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # preds = model.evaluate(x=X_train, y=Y_train)
+    # preds = model.evaluate(x=X_test, y=Y_test)
     preds = model.evaluate(x=X_test, y=Y_test, batch_size=batch_size)
     # preds = model.evaluate(x=X_test, y=Y_test, batch_size=X_test.shape[0])
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    # preds = model.evaluate(x=X_test, y=Y_test)
-    # print("Loss = " + str(preds[0]))
-    # print("Test Accuracy = " + str(preds[1]))
+    preds = np.abs(model.predict(x=X_test) - Y_test)
+    for ip, pred in enumerate(preds):
+        if pred > 0:
+            im = Image.fromarray(np.uint8(X_test[ip] * 255))
+            im.show()
 
     # print(model.summary())
 
