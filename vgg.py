@@ -19,7 +19,7 @@ from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 import glob
 import os
-from PIL import Image
+from PIL import Image, ImageOps
 import json
 
 import keras.backend as K
