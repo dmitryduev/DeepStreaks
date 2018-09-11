@@ -135,104 +135,6 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
     return X_train, y_train, X_test, y_test, classes
 
 
-def load_dataset(binary: bool=False, test_size=0.1):
-    """
-
-    :return:
-    """
-    # path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
-    path = './data-raw/'
-
-    # cut-outs:
-    x = []
-    # classifications:
-    y = []
-
-    # 08/21/2018: 8 possible classes:
-    classes = {
-        0: "Plausible Asteroid (short streak)",
-        1: "Satellite (long streak - could be partially masked)",
-        2: "Masked bright star",
-        3: "Dementors and ghosts",
-        4: "Cosmic rays",
-        5: "Yin-Yang (multiple badly subtracted stars)",
-        6: "Satellite flashes",
-        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images')"
-    }
-
-    ''' Long streaks from Quanzhi '''
-    path_long_streaks = os.path.join(path, 'long-streaks')
-
-    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
-
-    for ls in long_streaks:
-        # resize and normalize:
-        image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
-        x.append(image)
-
-        if binary:
-            # image_class = np.zeros(2)
-            image_class = 1
-        else:
-            image_class = np.zeros(8)
-            image_class[1] = 1
-
-        y.append(image_class)
-        # raise Exception()
-
-    ''' Stuff from Zooniverse '''
-    # TODO
-    # get json file with classifications
-    zoo_json = os.path.join(path, 'zooniverse.20180824_010749.json')
-    with open(zoo_json) as f:
-        zoo_classifications = json.load(f)
-
-    path_zoo = os.path.join(path, 'zooniverse')
-
-    zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
-
-    for z in zoos:
-        z_fname = os.path.split(z)[1]
-        if z_fname in zoo_classifications:
-            # resize and normalize:
-            image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
-            x.append(image)
-
-            if binary:
-                # image_class = np.zeros(2)
-                index = list(classes.values()).index(zoo_classifications[z_fname][0])
-                if index in (0, 1):
-                    image_class = 1
-                else:
-                    image_class = 0
-            else:
-                image_class = np.zeros(8)
-                image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
-
-            y.append(image_class)
-
-    # numpy-fy and split to test/train
-
-    x = np.array(x)
-    y = np.array(y)
-
-    print(x.shape)
-    print(y.shape)
-
-    # check statistics on different classes
-    if not binary:
-        print('\n')
-        for i in classes.keys():
-            print(f'{classes[i]}:', np.sum(y[:, i]))
-        print('\n')
-
-    # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-
-    return X_train, y_train, X_test, y_test, classes
-
-
 def identity_block(X, f, filters, stage, block):
     """
     Implementation of the identity block as defined in Figure 3
@@ -413,8 +315,7 @@ if __name__ == '__main__':
     # n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
-    # load data. resize here
-    # X_train, Y_train, X_test, Y_test, classes = load_dataset(binary=binary_classification, test_size=0.1)
+    # load data
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id='5b96af9c0354c9000b0aea36',
                                                           binary=True,

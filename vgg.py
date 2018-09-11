@@ -32,81 +32,78 @@ def mean_pred(y_true, y_pred):
     return K.mean(y_pred)
 
 
-def load_dataset(binary: bool=False, test_size=0.1):
-    """
+def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
 
-    :return:
-    """
-    # path = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'
-    path = './data-raw/'
-
-    # cut-outs:
+    # data:
     x = []
     # classifications:
     y = []
 
-    # 08/21/2018: 8 possible classes:
-    classes = {
-        0: "Plausible Asteroid (short streak)",
-        1: "Satellite (long streak - could be partially masked)",
-        2: "Masked bright star",
-        3: "Dementors and ghosts",
-        4: "Cosmic rays",
-        5: "Yin-Yang (multiple badly subtracted stars)",
-        6: "Satellite flashes",
-        7: "Skip (Includes 'Not Sure' and seemingly 'Blank Images')"
-    }
+    # hand-picked test data:
+    x_test = []
+    y_test = []
 
-    ''' Long streaks from Quanzhi '''
-    path_long_streaks = os.path.join(path, 'long-streaks')
+    # get json file with project metadata
+    project_meta_json = os.path.join(path, f'{project_id}.json')
+    with open(project_meta_json) as f:
+        project_meta = json.load(f)
 
-    long_streaks = glob.glob(os.path.join(path_long_streaks, '*.jpg'))
+    # print(project_meta)
 
-    for ls in long_streaks:
-        # resize and normalize:
-        image = np.expand_dims(np.array(Image.open(ls).resize((144, 144), Image.BILINEAR)) / 255., 2)
-        x.append(image)
+    classes_list = project_meta['classes']
 
-        if binary:
-            # image_class = np.zeros(2)
-            image_class = 1
-        else:
-            image_class = np.zeros(8)
-            image_class[1] = 1
+    # if it's a binary problem, do {'class1': 0, 'class2': 1}
+    # if multi-class (N), do {'class1': np.array([1, 0, ..., 0]), 'class2': np.array([0, 1, ..., 0]),
+    #                         'classN': np.array([0, 0, ..., 1])}
+    if binary:
+        classes = {classes_list[0]: 0, classes_list[1]: 1}
+    else:
+        classes = {}
+        n_c = len(classes_list)
 
-        y.append(image_class)
-        # raise Exception()
+        for ci, cls in enumerate(classes_list):
+            classes[cls] = np.zeros(n_c)
+            classes[cls][ci] = 1
 
-    ''' Stuff from Zooniverse '''
-    # TODO
-    # get json file with classifications
-    zoo_json = os.path.join(path, 'zooniverse.20180824_010749.json')
-    with open(zoo_json) as f:
-        zoo_classifications = json.load(f)
+    # print(classes)
 
-    path_zoo = os.path.join(path, 'zooniverse')
+    path_project = os.path.join(path, project_id)
 
-    zoos = glob.glob(os.path.join(path_zoo, '*.jpg'))
+    for dataset_id in project_meta['datasets']:
+        print(f'Loading dataset {dataset_id}')
 
-    for z in zoos:
-        z_fname = os.path.split(z)[1]
-        if z_fname in zoo_classifications:
-            # resize and normalize:
-            image = np.expand_dims(np.array(Image.open(z).resize((144, 144), Image.BILINEAR)) / 255., 2)
-            x.append(image)
+        dataset_json = glob.glob(os.path.join(path_project, f'classifications.{dataset_id}.*.json'))[0]
+        with open(dataset_json) as f:
+            classifications = json.load(f)
+        # print(classifications)
 
-            if binary:
-                # image_class = np.zeros(2)
-                index = list(classes.values()).index(zoo_classifications[z_fname][0])
-                if index in (0, 1):
-                    image_class = 1
-                else:
-                    image_class = 0
+        path_dataset = glob.glob(os.path.join(path_project, f'{dataset_id}.*'))[0]
+        # print(path_dataset)
+
+        for k, v in classifications.items():
+            image_class = classes[v[0]]
+            if dataset_id == '5b96ecf05ec848000c70a870' and image_class == 1:
+                # FIXME: use streak examples from Zooniverse as test cases
+                y_test.append(image_class)
+
+                # resize and normalize:
+                image_path = os.path.join(path_dataset, k)
+                # the assumption is that images are grayscale
+                image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
+                                                                                                  Image.BILINEAR)) / 255.,
+                                       2)
+                x_test.append(image)
+
             else:
-                image_class = np.zeros(8)
-                image_class[list(classes.values()).index(zoo_classifications[z_fname][0])] = 1
+                y.append(image_class)
 
-            y.append(image_class)
+                # resize and normalize:
+                image_path = os.path.join(path_dataset, k)
+                # the assumption is that images are grayscale
+                image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
+                                                                                                  Image.BILINEAR)) / 255.,
+                                       2)
+                x.append(image)
 
     # numpy-fy and split to test/train
 
@@ -120,12 +117,23 @@ def load_dataset(binary: bool=False, test_size=0.1):
     if not binary:
         print('\n')
         for i in classes.keys():
-            print(f'{classes[i]}:', np.sum(y[:, i]))
+            print(f'{i}:', np.sum(y[:, i]))
+        print('\n')
+    else:
+        print('\n')
+        cs = list(classes.keys())
+        print(f'{cs[0]}:', len(y) - np.sum(y))
+        print(f'{cs[1]}:', np.sum(y))
         print('\n')
 
-    # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    # # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
+    # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+    # FIXME:
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
+    X_train, X_test, y_train, y_test = x, x_test, y, y_test
 
     return X_train, y_train, X_test, y_test, classes
 
@@ -258,17 +266,11 @@ def main():
     n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
-    # load data. resize here
-    X_train_orig, Y_train_orig, X_test_orig, Y_test_orig, classes = load_dataset(binary=binary_classification,
-                                                                                 test_size=0.1)
-
-    # Normalize image vectors
-    X_train = X_train_orig / 255.
-    X_test = X_test_orig / 255.
-
-    #
-    Y_train = Y_train_orig
-    Y_test = Y_test_orig
+    # load data
+    X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
+                                                          project_id='5b96af9c0354c9000b0aea36',
+                                                          binary=True,
+                                                          test_size=0.1)
 
     # image shape:
     image_shape = X_train.shape[1:]
