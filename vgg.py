@@ -317,7 +317,9 @@ def main():
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    preds = np.abs(model.predict(x=X_test) - Y_test)
+    # preds = np.abs(model.predict(x=X_test, batch_size=batch_size) - Y_test)
+    preds = model.predict(x=X_test, batch_size=batch_size)
+    print(preds)
     for ip, pred in enumerate(preds):
         print(pred)
         # if pred > 0:
