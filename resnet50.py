@@ -77,9 +77,10 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
         path_dataset = glob.glob(os.path.join(path_project, f'{dataset_id}.*'))[0]
         # print(path_dataset)
 
+        nnn = 1
         for k, v in classifications.items():
             image_class = classes[v[0]]
-            if dataset_id == '5b96ecf05ec848000c70a870' and image_class == 1:
+            if dataset_id == '5b96ecf05ec848000c70a870' and image_class == 1 and nnn <= 50:
                 # FIXME: use streak examples from Zooniverse as test cases
                 y_test.append(image_class)
 
@@ -90,6 +91,8 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
                                                                                                   Image.BILINEAR)) / 255.,
                                        2)
                 x_test.append(image)
+
+                nnn += 1
 
             else:
                 y.append(image_class)
