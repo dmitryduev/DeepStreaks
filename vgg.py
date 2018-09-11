@@ -262,8 +262,8 @@ def main():
     K.clear_session()
 
     # streak / not streak? or with subclasses of bogus?
-    # binary_classification = True
-    binary_classification = False
+    binary_classification = True
+    # binary_classification = False
     n_classes = 1 if binary_classification else 2
     n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
