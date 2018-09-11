@@ -260,8 +260,8 @@ def main():
     K.clear_session()
 
     # streak / not streak? or with subclasses of bogus?
-    # binary_classification = True
-    binary_classification = False
+    binary_classification = True
+    # binary_classification = False
     n_classes = 1 if binary_classification else 8
     n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
@@ -269,7 +269,7 @@ def main():
     # load data
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id='5b96af9c0354c9000b0aea36',
-                                                          binary=True,
+                                                          binary=binary_classification,
                                                           test_size=0.1)
 
     # image shape:
