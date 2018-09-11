@@ -92,6 +92,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
                 image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
                                                                                                   Image.BILINEAR)) / 255.,
                                        2)
+                print(np.max(image))
                 x_test.append(image)
 
             else:
