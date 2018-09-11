@@ -292,7 +292,7 @@ def main():
     # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=32, n_classes=n_classes)
     # model = VGGModel(image_shape, nf=(16, 32), f=3, s=1, nfc=n_fc, n_classes=n_classes)
 
-    model = VGGModel_v2(image_shape, nf=(16, 32), f=3, s=1, nfc=(128, 128), n_classes=n_classes)
+    model = VGGModel_v2(image_shape, nf=(16, 32), f=3, s=1, nfc=(32,), n_classes=n_classes)
 
     # set up optimizer:
     # adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -319,9 +319,10 @@ def main():
 
     preds = np.abs(model.predict(x=X_test) - Y_test)
     for ip, pred in enumerate(preds):
-        if pred > 0:
-            im = Image.fromarray(np.uint8(X_test[ip] * 255))
-            im.show()
+        print(pred)
+        # if pred > 0:
+        im = Image.fromarray(np.uint8(X_test[ip] * 255))
+        im.show()
 
     # print(model.summary())
 
