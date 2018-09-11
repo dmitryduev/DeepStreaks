@@ -105,8 +105,6 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
                                        2)
                 x.append(image)
 
-            print(np.max(Image.open(image_path)))
-
     # numpy-fy and split to test/train
 
     x = np.array(x)
@@ -294,12 +292,13 @@ def main():
     model = VGGModel_v2(image_shape, nf=(16, 32), f=3, s=1, nfc=(128,), n_classes=n_classes)
 
     # set up optimizer:
-    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
 
     # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
 
-    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
