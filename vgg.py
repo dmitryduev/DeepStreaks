@@ -9,7 +9,7 @@ from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras.callbacks import TensorBoard
 import pydot
 from IPython.display import SVG
@@ -262,9 +262,9 @@ def main():
     K.clear_session()
 
     # streak / not streak? or with subclasses of bogus?
-    binary_classification = True
-    # binary_classification = False
-    n_classes = 1 if binary_classification else 8
+    # binary_classification = True
+    binary_classification = False
+    n_classes = 1 if binary_classification else 2
     n_fc = 32 if binary_classification else 128
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
@@ -294,7 +294,8 @@ def main():
     model = VGGModel_v2(image_shape, nf=(16, 32), f=3, s=1, nfc=(128,), n_classes=n_classes)
 
     # set up optimizer:
-    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
 
     # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=["accuracy"])
 
