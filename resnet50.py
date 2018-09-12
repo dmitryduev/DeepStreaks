@@ -414,7 +414,7 @@ if __name__ == '__main__':
     X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
                                                                  project_id='5b96af9c0354c9000b0aea36',
                                                                  binary=binary_classification,
-                                                                 test_size=0.1)
+                                                                 test_size=0.01)
     # X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
     #                                                       project_id='5b96af9c0354c9000b0aea36',
     #                                                       binary=binary_classification,
