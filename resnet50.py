@@ -159,7 +159,8 @@ def load_data_custom(path: str = './data', project_id: str = None, binary: bool 
             classifications = json.load(f)
         # print(classifications)
 
-        path_dataset = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*')))[0]
+        path_dataset = [p for p in sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*'))) if
+                        os.path.isdir(p)][-1]
         # print(path_dataset)
 
         nnn = 1
