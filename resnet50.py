@@ -224,8 +224,8 @@ def load_data_custom(path: str = './data', project_id: str = None, binary: bool 
     # add
     x_train, x_test_custom, y_train, y_test_custom = train_test_split(x_train, y_train, test_size=test_size)
     # print(x_test.shape, x_test_custom.shape)
-    x_test = np.concatenate((x_test, x_test_custom))
-    y_test = np.concatenate((y_test, y_test_custom))
+    x_test = np.concatenate((x_test_custom, x_test))
+    y_test = np.concatenate((y_test_custom, y_test))
 
     return x_train, y_train, x_test, y_test, classes
 
