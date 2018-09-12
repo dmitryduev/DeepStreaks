@@ -322,8 +322,8 @@ def main():
     print(preds)
     for ip, pred in enumerate(preds):
         print(pred)
-        # if pred > 0:
-        im = Image.fromarray(np.uint8(X_test[ip] * 255))
+        # if pred < 0.5:
+        im = Image.fromarray(np.uint8(X_test[ip, :] * 255))
         im.show()
 
     # print(model.summary())
