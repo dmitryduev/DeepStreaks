@@ -69,10 +69,11 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
 
     path_project = os.path.join(path, project_id)
 
+    # FIXME:
     for dataset_id in project_meta['datasets'][:3]:
         print(f'Loading dataset {dataset_id}')
 
-        dataset_json = glob.glob(os.path.join(path_project, f'classifications.{dataset_id}.*.json'))[0]
+        dataset_json = glob.glob(os.path.join(path_project, f'{dataset_id}.*.json'))[0]
         with open(dataset_json) as f:
             classifications = json.load(f)
         # print(classifications)
