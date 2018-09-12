@@ -355,7 +355,8 @@ if __name__ == '__main__':
     preds = model.predict(x=X_test, batch_size=batch_size)
     print(preds)
     for ip, pred in enumerate(preds):
-        print(pred)
+        print(pred[0])
         # if pred[0] < 0.5:
         im = Image.fromarray((X_test[ip, :, :, 0] * 255).astype('uint8'))
         im.show()
+        input()
