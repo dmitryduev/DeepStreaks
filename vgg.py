@@ -308,7 +308,7 @@ def main():
 
     batch_size = 32
 
-    model.fit(x=X_train, y=Y_train, epochs=3, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(x=X_train, y=Y_train, epochs=2, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # preds = model.evaluate(x=X_train, y=Y_train)
     # preds = model.evaluate(x=X_test, y=Y_test)
@@ -322,8 +322,8 @@ def main():
     print(preds)
     for ip, pred in enumerate(preds):
         print(pred)
-        # if pred < 0.5:
-        im = Image.fromarray((X_test[ip, :] * 255).astype('uint8'))
+        # if pred[0] < 0.5:
+        im = Image.fromarray((X_test[ip, :, :, 0] * 255).astype('uint8'))
         im.show()
 
     # print(model.summary())

@@ -351,3 +351,11 @@ if __name__ == '__main__':
     print("Test Accuracy = " + str(preds[1]))
 
     model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
+
+    preds = model.predict(x=X_test, batch_size=batch_size)
+    print(preds)
+    for ip, pred in enumerate(preds):
+        print(pred)
+        # if pred[0] < 0.5:
+        im = Image.fromarray((X_test[ip, :, :, 0] * 255).astype('uint8'))
+        im.show()
