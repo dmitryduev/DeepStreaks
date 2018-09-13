@@ -5,6 +5,7 @@ import datetime
 from PIL import Image, ImageOps
 import json
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
                          AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
@@ -452,7 +453,7 @@ if __name__ == '__main__':
     # print(preds)
 
     labels_pred = np.rint(preds)
-    confusion_matrix = K.tf.confusion_matrix(Y_test, labels_pred)
+    confusion_matrix = confusion_matrix(Y_test, labels_pred)
 
     print('Confusion matrix:')
     print(confusion_matrix)
