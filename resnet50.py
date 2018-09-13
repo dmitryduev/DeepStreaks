@@ -415,7 +415,7 @@ if __name__ == '__main__':
     X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
                                                                  project_id='5b96af9c0354c9000b0aea36',
                                                                  binary=binary_classification,
-                                                                 test_size=0.01)
+                                                                 test_size=0.05)
     # X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
     #                                                       project_id='5b96af9c0354c9000b0aea36',
     #                                                       binary=binary_classification,
@@ -454,9 +454,13 @@ if __name__ == '__main__':
 
     labels_pred = np.rint(preds)
     confusion_matrix = confusion_matrix(Y_test, labels_pred)
+    confusion_matrix_normalized = confusion_matrix.astype('float') / confusion_matrix.sum(axis=1)[:, np.newaxis]
 
     print('Confusion matrix:')
     print(confusion_matrix)
+
+    print('Normalized confusion matrix:')
+    print(confusion_matrix_normalized)
 
     # for ip, pred in enumerate(preds):
     #     print(pred[0])
