@@ -452,6 +452,7 @@ if __name__ == '__main__':
     preds = model.predict(x=X_test, batch_size=batch_size)
     # print(preds)
 
+    # round probs to nearest int (0 or 1)
     labels_pred = np.rint(preds)
     confusion_matrix = confusion_matrix(Y_test, labels_pred)
     confusion_matrix_normalized = confusion_matrix.astype('float') / confusion_matrix.sum(axis=1)[:, np.newaxis]
