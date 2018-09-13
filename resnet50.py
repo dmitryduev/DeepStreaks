@@ -452,7 +452,7 @@ if __name__ == '__main__':
     # print(preds)
 
     labels_pred = np.rint(preds)
-    confusion_matrix = K.confusion_matrix(Y_test, labels_pred)
+    confusion_matrix = K.tf.confusion_matrix(Y_test, labels_pred)
 
     print('Confusion matrix:')
     print(confusion_matrix)
