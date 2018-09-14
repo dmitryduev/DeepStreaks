@@ -66,25 +66,29 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
     for dataset_id in project_meta['datasets']:
         print(f'Loading dataset {dataset_id}')
 
-        dataset_json = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*.json')))[-1]
-        with open(dataset_json) as f:
-            classifications = json.load(f)
-        # print(classifications)
+        dataset_json = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*.json')))
+        if len(dataset_json) > 0:
+            dataset_json = dataset_json[-1]
 
-        path_dataset = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*')))[0]
-        # print(path_dataset)
+            with open(dataset_json) as f:
+                classifications = json.load(f)
+            # print(classifications)
 
-        for k, v in classifications.items():
-            image_class = classes[v[0]]
-            y.append(image_class)
+            path_dataset = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*')))[0]
+            # print(path_dataset)
 
-            # resize and normalize:
-            image_path = os.path.join(path_dataset, k)
-            # the assumption is that images are grayscale
-            image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
-                                                                                              Image.BILINEAR)) / 255.,
-                                   2)
-            x.append(image)
+            for k, v in classifications.items():
+                # resize and normalize:
+                image_path = os.path.join(path_dataset, k)
+
+                if os.path.exists(image_path):
+                    # the assumption is that images are grayscale
+                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                    img = np.expand_dims(img, 2)
+                    x.append(img)
+
+                    image_class = classes[v[0]]
+                    y.append(image_class)
 
     # numpy-fy and split to test/train
 
@@ -115,7 +119,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
 
 
 def load_data_custom(path: str = './data', project_id: str = None, binary: bool = True, resize: tuple = (144, 144),
-              test_size=0.1):
+                     test_size=0.1):
     # data:
     x = []
     # classifications:
@@ -336,7 +340,7 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     return X
 
 
-def ResNet50(input_shape=(144, 144, 1), n_classes=8):
+def ResNet50(input_shape=(144, 144, 1), n_classes: int=8):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -344,7 +348,7 @@ def ResNet50(input_shape=(144, 144, 1), n_classes=8):
 
     Arguments:
     input_shape -- shape of the images of the dataset
-    classes -- integer, number of classes
+    n_classes -- integer, number of classes
 
     Returns:
     model -- a Model() instance in Keras
@@ -412,8 +416,8 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
     # X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
     #                                                              project_id='5b96af9c0354c9000b0aea36',
