@@ -416,8 +416,8 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
     # X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
     #                                                              project_id='5b96af9c0354c9000b0aea36',
