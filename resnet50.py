@@ -412,14 +412,17 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
-                                                                 project_id='5b96af9c0354c9000b0aea36',
-                                                                 binary=binary_classification,
-                                                                 test_size=0.05)
-    # X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
-    #                                                       project_id='5b96af9c0354c9000b0aea36',
-    #                                                       binary=binary_classification,
-    #                                                       test_size=0.1)
+    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+
+    # X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
+    #                                                              project_id='5b96af9c0354c9000b0aea36',
+    #                                                              binary=binary_classification,
+    #                                                              test_size=0.05)
+    X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
+                                                          project_id=project_id,
+                                                          binary=binary_classification,
+                                                          test_size=0.1)
 
     # image shape:
     image_shape = X_train.shape[1:]
