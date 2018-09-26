@@ -1,4 +1,4 @@
-# deep-asteroids: detecting Near-Earth Asteroids (NEAs) in ZTF data with deep learning
+# deep-asteroids: detecting Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
 
 ## Models: architecture, data, training, and performance
 
@@ -68,6 +68,7 @@ Normalized confusion matrix:
 
 The (mis)classifications are based on an `0.5` score cut: completeness can be increased by lowering the threshold.
 
+---
 
 ## Production service  
 
@@ -75,19 +76,15 @@ The (mis)classifications are based on an `0.5` score cut: completeness can be in
 
 #### Pre-requisites
 
-Clone the repo and cd to the directory:
+Clone the repo and cd to the `service` directory:
 ```bash
-git clone https://github.com/dmitryduev/zwickyverse.git
-cd zwickyverse
+git clone https://github.com/dmitryduev/deep-asteroids.git
+cd deep-asteroids/service
 ```
 
-Create `secrets.json` with the `Kowalski` login credentials and admin user/password for the website:
+Create `secrets.json` with the admin user/password for the web app:
 ```json
 {
-  "kowalski": {
-    "user": "USER",
-    "password": "PASSWORD"
-  },
   "database": {
     "admin_username": "ADMIN",
     "admin_password": "PASSWORD"
@@ -97,7 +94,7 @@ Create `secrets.json` with the `Kowalski` login credentials and admin user/passw
 
 #### Using `docker-compose` (for production)
 
-Change `private.caltech.edu` on line 34 in `docker-compose.yml` and line 88 in `traefik/traefik.toml` to your domain. 
+Change `rico.caltech.edu` in `docker-compose.yml` and in `traefik/traefik.toml` to your domain. 
 
 Run `docker-compose` to start the service:
 ```bash
@@ -115,26 +112,26 @@ docker-compose down
 
 If you want to use `docker run` instead:
 
-Create a persistent Docker volume for MongoDB and to store thumbnails etc.:
+Create a persistent Docker volume for MongoDB and to store data:
 ```bash
-docker volume create zwickyverse-mongo-volume
-docker volume create zwickyverse-volume
+docker volume create deep-asteroids-mongo-volume
+docker volume create deep-asteroids-volume
 ```
 
 Launch the MongoDB container. Feel free to change u/p for the admin, 
 but make sure to change `config.json` correspondingly.
 ```bash
-docker run -d --restart always --name zwickyverse-mongo -p 27020:27017 -v zwickyverse-mongo-volume:/data/db \
+docker run -d --restart always --name deep-asteroids-mongo -p 27023:27017 -v deep-asteroids-mongo-volume:/data/db \
        -e MONGO_INITDB_ROOT_USERNAME=mongoadmin -e MONGO_INITDB_ROOT_PASSWORD=mongoadminsecret \
        mongo:latest
 ```
 
-Build and launch the main container:
+Build and launch the app container:
 ```bash
-docker build -t zwickyverse:latest -f Dockerfile .
-docker run --name zwickyverse -d --restart always -p 8000:4000 -v zwickyverse-volume:/data --link zwickyverse-mongo:mongo zwickyverse:latest
+docker build -t deep-asteroids:latest -f Dockerfile .
+docker run --name deep-asteroids -d --restart always -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 # test mode:
-docker run -it --rm --name zwickyverse -p 8000:4000 -v zwickyverse-volume:/data --link zwickyverse-mongo:mongo zwickyverse:latest
+docker run -it --rm --name deep-asteroids -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 ```
 
-The service will be available on port 8000 of the `Docker` host machine
+The service will be available on port 8000 of the `Docker` host machine.
