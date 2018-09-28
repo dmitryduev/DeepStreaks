@@ -393,10 +393,14 @@ class Watcher(object):
                         x = np.expand_dims(x, 2)
                         x = np.expand_dims(x, 0)
 
-                        rb = self.models['rb'].predict(x)
-                        print(rb)
-                        sl = self.models['sl'].predict(x)
-                        print(sl)
+                        rb = self.models['rb'].predict(x)[0][0]
+                        # print(rb)
+                        sl = self.models['sl'].predict(x)[0][0]
+                        # print(sl)
+
+                        # doc['scores'] = {'rb': rb, 'sl': sl}
+                        doc['rb'] = rb
+                        doc['sl'] = sl
 
                         # print(doc)
 
