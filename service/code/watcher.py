@@ -10,10 +10,12 @@ import traceback
 import pymongo
 import pytz
 import pandas as pd
-# from numba import jit
+from numba import jit
 import numpy as np
 import datetime
 from xml.etree import ElementTree
+from keras.models import load_model
+from PIL import Image, ImageOps
 
 
 class XmlListConfig(list):
@@ -91,7 +93,7 @@ def time_stamps():
            datetime.datetime.utcnow().strftime('%Y%m%d_%H:%M:%S')
 
 
-# @jit
+@jit
 def deg2hms(x):
     """Transform degrees to *hours:minutes:seconds* strings.
     Parameters
@@ -116,7 +118,7 @@ def deg2hms(x):
     return hms
 
 
-# @jit
+@jit
 def deg2dms(x):
     """Transform degrees to *degrees:arcminutes:arcseconds* strings.
     Parameters
@@ -161,6 +163,17 @@ class Watcher(object):
         self.db = None
         self.init_db()
         self.connect_to_db()
+
+        # DL models:
+        self.models = dict()
+        for model in ('rb', 'sl'):
+            print(*time_stamps(), f'loading {model} model')
+            self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
+                                                         self.config['models'][model]))
+
+        self.model_input_shape = self.models['rb'].input_shape[1:3]
+
+        print(*time_stamps(), 'AND NOW MY WATCH BEGINS!')
 
     @staticmethod
     def get_config(_config_file='config.json'):
@@ -211,7 +224,7 @@ class Watcher(object):
         if f'{db_name}.{username}' not in user_ids:
             _client[db_name].command('createUser', self.config['database']['user'],
                                      pwd=self.config['database']['pwd'], roles=['readWrite'])
-            print('Successfully initialized db')
+            print(*time_stamps(), 'Successfully initialized db')
 
     def connect_to_db(self):
         """
@@ -238,6 +251,8 @@ class Watcher(object):
         self.db = dict()
         self.db['client'] = _client
         self.db['db'] = _db
+
+        print(*time_stamps(), "Connected to db")
 
     def insert_db_entry(self, _collection=None, _db_entry=None):
         """
@@ -344,7 +359,7 @@ class Watcher(object):
                 if meta_name not in self.processed[obsdate]:
 
                     # TODO: digest
-                    df = pd.read_table(meta_name, sep='|', header=0, skipfooter=1)
+                    df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
                     df = df.drop(0)
                     for index, row in df.iterrows():
                         _tmp = row.to_dict()
@@ -369,9 +384,21 @@ class Watcher(object):
                         tree = ElementTree.parse(path_streak_ades)
                         root = tree.getroot()
                         xmldict = XmlDictConfig(root)
-                        print(xmldict)
+                        # print(xmldict)
+                        doc['ades'] = xmldict
 
-                        print(doc)
+                        # Compute ML scores:
+                        x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
+                                                                                              Image.BILINEAR)) / 255.
+                        x = np.expand_dims(x, 2)
+                        x = np.expand_dims(x, 0)
+
+                        rb = self.models['rb'].predict(x)
+                        print(rb)
+                        sl = self.models['sl'].predict(x)
+                        print(sl)
+
+                        # print(doc)
 
                     # save as processed
                     self.processed[obsdate].add(meta_name)
@@ -391,7 +418,7 @@ class Watcher(object):
 
                 continue
 
-        print(*time_stamps(), f'Done. Processed alerts for {obsdate} so far:', len(self.processed[obsdate]))
+        print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:', len(self.processed[obsdate]))
 
 
 def main(config_file=None, obsdate=None, enforce=False):
