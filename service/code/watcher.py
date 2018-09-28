@@ -399,8 +399,15 @@ class Watcher(object):
                         # print(sl)
 
                         # doc['scores'] = {'rb': rb, 'sl': sl}
+                        # store the most recent scores "on the facade"
                         doc['rb'] = rb
                         doc['sl'] = sl
+
+                        # but keep track of history if recomputed in the future
+                        doc['scores'] = {'rb': [(rb, self.config['models']['rb'])]}
+                        doc['scores'] = {'sl': [(rb, self.config['models']['sl'])]}
+
+                        doc['last_modified'] = utc_now()
 
                         # print(doc)
 
