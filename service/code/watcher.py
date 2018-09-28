@@ -404,6 +404,9 @@ class Watcher(object):
 
                         # print(doc)
 
+                        self.insert_db_entry(_collection=self.config['database']['collection_main'],
+                                             _db_entry=doc)
+
                     # save as processed
                     self.processed[obsdate].add(meta_name)
 
@@ -423,6 +426,15 @@ class Watcher(object):
                 continue
 
         print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:', len(self.processed[obsdate]))
+
+        print(*time_stamps(), 'Creating/checking indices')
+        self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
+                                                                               background=True)
+        self.db['db'][self.config['database']['collection_main']].create_index([('rb', pymongo.DESCENDING)],
+                                                                               background=True)
+        self.db['db'][self.config['database']['collection_main']].create_index([('sl', pymongo.DESCENDING)],
+                                                                               background=True)
+        print(*time_stamps(), 'Done')
 
 
 def main(config_file=None, obsdate=None, enforce=False):
