@@ -1,0 +1,5 @@
+# rsync with yupana? seems too complicated, sync directly on private
+#0,20,40 * * * * /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/qye/ssmBackend/streaks/201\* /scratch/ztf/streaks/meta/ >/dev/null 2>&1
+#0,20,40 * * * * /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/apache/htdocs/marshals/ssm/zsrs/stamps_\* /scratch/ztf/streaks/stamps/ >/dev/null 2>&1
+# 0 18 * * * /usr/local/bin/python /app/fetch.py /app/config.json >> /var/log/cron.log 2>&1
+# An empty line is required at the end of this file for a valid cron file.

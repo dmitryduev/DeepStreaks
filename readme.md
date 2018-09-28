@@ -129,9 +129,12 @@ docker run -d --restart always --name deep-asteroids-mongo -p 27023:27017 -v dee
 Build and launch the app container:
 ```bash
 docker build -t deep-asteroids:latest -f Dockerfile .
-docker run --name deep-asteroids -d --restart always -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+#docker run --name deep-asteroids -d --restart always -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 # test mode:
-docker run -it --rm --name deep-asteroids -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+#docker run -it --rm --name deep-asteroids -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+#docker run -it --rm --name deep-asteroids -p 8000:4000 -v /scratch/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+docker run -it --rm --name deep-asteroids -p 8000:4000 -v /Users/dmitryduev/_caltech/python/deep-asteroids/service/dev:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+
 ```
 
 The service will be available on port 8000 of the `Docker` host machine.

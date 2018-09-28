@@ -1,0 +1,60 @@
+{
+  "server": {
+    "logo": "ZTF Streaks",
+    "environment": "production",
+    "host": "0.0.0.0",
+    "port": "4000",
+    "SECRET_KEY": "very_secret_key!",
+    "JWT_SECRET_KEY": "even_more_secret_key!!",
+    "help": {
+      "self": "global server settings",
+      "host": "host ip for test env deployment",
+      "port": "port for test env deployment. in production, this is handled by supervisord/gunicorn",
+      "environment": "'test' or 'production'"
+    }
+  },
+
+  "path": {
+    "path_app": "/app",
+    "path_logs": "/app/logs/",
+    "path_data": "/data/",
+    "path_models": "/app/models/",
+    "path_tmp": "/app/_tmp/",
+    "help": {
+      "self": "path to all kinds of stuff. these are internal container paths",
+      "path_logs": "path to store logs",
+      "path_data": "path to data",
+      "path_tmp": "path to store temporary stuff"
+    }
+  },
+
+  "database": {
+    "host": "deep-asteroids-mongo",
+    "port": 27017,
+    "admin": "mongoadmin",
+    "admin_pwd": "mongoadminsecret",
+    "db": "deep-asteroids",
+    "user": "ztf",
+    "pwd": "ztfkicksass",
+    "collection_main": "deep-asteroids",
+    "collection_users": "users",
+    "help": {
+      "self": "Details about the database",
+      "host": "host running MongoDB",
+      "port": "port where MongoDB is running on host",
+      "db": "main DB dame",
+      "user": "global DB access user name",
+      "pwd": "global DB access password",
+      "collection_main": "main collection with stuff"
+    }
+  },
+
+  "watcher": {
+    "model_rb": "ResNet50_rb_20e_20180914_122326.h5",
+    "model_sl": "ResNet50_sl_20e_20180914_120303.h5"
+  },
+
+  "misc": {
+    "logging_level": "debug"
+  }
+}
