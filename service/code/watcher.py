@@ -10,9 +10,73 @@ import traceback
 import pymongo
 import pytz
 import pandas as pd
-from numba import jit
+# from numba import jit
 import numpy as np
 import datetime
+from xml.etree import ElementTree
+
+
+class XmlListConfig(list):
+    def __init__(self, aList):
+        for element in aList:
+            if element:
+                # treat like dict
+                if len(element) == 1 or element[0].tag != element[1].tag:
+                    self.append(XmlDictConfig(element))
+                # treat like list
+                elif element[0].tag == element[1].tag:
+                    self.append(XmlListConfig(element))
+            elif element.text:
+                text = element.text.strip()
+                if text:
+                    self.append(text)
+
+
+class XmlDictConfig(dict):
+    """
+    Example usage:
+
+    >>> tree = ElementTree.parse('your_file.xml')
+    >>> root = tree.getroot()
+    >>> xmldict = XmlDictConfig(root)
+
+    Or, if you want to use an XML string:
+
+    >>> root = ElementTree.XML(xml_string)
+    >>> xmldict = XmlDictConfig(root)
+
+    And then use xmldict for what it is... a dict.
+    """
+    def __init__(self, parent_element):
+        if parent_element.items():
+            self.update(dict(parent_element.items()))
+        for element in parent_element:
+            if element:
+                # treat like dict - we assume that if the first two tags
+                # in a series are different, then they are all different.
+                if len(element) == 1 or element[0].tag != element[1].tag:
+                    aDict = XmlDictConfig(element)
+                # treat like list - we assume that if the first two tags
+                # in a series are the same, then the rest are the same.
+                else:
+                    # here, we put the list in dictionary; the key is the
+                    # tag name the list elements all share in common, and
+                    # the value is the list itself
+                    aDict = {element[0].tag: XmlListConfig(element)}
+                # if the tag has attributes, add those to the dict
+                if element.items():
+                    aDict.update(dict(element.items()))
+                self.update({element.tag: aDict})
+            # this assumes that if you've got an attribute in a tag,
+            # you won't be having any text. This may or may not be a
+            # good idea -- time will tell. It works for the way we are
+            # currently doing XML configuration files...
+            elif element.items():
+                self.update({element.tag: dict(element.items())})
+            # finally, if there are no child tags and no attributes, extract
+            # the text
+            else:
+                self.update({element.tag: element.text})
 
 
 def utc_now():
@@ -27,7 +91,7 @@ def time_stamps():
            datetime.datetime.utcnow().strftime('%Y%m%d_%H:%M:%S')
 
 
-@jit
+# @jit
 def deg2hms(x):
     """Transform degrees to *hours:minutes:seconds* strings.
     Parameters
@@ -52,7 +116,7 @@ def deg2hms(x):
     return hms
 
 
-@jit
+# @jit
 def deg2dms(x):
     """Transform degrees to *degrees:arcminutes:arcseconds* strings.
     Parameters
@@ -280,7 +344,34 @@ class Watcher(object):
                 if meta_name not in self.processed[obsdate]:
 
                     # TODO: digest
-                    pass
+                    df = pd.read_table(meta_name, sep='|', header=0, skipfooter=1)
+                    df = df.drop(0)
+                    for index, row in df.iterrows():
+                        _tmp = row.to_dict()
+                        doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
+                        # manually fix types
+                        if 'jd' in doc:
+                            doc['jd'] = float(doc['jd'])
+                        if 'pid' in doc:
+                            doc['pid'] = int(doc['pid'])
+                        if 'streakid' in doc:
+                            doc['streakid'] = int(doc['streakid'])
+                        if 'strid' in doc:
+                            doc['strid'] = int(doc['strid'])
+
+                        doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+
+                        # parse ADES:
+                        path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
+                        path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
+                        path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
+
+                        tree = ElementTree.parse(path_streak_ades)
+                        root = tree.getroot()
+                        xmldict = XmlDictConfig(root)
+                        print(xmldict)
+
+                        print(doc)
 
                     # save as processed
                     self.processed[obsdate].add(meta_name)
@@ -292,7 +383,7 @@ class Watcher(object):
                 traceback.print_exc()
                 print(*time_stamps(), str(_e))
                 try:
-                    with open('/data/issues.log', 'a+') as f_issues:
+                    with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
                         _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
                         f_issues.write(_issue)
                 finally:
@@ -313,8 +404,8 @@ def main(config_file=None, obsdate=None, enforce=False):
                 # and now my watch begins
                 watcher.process()
                 # take a nap when done
-                print(*time_stamps(), 'Sleeping for 30 seconds...')
-                time.sleep(30)
+                print(*time_stamps(), 'Sleeping for 1 minute...')
+                time.sleep(60*1)
 
             except Exception as e:
                 traceback.print_exc()
