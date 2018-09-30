@@ -405,7 +405,7 @@ class Watcher(object):
 
                         # but keep track of history if recomputed in the future
                         doc['scores'] = {'rb': [(rb, self.config['models']['rb'])]}
-                        doc['scores'] = {'sl': [(rb, self.config['models']['sl'])]}
+                        doc['scores'] = {'sl': [(sl, self.config['models']['sl'])]}
 
                         doc['last_modified'] = utc_now()
 
