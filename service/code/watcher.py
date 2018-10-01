@@ -351,7 +351,7 @@ class Watcher(object):
 
         for fi, filename in enumerate(meta_files):
             try:
-                # print('Processing {:s}'.format(filename))
+                print(*time_stamps(), 'Processing {:s}'.format(filename))
 
                 # strip file name:
                 meta_name = os.path.basename(filename)
@@ -394,9 +394,9 @@ class Watcher(object):
                         x = np.expand_dims(x, 0)
 
                         tic = time.time()
-                        rb = self.models['rb'].predict(x)[0][0]
+                        rb = float(self.models['rb'].predict(x)[0][0])
                         # print(rb)
-                        sl = self.models['sl'].predict(x)[0][0]
+                        sl = float(self.models['sl'].predict(x)[0][0])
                         # print(sl)
                         toc = time.time()
                         print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
