@@ -393,10 +393,13 @@ class Watcher(object):
                         x = np.expand_dims(x, 2)
                         x = np.expand_dims(x, 0)
 
+                        tic = time.time()
                         rb = self.models['rb'].predict(x)[0][0]
                         # print(rb)
                         sl = self.models['sl'].predict(x)[0][0]
                         # print(sl)
+                        toc = time.time()
+                        print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
 
                         # doc['scores'] = {'rb': rb, 'sl': sl}
                         # store the most recent scores "on the facade"
