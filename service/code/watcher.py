@@ -79,6 +79,38 @@ class XmlDictConfig(dict):
                 self.update({element.tag: element.text})
 
 
+def get_config(_config_file='config.json'):
+    """
+        load config data in json format
+    """
+    try:
+        ''' script absolute location '''
+        abs_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+
+        if _config_file[0] not in ('/', '~'):
+            if os.path.isfile(os.path.join(abs_path, _config_file)):
+                config_path = os.path.join(abs_path, _config_file)
+            else:
+                raise IOError('Failed to find config file')
+        else:
+            if os.path.isfile(_config_file):
+                config_path = _config_file
+            else:
+                raise IOError('Failed to find config file')
+
+        with open(config_path) as cjson:
+            config_data = json.load(cjson)
+            # config must not be empty:
+            if len(config_data) > 0:
+                return config_data
+            else:
+                raise Exception('Failed to load config file')
+
+    except Exception as _e:
+        print(*time_stamps(), _e)
+        raise Exception('Failed to read in the config file')
+
+
 def utc_now():
     return datetime.datetime.now(pytz.utc)
 
@@ -142,10 +174,12 @@ def deg2dms(x):
 
 class Manager(object):
 
-    def __init__(self, _config_file='config.json', _obsdate=None):
+    def __init__(self, _config_file='config.json', _obsdate=None, _enforce=False):
         self.__subscribers = set()
 
-        self.config = self.get_config(_config_file)
+        self.config = get_config(_config_file)
+
+        self.enforce = _enforce
 
         # if None, will look for alerts from this night
         self.obsdate = _obsdate
@@ -161,38 +195,6 @@ class Manager(object):
 
         print(*time_stamps(), 'MANAGER: AND NOW MY WATCH BEGINS!')
 
-    @staticmethod
-    def get_config(_config_file='config.json'):
-        """
-            load config data in json format
-        """
-        try:
-            ''' script absolute location '''
-            abs_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-
-            if _config_file[0] not in ('/', '~'):
-                if os.path.isfile(os.path.join(abs_path, _config_file)):
-                    config_path = os.path.join(abs_path, _config_file)
-                else:
-                    raise IOError('Failed to find config file')
-            else:
-                if os.path.isfile(_config_file):
-                    config_path = _config_file
-                else:
-                    raise IOError('Failed to find config file')
-
-            with open(config_path) as cjson:
-                config_data = json.load(cjson)
-                # config must not be empty:
-                if len(config_data) > 0:
-                    return config_data
-                else:
-                    raise Exception('Failed to load config file')
-
-        except Exception as _e:
-            print(*time_stamps(), _e)
-            raise Exception('Failed to read in the config file')
-
     def subscribe(self, subscriber):
         self.__subscribers.add(subscriber)
 
@@ -203,16 +205,118 @@ class Manager(object):
         for subscriber in self.__subscribers:
             subscriber.update(message)
 
+    def run(self):
+        """
+            This could be replaced with a Kafka watcher in the future
+        :return:
+        """
+        while True:
+            if self.enforce or (datetime.datetime.utcnow().hour < 15):
+
+                try:
+                    # and now my watch begins
+                    if self.obsdate is not None:
+                        # looking at particular date?
+                        obsdate = self.obsdate
+                    else:
+                        obsdate = datetime.datetime.utcnow().strftime('%Y%m%d')
+
+                    print(*time_stamps(), f'Processing data from {obsdate}')
+
+                    # clean up self.processed_alerts
+                    obsdates = list(self.processed.keys())
+
+                    print(*time_stamps(), 'Dates on watch:', obsdates)
+
+                    if self.obsdate is None:  # only do this if not looking at particular date?
+                        for _od in obsdates:
+                            if _od != obsdate:
+                                print(*time_stamps(), f'No need to look at {_od}, dropping')
+                                try:
+                                    self.processed.pop(_od, None)
+                                finally:
+                                    pass
+
+                    if obsdate not in obsdates:
+                        # use set/dict as search operation is much faster
+                        self.processed[obsdate] = set()
+
+                    print(*time_stamps(), f'Processed meta files for {obsdate} so far:', len(self.processed[obsdate]))
+
+                    # go
+                    meta_files = glob.glob(os.path.join(self.path_data, 'meta', obsdate, 'ztf_*_streaks.txt'))
+                    num_meta_files = len(meta_files)
+                    print(*time_stamps(), f'Found {num_meta_files} meta files for {obsdate}')
+
+                    if len(self.processed[obsdate]) == num_meta_files:
+                        print(*time_stamps(), f'Apparently already looked at all available meta files for {obsdate}')
+                        return
+
+                    for fi, filename in enumerate(meta_files):
+                        try:
+                            print(*time_stamps(), 'Processing {:s}'.format(filename))
+
+                            # strip file name:
+                            meta_name = os.path.basename(filename)
+
+                            if meta_name not in self.processed[obsdate]:
+                                # notify subscribed watcher:
+                                self.notify(message={'filename': filename})
+
+                                # save as processed
+                                self.processed[obsdate].add(meta_name)
+
+                            else:
+                                print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                      'already checked, skipping')
+
+                        except Exception as _e:
+                            traceback.print_exc()
+                            print(*time_stamps(), str(_e))
+                            try:
+                                with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
+                                    _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
+                                    f_issues.write(_issue)
+                            finally:
+                                pass
+
+                            continue
+
+                    print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:',
+                          len(self.processed[obsdate]))
+                    # take a nap when done
+                    print(*time_stamps(), 'Sleeping for 1 minute...')
+                    time.sleep(60 * 1)
+
+                except Exception as e:
+                    traceback.print_exc()
+                    print(*time_stamps(), str(e))
+                    print(*time_stamps(), 'Error encountered. Sleeping for 5 minutes...')
+                    time.sleep(60 * 5)
+
+                else:
+                    print(*time_stamps(), 'Sleeping before my watch starts tonight...')
+                    time.sleep(60 * 5)
+
 
 class AbstractObserver(ABC):
 
     def __init__(self, _config_file='config.json'):
-        self.config = self.get_config(_config_file)
+        self.config = get_config(_config_file)
 
         # db:
         self.db = None
         self.init_db()
         self.connect_to_db()
+
+        print(*time_stamps(), 'Creating/checking indices')
+        self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
+                                                                               background=True)
+        self.db['db'][self.config['database']['collection_main']].create_index([('rb', pymongo.DESCENDING)],
+                                                                               background=True)
+        self.db['db'][self.config['database']['collection_main']].create_index([('sl', pymongo.DESCENDING)],
+                                                                               background=True)
+        print(*time_stamps(), 'Done')
 
         # DL models:
         self.models = dict()
@@ -224,38 +328,6 @@ class AbstractObserver(ABC):
         self.model_input_shape = self.models['rb'].input_shape[1:3]
 
         print(*time_stamps(), 'OBSERVER: AND NOW MY WATCH BEGINS!')
-
-    @staticmethod
-    def get_config(_config_file='config.json'):
-        """
-            load config data in json format
-        """
-        try:
-            ''' script absolute location '''
-            abs_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-
-            if _config_file[0] not in ('/', '~'):
-                if os.path.isfile(os.path.join(abs_path, _config_file)):
-                    config_path = os.path.join(abs_path, _config_file)
-                else:
-                    raise IOError('Failed to find config file')
-            else:
-                if os.path.isfile(_config_file):
-                    config_path = _config_file
-                else:
-                    raise IOError('Failed to find config file')
-
-            with open(config_path) as cjson:
-                config_data = json.load(cjson)
-                # config must not be empty:
-                if len(config_data) > 0:
-                    return config_data
-                else:
-                    raise Exception('Failed to load config file')
-
-        except Exception as _e:
-            print(*time_stamps(), _e)
-            raise Exception('Failed to read in the config file')
 
     def init_db(self):
         _client = pymongo.MongoClient(username=self.config['database']['admin'],
@@ -368,5 +440,66 @@ class AbstractObserver(ABC):
 class Watcher(AbstractObserver):
 
     def update(self, message):
-        pass
+
+        filename = message['filename'] if 'filename' in message else None
+        assert filename is not None, (*time_stamps(), 'Bad message.')
+
+        # TODO: digest
+        df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
+        df = df.drop(0)
+        for index, row in df.iterrows():
+            _tmp = row.to_dict()
+            doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
+            # manually fix types
+            if 'jd' in doc:
+                doc['jd'] = float(doc['jd'])
+            if 'pid' in doc:
+                doc['pid'] = int(doc['pid'])
+            if 'streakid' in doc:
+                doc['streakid'] = int(doc['streakid'])
+            if 'strid' in doc:
+                doc['strid'] = int(doc['strid'])
+
+            doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+
+            # parse ADES:
+            path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
+            path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
+            path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
+
+            tree = ElementTree.parse(path_streak_ades)
+            root = tree.getroot()
+            xmldict = XmlDictConfig(root)
+            # print(xmldict)
+            doc['ades'] = xmldict
+
+            # Compute ML scores:
+            x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
+                                                                                  Image.BILINEAR)) / 255.
+            x = np.expand_dims(x, 2)
+            x = np.expand_dims(x, 0)
+
+            tic = time.time()
+            rb = float(self.models['rb'].predict(x)[0][0])
+            # print(rb)
+            sl = float(self.models['sl'].predict(x)[0][0])
+            # print(sl)
+            toc = time.time()
+            print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
+
+            # doc['scores'] = {'rb': rb, 'sl': sl}
+            # store the most recent scores "on the facade"
+            doc['rb'] = rb
+            doc['sl'] = sl
+
+            # but keep track of history if recomputed in the future
+            doc['scores'] = {'rb': [(rb, self.config['models']['rb'])]}
+            doc['scores'] = {'sl': [(sl, self.config['models']['sl'])]}
+
+            doc['last_modified'] = utc_now()
+
+            print(doc)
+
+            # self.insert_db_entry(_collection=self.config['database']['collection_main'],
+            #                      _db_entry=doc)
 
