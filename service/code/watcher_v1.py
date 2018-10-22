@@ -228,7 +228,7 @@ class Watcher(object):
 
     def connect_to_db(self):
         """
-            Connect to Robo-AO's MongoDB-powered database
+            Connect to database
         :return:
         """
 
