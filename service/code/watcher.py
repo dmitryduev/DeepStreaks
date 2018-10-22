@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import argparse
 import os
 import glob
 import inspect
@@ -503,3 +504,20 @@ class Watcher(AbstractObserver):
             # self.insert_db_entry(_collection=self.config['database']['collection_main'],
             #                      _db_entry=doc)
 
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Digest ZTF nightly streak data')
+    parser.add_argument('--obsdate', help='observing date')
+    parser.add_argument('--enforce', action='store_true', help='enforce execution')
+
+    parser.add_argument('config_file', metavar='config_file',
+                        action='store', help='path to config file.', type=str)
+
+    args = parser.parse_args()
+
+    manager = Manager(_config_file=args.config_file, _obsdate=args.obsdate, _enforce=args.enforce)
+    watcher = Watcher(_config_file=args.config_file)
+
+    manager.subscribe(watcher)
+    manager.run()
