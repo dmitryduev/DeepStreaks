@@ -466,7 +466,7 @@ if __name__ == '__main__':
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    if True:
+    if False:
         model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
 
     preds = model.predict(x=X_test, batch_size=batch_size)
