@@ -28,7 +28,7 @@ from matplotlib.pyplot import imshow
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
-# K.set_learning_phase(1)
+K.set_learning_phase(1)
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
@@ -458,6 +458,9 @@ if __name__ == '__main__':
     batch_size = 32
 
     model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+
+    #
+    K.set_learning_phase(0)
 
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print("Loss = " + str(preds[0]))
