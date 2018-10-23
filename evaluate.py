@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # models['sl'] = load_model(os.path.join(path_models, model_names['sl']))
     print('done')
 
-    print(models['rb'].summary())
+    # print(models['rb'].summary())
 
     model_input_shape = models['rb'].input_shape[1:3]
 
