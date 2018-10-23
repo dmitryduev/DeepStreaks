@@ -448,7 +448,7 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=10, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print("Loss = " + str(preds[0]))
@@ -480,6 +480,7 @@ if __name__ == '__main__':
     ''' test predictions '''
     path_streak_stamps = glob.glob(os.path.join('data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
                                                 '*.jpg'))
+    model_input_shape = image_shape
 
     for path_streak_stamp in path_streak_stamps:
         print(path_streak_stamp)
@@ -488,8 +489,8 @@ if __name__ == '__main__':
         x = np.expand_dims(x, 2)
         x = np.expand_dims(x, 0)
 
-        # tic = time.time()
+        tic = time.time()
         rb = float(model.predict(x, batch_size=1)[0][0])
-        # toc = time.time()
+        toc = time.time()
 
-        print(rb)
+        print(rb, f'took {toc-tic} seconds')
