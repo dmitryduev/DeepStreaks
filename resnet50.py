@@ -448,13 +448,14 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=10, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
+    if False:
+        model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
 
     preds = model.predict(x=X_test, batch_size=batch_size)
     # print(preds)
@@ -475,3 +476,20 @@ if __name__ == '__main__':
     #     im = Image.fromarray((X_test[ip, :, :, 0] * 255).astype('uint8'))
     #     im.show()
     #     input()
+
+    ''' test predictions '''
+    path_streak_stamps = glob.glob(os.path.join('data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
+                                                '*.jpg'))
+
+    for path_streak_stamp in path_streak_stamps:
+        print(path_streak_stamp)
+        x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(model_input_shape,
+                                                                              Image.BILINEAR)) / 255.
+        x = np.expand_dims(x, 2)
+        x = np.expand_dims(x, 0)
+
+        # tic = time.time()
+        rb = float(model.predict(x, batch_size=1)[0][0])
+        # toc = time.time()
+
+        print(rb)
