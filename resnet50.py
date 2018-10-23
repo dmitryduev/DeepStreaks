@@ -478,9 +478,9 @@ if __name__ == '__main__':
     #     input()
 
     ''' test predictions '''
-    path_streak_stamps = glob.glob(os.path.join('data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
+    path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
                                                 '*.jpg'))
-    model_input_shape = image_shape
+    model_input_shape = model.input_shape[1:3]
 
     for path_streak_stamp in path_streak_stamps:
         print(path_streak_stamp)
