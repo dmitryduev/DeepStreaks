@@ -251,7 +251,6 @@ class Manager(object):
 
                     if len(self.processed[obsdate]) == num_meta_files:
                         print(*time_stamps(), f'Apparently already looked at all available meta files for {obsdate}')
-                        return
 
                     for fi, filename in enumerate(meta_files):
                         try:
@@ -261,7 +260,7 @@ class Manager(object):
                             meta_name = os.path.basename(filename)
 
                             if meta_name not in self.processed[obsdate]:
-                                # notify subscribed watcher:
+                                # notify subscribed watcher(s):
                                 self.notify(message={'obsdate': obsdate,
                                                      'filename': filename})
 
@@ -296,9 +295,9 @@ class Manager(object):
                     print(*time_stamps(), 'Error encountered. Sleeping for 5 minutes...')
                     time.sleep(60 * 5)
 
-                else:
-                    print(*time_stamps(), 'Sleeping before my watch starts tonight...')
-                    time.sleep(60 * 5)
+            else:
+                print(*time_stamps(), 'Sleeping before my watch starts tonight...')
+                time.sleep(60 * 5)
 
 
 class AbstractObserver(ABC):
@@ -456,60 +455,67 @@ class Watcher(AbstractObserver):
         df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
         df = df.drop(0)
         for index, row in df.iterrows():
-            _tmp = row.to_dict()
-            doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
-            # manually fix types
-            if 'jd' in doc:
-                doc['jd'] = float(doc['jd'])
-            if 'pid' in doc:
-                doc['pid'] = int(doc['pid'])
-            if 'streakid' in doc:
-                doc['streakid'] = int(doc['streakid'])
-            if 'strid' in doc:
-                doc['strid'] = int(doc['strid'])
+            try:
+                _tmp = row.to_dict()
+                doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
+                # manually fix types
+                if 'jd' in doc:
+                    doc['jd'] = float(doc['jd'])
+                if 'pid' in doc:
+                    doc['pid'] = int(doc['pid'])
+                if 'streakid' in doc:
+                    doc['streakid'] = int(doc['streakid'])
+                if 'strid' in doc:
+                    doc['strid'] = int(doc['strid'])
 
-            doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+                doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
-            # parse ADES:
-            path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
-            path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
-            path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
+                # parse ADES:
+                path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
+                path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
+                path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
 
-            tree = ElementTree.parse(path_streak_ades)
-            root = tree.getroot()
-            xmldict = XmlDictConfig(root)
-            # print(xmldict)
-            doc['ades'] = xmldict
+                tree = ElementTree.parse(path_streak_ades)
+                root = tree.getroot()
+                xmldict = XmlDictConfig(root)
+                # print(xmldict)
+                doc['ades'] = xmldict
 
-            # Compute ML scores:
-            x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
-                                                                                  Image.BILINEAR)) / 255.
-            x = np.expand_dims(x, 2)
-            x = np.expand_dims(x, 0)
+                # Compute ML scores:
+                x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
+                                                                                      Image.BILINEAR)) / 255.
+                x = np.expand_dims(x, 2)
+                x = np.expand_dims(x, 0)
 
-            tic = time.time()
-            rb = float(self.models['rb'].predict(x)[0][0])
-            # print(rb)
-            sl = float(self.models['sl'].predict(x)[0][0])
-            # print(sl)
-            toc = time.time()
-            print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
+                tic = time.time()
+                rb = float(self.models['rb'].predict(x)[0][0])
+                # print(rb)
+                sl = float(self.models['sl'].predict(x)[0][0])
+                # print(sl)
+                toc = time.time()
+                print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
 
-            # doc['scores'] = {'rb': rb, 'sl': sl}
-            # store the most recent scores "on the facade"
-            doc['rb'] = rb
-            doc['sl'] = sl
+                # doc['scores'] = {'rb': rb, 'sl': sl}
+                # store the most recent scores "on the facade"
+                doc['rb'] = rb
+                doc['sl'] = sl
 
-            # but keep track of history if recomputed in the future
-            doc['scores'] = {'rb': [(rb, self.config['models']['rb'])]}
-            doc['scores'] = {'sl': [(sl, self.config['models']['sl'])]}
+                # but keep track of history if recomputed in the future
+                doc['scores'] = {'rb': [(rb, self.config['models']['rb'])],
+                                 'sl': [(sl, self.config['models']['sl'])]}
 
-            doc['last_modified'] = utc_now()
+                doc['last_modified'] = utc_now()
 
-            print(doc)
+                # print(doc)
 
-            # self.insert_db_entry(_collection=self.config['database']['collection_main'],
-            #                      _db_entry=doc)
+                self.insert_db_entry(_collection=self.config['database']['collection_main'],
+                                     _db_entry=doc)
+
+                print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
+
+            except Exception as _e:
+                traceback.print_exc()
+                print(_e)
 
 
 if __name__ == '__main__':
@@ -528,3 +534,5 @@ if __name__ == '__main__':
 
     manager.subscribe(watcher)
     manager.run()
+
+    # python watcher.py config.json --obsdate 20180927 --enforce
