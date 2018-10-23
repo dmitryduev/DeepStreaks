@@ -457,16 +457,16 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
-    #
+    # turn off learning phase (beware BatchNormalization!)
     K.set_learning_phase(0)
 
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    if False:
+    if True:
         model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
 
     preds = model.predict(x=X_test, batch_size=batch_size)
@@ -494,7 +494,7 @@ if __name__ == '__main__':
                                                 '*.jpg'))
     model_input_shape = model.input_shape[1:3]
 
-    for path_streak_stamp in path_streak_stamps:
+    for path_streak_stamp in path_streak_stamps[:5]:
         print(path_streak_stamp)
         x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(model_input_shape,
                                                                               Image.BILINEAR)) / 255.
