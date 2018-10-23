@@ -262,7 +262,8 @@ class Manager(object):
 
                             if meta_name not in self.processed[obsdate]:
                                 # notify subscribed watcher:
-                                self.notify(message={'filename': filename})
+                                self.notify(message={'obsdate': obsdate,
+                                                     'filename': filename})
 
                                 # save as processed
                                 self.processed[obsdate].add(meta_name)
@@ -304,6 +305,9 @@ class AbstractObserver(ABC):
 
     def __init__(self, _config_file='config.json'):
         self.config = get_config(_config_file)
+
+        # base dir to look for data
+        self.path_data = self.config['path']['path_data']
 
         # db:
         self.db = None
@@ -443,7 +447,10 @@ class Watcher(AbstractObserver):
     def update(self, message):
 
         filename = message['filename'] if 'filename' in message else None
-        assert filename is not None, (*time_stamps(), 'Bad message.')
+        assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
+
+        obsdate = message['obsdate'] if 'obsdate' in message else None
+        assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
         # TODO: digest
         df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')

@@ -1,8 +1,7 @@
-FROM python:3.6-slim
+FROM python:3.6-alpine
 
-# Install vim, git, and cron
-RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
-    apt-get -y install cron && apt-get -y install git
+# Install software
+RUN apk update && apk add vim git gcc gfortran musl-dev linux-headers g++ freetype-dev libpng-dev
 # TODO: add gcc for flask-misaka?
 
 # place to keep our app and the data:
@@ -10,17 +9,9 @@ RUN mkdir -p /app
 RUN mkdir -p /app/models
 RUN mkdir -p /data
 
-## Add crontab file in the cron directory
-#ADD code/crontab /etc/cron.d/fetch-cron
-## Give execution rights on the cron job
-#RUN chmod 0644 /etc/cron.d/fetch-cron
-## Apply cron job
-#RUN crontab /etc/cron.d/fetch-cron
-## Create the log file to be able to run tail
-#RUN touch /var/log/cron.log
-
 # install python libs
-RUN pip install Cython && pip install numpy
+#RUN pip install Cython && pip install numpy
+RUN pip install numpy
 COPY code/requirements.txt /app/
 RUN pip install -r /app/requirements.txt
 
