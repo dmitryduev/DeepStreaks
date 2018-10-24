@@ -265,21 +265,22 @@ def identity_block(X, f, filters, stage, block):
     X = Conv2D(filters=F1, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2a',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X)
+    # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
     # Second component of main path (≈3 lines)
     X = Conv2D(filters=F2, kernel_size=(f, f), strides=(1, 1), padding='same', name=conv_name_base + '2b',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters=F3, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2c',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2c')(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = layers.add([X_shortcut, X])
@@ -319,27 +320,27 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     X = Conv2D(F1, (1, 1), strides=(s, s), name=conv_name_base + '2a',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
     # Second component of main path (≈3 lines)
     X = Conv2D(filters=F2, kernel_size=(f, f), strides=(1, 1), padding='same', name=conv_name_base + '2b',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters=F3, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2c',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X, training=1)
-    X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2c')(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(filters=F3, kernel_size=(1, 1), strides=(s, s), padding='valid', name=conv_name_base + '1',
                         kernel_initializer=glorot_uniform(seed=0))(X_shortcut)
     # X_shortcut = BatchNormalization(axis=-1, name=bn_name_base + '1')(X_shortcut, training=1)
-    X_shortcut = BatchNormalization(axis=-1, name=bn_name_base + '1')(X_shortcut)
+    X_shortcut = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = layers.add([X_shortcut, X])
@@ -348,7 +349,7 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     return X
 
 
-def ResNet50(input_shape=(144, 144, 1), n_classes: int=8):
+def ResNet50(input_shape=(144, 144, 1), n_classes: int=2):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -371,7 +372,7 @@ def ResNet50(input_shape=(144, 144, 1), n_classes: int=8):
     # Stage 1
     X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name='bn_conv1')(X, training=1)
-    X = BatchNormalization(axis=-1, name='bn_conv1')(X)
+    X = BatchNormalization(axis=-1, momentum=0.1, name='bn_conv1')(X)
     X = Activation('relu')(X)
     X = MaxPooling2D((3, 3), strides=(2, 2))(X)
 
@@ -463,6 +464,12 @@ if __name__ == '__main__':
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
 
+    print('Evaluating on training set to check for BatchNorm behavior:')
+    preds = model.evaluate(X_train, Y_train, batch_size=batch_size)
+    print("Loss in prediction mode = " + str(preds[0]))
+    print("Training Accuracy in prediction mode = " + str(preds[1]))
+
+    print('Evaluating on test set')
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
