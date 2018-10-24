@@ -456,7 +456,7 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    batch_size = 512
+    batch_size = 128
 
     model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
