@@ -467,8 +467,9 @@ if __name__ == '__main__':
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    if False:
-        model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
+    if True:
+        model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5'
+        model.save(model_save_name)
 
     preds = model.predict(x=X_test, batch_size=batch_size)
     # print(preds)
@@ -491,6 +492,11 @@ if __name__ == '__main__':
     #     input()
 
     ''' test predictions '''
+    # turn off learning phase (beware BatchNormalization!)
+    K.set_learning_phase(0)
+
+    model = load_model(model_save_name)
+
     path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
                                                 '*.jpg'))
     model_input_shape = model.input_shape[1:3]
