@@ -471,7 +471,24 @@ if __name__ == '__main__':
         model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5'
         model.save(model_save_name)
 
+    print(f'Batch size: {batch_size}')
     preds = model.predict(x=X_test, batch_size=batch_size)
+    # print(preds)
+
+    # round probs to nearest int (0 or 1)
+    labels_pred = np.rint(preds)
+    confusion_matrix = confusion_matrix(Y_test, labels_pred)
+    confusion_matrix_normalized = confusion_matrix.astype('float') / confusion_matrix.sum(axis=1)[:, np.newaxis]
+
+    print('Confusion matrix:')
+    print(confusion_matrix)
+
+    print('Normalized confusion matrix:')
+    print(confusion_matrix_normalized)
+
+    # what if we use a batch size of 1?
+    print(f'Batch size: {1}')
+    preds = model.predict(x=X_test, batch_size=1)
     # print(preds)
 
     # round probs to nearest int (0 or 1)
