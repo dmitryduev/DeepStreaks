@@ -458,7 +458,7 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=1, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
@@ -473,7 +473,7 @@ if __name__ == '__main__':
 
     print(f'Batch size: {batch_size}')
     preds = model.predict(x=X_test, batch_size=batch_size)
-    # print(preds)
+    print(preds)
 
     # round probs to nearest int (0 or 1)
     labels_pred = np.rint(preds)
@@ -489,7 +489,7 @@ if __name__ == '__main__':
     # what if we use a batch size of 1?
     print(f'Batch size: {1}')
     preds = model.predict(x=X_test, batch_size=1)
-    # print(preds)
+    print(preds)
 
     # round probs to nearest int (0 or 1)
     labels_pred = np.rint(preds)
