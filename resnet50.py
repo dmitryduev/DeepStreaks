@@ -456,23 +456,23 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    batch_size = 32
+    batch_size = 512
 
     model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
 
-    # preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
-    preds = model.evaluate(X_test, Y_test, batch_size=256)
+    preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
+    # preds = model.evaluate(X_test, Y_test, batch_size=256)
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
     if False:
         model.save(f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5')
 
-    # preds = model.predict(x=X_test, batch_size=batch_size)
-    preds = model.predict(x=X_test, batch_size=256)
+    preds = model.predict(x=X_test, batch_size=batch_size)
+    # preds = model.predict(x=X_test, batch_size=256)
     # print(preds)
 
     # round probs to nearest int (0 or 1)
