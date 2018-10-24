@@ -250,6 +250,8 @@ def identity_block(X, f, filters, stage, block):
     Returns:
     X -- output of the identity block, tensor of shape (n_H, n_W, n_C)
     """
+    # batch norm momentum
+    batch_norm_momentum = 0.2
 
     # defining name basis
     conv_name_base = 'res' + str(stage) + block + '_branch'
@@ -266,21 +268,21 @@ def identity_block(X, f, filters, stage, block):
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X, training=1)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2a')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
     # Second component of main path (≈3 lines)
     X = Conv2D(filters=F2, kernel_size=(f, f), strides=(1, 1), padding='same', name=conv_name_base + '2b',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2b')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters=F3, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2c',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2c')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2c')(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = layers.add([X_shortcut, X])
@@ -304,6 +306,8 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     Returns:
     X -- output of the convolutional block, tensor of shape (n_H, n_W, n_C)
     """
+    # batch norm momentum
+    batch_norm_momentum = 0.2
 
     # defining name basis
     conv_name_base = 'res' + str(stage) + block + '_branch'
@@ -320,21 +324,21 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     X = Conv2D(F1, (1, 1), strides=(s, s), name=conv_name_base + '2a',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2a')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2a')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
     # Second component of main path (≈3 lines)
     X = Conv2D(filters=F2, kernel_size=(f, f), strides=(1, 1), padding='same', name=conv_name_base + '2b',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2b')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2b')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters=F3, kernel_size=(1, 1), strides=(1, 1), padding='valid', name=conv_name_base + '2c',
                kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name=bn_name_base + '2c')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name=bn_name_base + '2c')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name=bn_name_base + '2c')(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(filters=F3, kernel_size=(1, 1), strides=(s, s), padding='valid', name=conv_name_base + '1',
@@ -349,7 +353,7 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     return X
 
 
-def ResNet50(input_shape=(144, 144, 1), n_classes: int=2):
+def ResNet50(input_shape=(144, 144, 1), n_classes: int=1):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -357,11 +361,13 @@ def ResNet50(input_shape=(144, 144, 1), n_classes: int=2):
 
     Arguments:
     input_shape -- shape of the images of the dataset
-    n_classes -- integer, number of classes
+    n_classes -- integer, number of classes. if = 1, sigmoid is used in the output layer; softmax otherwise
 
     Returns:
     model -- a Model() instance in Keras
     """
+    # batch norm momentum
+    batch_norm_momentum = 0.2
 
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
@@ -372,7 +378,7 @@ def ResNet50(input_shape=(144, 144, 1), n_classes: int=2):
     # Stage 1
     X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
     # X = BatchNormalization(axis=-1, name='bn_conv1')(X, training=1)
-    X = BatchNormalization(axis=-1, momentum=0.1, name='bn_conv1')(X)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name='bn_conv1')(X)
     X = Activation('relu')(X)
     X = MaxPooling2D((3, 3), strides=(2, 2))(X)
 
@@ -459,7 +465,7 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=5, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
