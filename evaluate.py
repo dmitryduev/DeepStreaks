@@ -11,8 +11,8 @@ K.set_learning_phase(0)
 if __name__ == '__main__':
 
     path_models = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models'
-    model_names = {'rb': 'ResNet50_rb_20e_20180914_122326.h5',
-                   'sl': 'ResNet50_sl_20e_20180914_120303.h5'}
+    model_names = {'rb': 'ResNet50_rb_20e_20181024_154924.h5',
+                   'sl': 'ResNet50_sl_20e_20181024_163759.h5'}
 
     models = dict()
     print('loading models...')

@@ -38,32 +38,32 @@ The data were prepared on `Zwickyverse` (`https://private.caltech.edu`).
 The models were trained on `rico`'s Nvidia Tesla P100 GPU (12G) 
 for 20 epochs with a mini-batch size of 32 (see `resnet50.py`), which takes 20 minutes for the `rb` model.
 
-*rb: (0 is bogus, 1 is real)*
+*rb: (0 is bogus, 1 is real) \[ResNet50_rb_20e_20181024_154924\]*
 
 Confusion matrix:
 ```
-[[473   5]
- [ 22 985]]
+[[481   3]
+ [ 19 982]]
 ```
 
 Normalized confusion matrix:
 ```
-[[0.98953975 0.01046025]
- [0.02184707 0.97815293]]
+[[0.99380165 0.00619835]
+ [0.01898102 0.98101898]]
 ```
 
-*sl: (0 is long, 1 is short)*
+*sl: (0 is long, 1 is short) \[ResNet50_sl_20e_20181024_163759\]*
 
 Confusion matrix:
 ```
-[[ 85   4]
- [  2 157]]
+[[ 87   4]
+ [  6 151]]
 ```
 
 Normalized confusion matrix:
 ```
-[[0.95505618 0.04494382]
- [0.01257862 0.98742138]]
+[[0.95604396 0.04395604]
+ [0.03821656 0.96178344]]
 ```
 
 The (mis)classifications are based on an `0.5` score cut: completeness can be increased by lowering the threshold.

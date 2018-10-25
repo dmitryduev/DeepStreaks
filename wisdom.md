@@ -5,10 +5,20 @@ cd /data/ztf/dev/deep-asteroids
 tensorboard --logdir=logs/
 ```
 
+---
+
 QZ's cutouts on yupana:
 Cutouts and ADES reports are here: /scr/apache/htdocs/marshals/ssm/zsrs/. 
 Other metadata is at /scr/qye/ssmBackend/streaks/
 
+---
+
+`rsync`'ing `yupana` with `private`:
+```bash
+/usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/apache/htdocs/marshals/ssm/zsrs/stamps_\* /scratch/ztf/streaks/stamps/
+```
+
+---
 
 Implementing Batch Normalization in Tensorflow:
 
