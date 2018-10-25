@@ -133,6 +133,7 @@ docker build -t deep-asteroids:latest -f Dockerfile .
 # test mode:
 #docker run -it --rm --name deep-asteroids -p 8000:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 #docker run -it --rm --name deep-asteroids -p 8000:4000 -v /scratch/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+# test mode on Dima's mpb:
 docker run -it --rm --name deep-asteroids -p 8000:4000 -v /Users/dmitryduev/_caltech/python/deep-asteroids/_tmp:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 
 ```

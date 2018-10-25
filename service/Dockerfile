@@ -20,7 +20,7 @@ RUN mkdir -p /data
 #RUN touch /var/log/cron.log
 
 # install python libs
-RUN pip install Cython && pip install numpy
+#RUN pip install Cython && pip install numpy
 COPY code/requirements.txt /app/
 RUN pip install -r /app/requirements.txt
 
