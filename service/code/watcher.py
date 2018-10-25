@@ -252,37 +252,39 @@ class Manager(object):
                     if len(self.processed[obsdate]) == num_meta_files:
                         print(*time_stamps(), f'Apparently already looked at all available meta files for {obsdate}')
 
-                    for fi, filename in enumerate(meta_files):
-                        try:
-                            print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
-                                  f'processing {filename}')
+                    else:
 
-                            # strip file name:
-                            meta_name = os.path.basename(filename)
-
-                            if meta_name not in self.processed[obsdate]:
-                                # notify subscribed watcher(s):
-                                self.notify(message={'obsdate': obsdate,
-                                                     'filename': filename})
-
-                                # save as processed
-                                self.processed[obsdate].add(meta_name)
-
-                            else:
-                                print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
-                                      f'{filename} already checked, skipping')
-
-                        except Exception as _e:
-                            traceback.print_exc()
-                            print(*time_stamps(), str(_e))
+                        for fi, filename in enumerate(meta_files):
                             try:
-                                with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
-                                    _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
-                                    f_issues.write(_issue)
-                            finally:
-                                pass
+                                print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                      f'processing {filename}')
 
-                            continue
+                                # strip file name:
+                                meta_name = os.path.basename(filename)
+
+                                if meta_name not in self.processed[obsdate]:
+                                    # notify subscribed watcher(s):
+                                    self.notify(message={'obsdate': obsdate,
+                                                         'filename': filename})
+
+                                    # save as processed
+                                    self.processed[obsdate].add(meta_name)
+
+                                else:
+                                    print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                          f'{filename} already checked, skipping')
+
+                            except Exception as _e:
+                                traceback.print_exc()
+                                print(*time_stamps(), str(_e))
+                                try:
+                                    with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
+                                        _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
+                                        f_issues.write(_issue)
+                                finally:
+                                    pass
+
+                                continue
 
                     print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:',
                           len(self.processed[obsdate]))
