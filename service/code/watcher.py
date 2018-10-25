@@ -254,7 +254,8 @@ class Manager(object):
 
                     for fi, filename in enumerate(meta_files):
                         try:
-                            print(*time_stamps(), 'Processing {:s}'.format(filename))
+                            print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                  f'processing {filename}')
 
                             # strip file name:
                             meta_name = os.path.basename(filename)
@@ -269,7 +270,7 @@ class Manager(object):
 
                             else:
                                 print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
-                                      'already checked, skipping')
+                                      f'{filename} already checked, skipping')
 
                         except Exception as _e:
                             traceback.print_exc()

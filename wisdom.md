@@ -16,6 +16,7 @@ Other metadata is at /scr/qye/ssmBackend/streaks/
 `rsync`'ing `yupana` with `private`:
 ```bash
 /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/apache/htdocs/marshals/ssm/zsrs/stamps_\* /scratch/ztf/streaks/stamps/
+/usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/qye/ssmBackend/streaks/2018\* /scratch/ztf/streaks/meta/
 ```
 
 ---
