@@ -28,7 +28,7 @@ from matplotlib.pyplot import imshow
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
-K.set_learning_phase(1)
+# K.set_learning_phase(1)
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
