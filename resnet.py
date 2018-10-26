@@ -461,17 +461,17 @@ def ResNet(input_shape=(144, 144, 1), n_classes: int=1):
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='d')
 
     # Stage 4 (≈6 lines)
-    # X = convolutional_block(X, f=3, filters=[256, 256, 512], stage=4, block='a', s=2)
-    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='b')
-    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='c')
-    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='d')
-    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='e')
-    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='f')
+    X = convolutional_block(X, f=3, filters=[256, 256, 512], stage=4, block='a', s=2)
+    X = identity_block(X, 3, [256, 256, 512], stage=4, block='b')
+    X = identity_block(X, 3, [256, 256, 512], stage=4, block='c')
+    X = identity_block(X, 3, [256, 256, 512], stage=4, block='d')
+    X = identity_block(X, 3, [256, 256, 512], stage=4, block='e')
+    X = identity_block(X, 3, [256, 256, 512], stage=4, block='f')
 
     # Stage 5 (≈3 lines)
-    # X = convolutional_block(X, f=3, filters=[512, 512, 1024], stage=5, block='a', s=2)
-    # X = identity_block(X, 3, [512, 512, 1024], stage=5, block='b')
-    # X = identity_block(X, 3, [512, 512, 1024], stage=5, block='c')
+    X = convolutional_block(X, f=3, filters=[512, 512, 1024], stage=5, block='a', s=2)
+    X = identity_block(X, 3, [512, 512, 1024], stage=5, block='b')
+    X = identity_block(X, 3, [512, 512, 1024], stage=5, block='c')
 
     # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
     X = AveragePooling2D(pool_size=(2, 2), name='avg_pool')(X)
