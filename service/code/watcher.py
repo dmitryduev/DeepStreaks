@@ -328,7 +328,7 @@ class AbstractObserver(ABC):
         # DL models:
         self.models = dict()
         for model in ('rb', 'sl'):
-            print(*time_stamps(), f'loading {model} model')
+            print(*time_stamps(), f'loading {model} model {self.config["models"][model]}')
             self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
                                                          self.config['models'][model]))
 
