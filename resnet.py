@@ -523,8 +523,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
-    # model = ResNet(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
