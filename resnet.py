@@ -28,7 +28,7 @@ from matplotlib.pyplot import imshow
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
-# K.set_learning_phase(1)
+K.set_learning_phase(1)
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
@@ -526,14 +526,14 @@ if __name__ == '__main__':
     # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
     model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
-    # model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
-    model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
+    model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, validation_split=0.05,
+    model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
               verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
@@ -598,7 +598,7 @@ if __name__ == '__main__':
     # K.set_learning_phase(0)
 
     if True:
-        model = load_model(model_save_name)
+        # model = load_model(model_save_name)
 
         path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
                                                     '*.jpg'))
