@@ -420,6 +420,73 @@ def ResNet50(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
+def ResNet(input_shape=(144, 144, 1), n_classes: int=1):
+    """
+    Implementation of the popular ResNet50 the following architecture:
+    CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
+    -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 -> AVGPOOL -> TOPLAYER
+
+    Arguments:
+    input_shape -- shape of the images of the dataset
+    n_classes -- integer, number of classes. if = 1, sigmoid is used in the output layer; softmax otherwise
+
+    Returns:
+    model -- a Model() instance in Keras
+    """
+    # batch norm momentum
+    batch_norm_momentum = 0.2
+
+    # Define the input as a tensor with shape input_shape
+    X_input = Input(input_shape)
+
+    # Zero-Padding
+    X = ZeroPadding2D((3, 3))(X_input)
+
+    # Stage 1
+    X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
+    # X = BatchNormalization(axis=-1, name='bn_conv1')(X, training=1)
+    X = BatchNormalization(axis=-1, momentum=batch_norm_momentum, name='bn_conv1')(X)
+    X = Activation('relu')(X)
+    X = MaxPooling2D((3, 3), strides=(2, 2))(X)
+
+    # Stage 2
+    X = convolutional_block(X, f=3, filters=[64, 64, 256], stage=2, block='a', s=1)
+    X = identity_block(X, 3, [64, 64, 256], stage=2, block='b')
+    X = identity_block(X, 3, [64, 64, 256], stage=2, block='c')
+
+    # Stage 3 (≈4 lines)
+    X = convolutional_block(X, f=3, filters=[128, 128, 512], stage=3, block='a', s=2)
+    X = identity_block(X, 3, [128, 128, 512], stage=3, block='b')
+    X = identity_block(X, 3, [128, 128, 512], stage=3, block='c')
+    X = identity_block(X, 3, [128, 128, 512], stage=3, block='d')
+
+    # Stage 4 (≈6 lines)
+    # X = convolutional_block(X, f=3, filters=[256, 256, 512], stage=4, block='a', s=2)
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='b')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='c')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='d')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='e')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='f')
+
+    # Stage 5 (≈3 lines)
+    # X = convolutional_block(X, f=3, filters=[512, 512, 1024], stage=5, block='a', s=2)
+    # X = identity_block(X, 3, [512, 512, 1024], stage=5, block='b')
+    # X = identity_block(X, 3, [512, 512, 1024], stage=5, block='c')
+
+    # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
+    X = AveragePooling2D(pool_size=(2, 2), name='avg_pool')(X)
+
+    # output layer
+    X = Flatten()(X)
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    X = Dense(n_classes, activation=activation, name='fcOUT', kernel_initializer=glorot_uniform(seed=0))(X)
+
+    # Create model
+    model = Model(inputs=X_input, outputs=X, name='ResNet')
+
+    return model
+
+
 if __name__ == '__main__':
     K.clear_session()
 
@@ -456,7 +523,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
