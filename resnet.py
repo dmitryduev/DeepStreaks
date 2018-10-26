@@ -523,8 +523,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
-    model = ResNet(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
@@ -533,8 +533,9 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
-              verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    # model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
+    #           verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
