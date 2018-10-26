@@ -533,7 +533,8 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, validation_split=0.05,
+              verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
@@ -548,7 +549,7 @@ if __name__ == '__main__':
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    if False:
+    if True:
         model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5'
         model.save(model_save_name)
 
@@ -596,7 +597,7 @@ if __name__ == '__main__':
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
 
-    if False:
+    if True:
         model = load_model(model_save_name)
 
         path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
