@@ -526,8 +526,8 @@ if __name__ == '__main__':
     # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
     model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
-    model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
-    # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
+    model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
