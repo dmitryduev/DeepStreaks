@@ -499,8 +499,8 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
     # X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
     #                                                              project_id='5b96af9c0354c9000b0aea36',
@@ -548,7 +548,7 @@ if __name__ == '__main__':
     print("Loss = " + str(preds[0]))
     print("Test Accuracy = " + str(preds[1]))
 
-    if True:
+    if False:
         model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5'
         model.save(model_save_name)
 
@@ -589,25 +589,29 @@ if __name__ == '__main__':
     #     im.show()
     #     input()
 
+    # print model summary
+    print(model.summary())
+
     ''' test predictions '''
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
 
-    model = load_model(model_save_name)
+    if False:
+        model = load_model(model_save_name)
 
-    path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
-                                                '*.jpg'))
-    model_input_shape = model.input_shape[1:3]
+        path_streak_stamps = glob.glob(os.path.join('./data', project_id, '5b96ecf05ec848000c70a870.20180914_165152',
+                                                    '*.jpg'))
+        model_input_shape = model.input_shape[1:3]
 
-    for path_streak_stamp in path_streak_stamps[:5]:
-        print(path_streak_stamp)
-        x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(model_input_shape,
-                                                                              Image.BILINEAR)) / 255.
-        x = np.expand_dims(x, 2)
-        x = np.expand_dims(x, 0)
+        for path_streak_stamp in path_streak_stamps[:5]:
+            print(path_streak_stamp)
+            x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(model_input_shape,
+                                                                                  Image.BILINEAR)) / 255.
+            x = np.expand_dims(x, 2)
+            x = np.expand_dims(x, 0)
 
-        tic = time.time()
-        rb = float(model.predict(x, batch_size=1)[0][0])
-        toc = time.time()
+            tic = time.time()
+            rb = float(model.predict(x, batch_size=1)[0][0])
+            toc = time.time()
 
-        print(rb, f'took {toc-tic} seconds')
+            print(rb, f'took {toc-tic} seconds')
