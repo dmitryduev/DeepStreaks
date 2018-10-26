@@ -1,0 +1,296 @@
+{% extends "template.html" %}
+
+{% block css %}
+    <style>
+        .form-group {
+            margin-bottom:5px !important;
+            margin-top: 2px !important;
+        }
+        .slider.slider-horizontal {
+            width: 100% !important;
+        }
+        .show_hide_password a, a:hover{
+           color: #333;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        <h2>Manage users</h2><br>
+
+        <button type="button" class="btn btn-primary btn-lg btn-block"
+                data-toggle="modal" data-target="#addUserModal"
+                data-user="">Add user</button>
+        <br>
+
+        {% if users|length > 0 %}
+            <table class="table table-sm table-hover tablesorter" id="user-table">
+                <thead>
+                <tr>
+                    <th scope="col">username</th>
+                    <th scope="col">permissions</th>
+                    <th scope="col">actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for u in users %}
+                    <tr>
+                        <th scope="row" style="width: 20%">{{ u }}</th>
+                        <td style="width: 50%">{{ users[u]['permissions'] }}</td>
+                        <td style="width: 30%">
+                            <button type="button" class="btn btn-sm btn-primary editButton"
+                                    data-toggle="modal" data-target="#editUserModal"
+                                    data-user="{{ u }}" data-permissions="'{{ users[u]['permissions'] }}'">
+                                edit</button>
+                            <button type="button" class="btn btn-sm btn-danger removeButton"
+                                    data-user="{{ u }}">
+                                remove</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+    </div>
+
+    <!-- Modal to add a user-->
+    <div class="modal fade" tabindex="-1" role="dialog" id="addUserModal" >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add user</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="tempAddUser">
+                        <div class="form-group">
+                            <label for="form-usr">username</label>
+                            <input id="form-usr" type="text" class="form-control"
+                                   name="user" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-pwd">password</label>
+                            <div class="input-group show_hide_password">
+                                <input type="password" class="form-control" name="password" id="form-pwd"
+                                       placeholder=""
+                                       autocomplete="off">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <a href=""><i class="fa fa-eye-slash" aria-hidden="true"></i></a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+{#                        <div class="form-group">#}
+{#                            <label for="form-permissions">permissions</label>#}
+{#                            <input id="form-permissions" type="text" class="form-control"#}
+{#                                   name="permissions" autocomplete="off">#}
+{#                        </div>#}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="addUserButton">Add user</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <!-- End Modal -->
+
+    <!-- Modal to edit a user-->
+    <div class="modal fade" tabindex="-1" role="dialog" id="editUserModal" >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit user</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="tempEditUser">
+                        <div class="form-group">
+                            <label for="form-edit-usr">username</label>
+                            <input id="form-edit-usr" type="text" class="form-control"
+                                   name="edit-user" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-edit-pwd">password</label>
+                            <div class="input-group show_hide_password">
+                                <input type="password" class="form-control" name="edit-password" id="form-edit-pwd"
+                                       placeholder="leave empty to keep the current password"
+                                       autocomplete="off">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <a href=""><i class="fa fa-eye-slash" aria-hidden="true"></i></a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+{#                        <div class="form-group">#}
+{#                            <label for="form-edit-permissions">permissions</label>#}
+{#                            <input id="form-edit-permissions" type="text" class="form-control"#}
+{#                                   name="edit-permissions" autocomplete="off">#}
+{#                        </div>#}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="editUserButton">Save</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <!-- End Modal -->
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="{{-script_root-}}/static/js/jquery.tablesorter.min.js"></script>
+    <script>
+        // for AJAX requests [absolute website's uri]:
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        // global var to keep track of user name changes
+        var user_keep;
+
+        $(document).ready(function() {
+            // call the tablesorter plugin
+            $("#user-table").tablesorter({
+                // sort on the first column and third column, order asc
+                sortList: [[0,0]]
+            });
+        });
+
+        // show/hide password
+        $(document).ready(function() {
+            $(".show_hide_password a").on('click', function(event) {
+                event.preventDefault();
+                if($('.show_hide_password input').attr("type") == "text"){
+                    $('.show_hide_password input').attr('type', 'password');
+                    $('.show_hide_password i').addClass( "fa-eye-slash" );
+                    $('.show_hide_password i').removeClass( "fa-eye" );
+                }else if($('.show_hide_password input').attr("type") == "password"){
+                    $('.show_hide_password input').attr('type', 'text');
+                    $('.show_hide_password i').removeClass( "fa-eye-slash" );
+                    $('.show_hide_password i').addClass( "fa-eye" );
+                }
+            });
+        });
+
+        // send AJAX PUT request to server
+        $('#addUserButton').click(function (e) {
+            $.ajax({url: '{{-script_root-}}/users',
+                method: 'PUT',
+                data: JSON.stringify($('#tempAddUser').serializeJSON()),
+                processData: false,
+                contentType: 'application/json',
+                success: function(data) {
+                    if (data === 'success') {
+                        location.reload(true);
+                    }
+                    else {
+                        $('#addUserModal').modal('hide');
+                        showFlashingMessage('Info:', 'Failed to add user', 'danger');
+                    }
+                },
+                error: function(data) {
+                    $('#addUserModal').modal('hide');
+                    showFlashingMessage('Info:', 'Failed to add user', 'danger');
+                }
+            });
+            return false;
+        });
+
+        // remove a user
+        $('.removeButton').click(function (e) {
+            // Extract info from data-* attributes
+            var user = $(this).data('user');
+            bootbox.confirm("Are you sure?", function(result) {
+                if (result) {
+                    $.ajax({url: '{{-script_root-}}/users',
+                        data: JSON.stringify({'user': user}),
+                        method: 'DELETE',
+                        processData: false,
+                        contentType: 'application/json',
+                        success: function(data) {
+                            if (data === 'success') {
+                                location.reload(true);
+                            }
+                            else {
+                                {#showFlashingMessage('Info:', 'Failed to remove user', 'danger');#}
+                                showFlashingMessage('Info:', data, 'danger');
+                            }
+                        },
+                        error: function(data) {
+                            showFlashingMessage('Info:', 'Failed to remove user', 'danger');
+                        }
+                    });
+                }
+            });
+            return false;
+        });
+
+        // edit a user
+        $('#editUserButton').click(function (e) {
+            // Extract info from data-* attributes
+            var _user = user_keep;
+            bootbox.confirm("Save changes?", function(result) {
+                if (result) {
+                    let edit_form = $('#tempEditUser').serializeJSON();
+                    edit_form['_user'] = _user;
+                    console.log(edit_form);
+                    $.ajax({url: '{{-script_root-}}/users',
+                        data: JSON.stringify(edit_form),
+                        method: 'POST',
+                        processData: false,
+                        contentType: 'application/json',
+                        success: function(data) {
+                            if (data === 'success') {
+                                location.reload(true);
+                            }
+                            else {
+                                $('#editUserModal').modal('hide');
+                                showFlashingMessage('Info:', data, 'danger');
+                            }
+                        },
+                        error: function(data) {
+                            $('#editUserModal').modal('hide');
+                            showFlashingMessage('Info:', 'Failed to edit user', 'danger');
+                        }
+                    });
+                }
+            });
+            return false;
+        });
+
+        // Build modal on-the-fly
+        $('#editUserModal').on('show.bs.modal', function (event) {
+            var trigger = $(event.relatedTarget); // Who triggered the modal? [to extract info]
+            // Extract info from data-* attributes
+            var user = trigger.data('user');
+            var permissions = trigger.data('permissions').slice(1, -1);
+            // global var to keep track of name changes:
+            user_keep = trigger.data('user');
+            {#var programs = trigger.data('programs');#}
+            var modal = $(this);
+            modal.find("#form-edit-usr").val(user);
+            modal.find("#form-edit-pwd").val('');
+            modal.find("#form-edit-permissions").val(permissions);
+            {#modal.find("#form-edit-programs").val(programs);#}
+        });
+    </script>
+
+    {% if messages | length > 0 %}
+        $(document).ready(function() {
+            {% for message in messages %}
+                showFlashingMessage('Info:', '{{ message[0] }}', '{{ message[1] }}');
+            {% endfor %}
+        });
+    {% endif %}
+{% endblock %}
