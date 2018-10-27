@@ -85,7 +85,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
 
                 if os.path.exists(image_path):
                     # the assumption is that images are grayscale
-                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) #/ 255.
                     img = np.expand_dims(img, 2)
                     x.append(img)
 
@@ -524,8 +524,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
-    # model = ResNet(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -539,9 +539,9 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=50, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
-    # model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
-    #           verbose=1, callbacks=[tensorboard])
+    # model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
+              verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)
