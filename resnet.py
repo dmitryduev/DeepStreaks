@@ -120,123 +120,6 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
     return x_train, y_train, x_test, y_test, classes
 
 
-def load_data_custom(path: str = './data', project_id: str = None, binary: bool = True, resize: tuple = (144, 144),
-                     test_size=0.1):
-    # data:
-    x = []
-    # classifications:
-    y = []
-
-    # hand-picked test data:
-    x_test = []
-    y_test = []
-
-    # get json file with project metadata
-    project_meta_json = os.path.join(path, f'{project_id}.json')
-    with open(project_meta_json) as f:
-        project_meta = json.load(f)
-
-    # print(project_meta)
-
-    classes_list = project_meta['classes']
-
-    # if it's a binary problem, do {'class1': 0, 'class2': 1}
-    # if multi-class (N), do {'class1': np.array([1, 0, ..., 0]), 'class2': np.array([0, 1, ..., 0]),
-    #                         'classN': np.array([0, 0, ..., 1])}
-    if binary:
-        classes = {classes_list[0]: 0, classes_list[1]: 1}
-    else:
-        classes = {}
-        n_c = len(classes_list)
-
-        for ci, cls in enumerate(classes_list):
-            classes[cls] = np.zeros(n_c)
-            classes[cls][ci] = 1
-
-    # print(classes)
-
-    path_project = os.path.join(path, project_id)
-
-    # FIXME:
-    for dataset_id in project_meta['datasets'][:3]:
-        print(f'Loading dataset {dataset_id}')
-
-        dataset_json = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*.json')))[-1]
-        with open(dataset_json) as f:
-            classifications = json.load(f)
-        # print(classifications)
-
-        path_dataset = [p for p in sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*'))) if
-                        os.path.isdir(p)][-1]
-        # print(path_dataset)
-
-        nnn = 1
-        for k, v in classifications.items():
-            image_class = classes[v[0]]
-            if dataset_id == '5b96ecf05ec848000c70a870' and image_class == 1 and nnn <= 50:
-                # FIXME: use streak examples from Zooniverse as test cases
-                y_test.append(image_class)
-
-                # resize and normalize:
-                image_path = os.path.join(path_dataset, k)
-                # the assumption is that images are grayscale
-                image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
-                                                                                                  Image.BILINEAR)) / 255.,
-                                       2)
-                x_test.append(image)
-
-                nnn += 1
-
-            else:
-                y.append(image_class)
-
-                # resize and normalize:
-                image_path = os.path.join(path_dataset, k)
-                # the assumption is that images are grayscale
-                image = np.expand_dims(np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize,
-                                                                                                  Image.BILINEAR)) / 255.,
-                                       2)
-                x.append(image)
-
-    # numpy-fy and split to test/train
-
-    x = np.array(x)
-    y = np.array(y)
-
-    print(x.shape)
-    print(y.shape)
-
-    # check statistics on different classes
-    if not binary:
-        print('\n')
-        for i in classes.keys():
-            print(f'{i}:', np.sum(y[:, i]))
-        print('\n')
-    else:
-        print('\n')
-        cs = list(classes.keys())
-        print(f'{cs[0]}:', len(y) - np.sum(y))
-        print(f'{cs[1]}:', np.sum(y))
-        print('\n')
-
-    # # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-    # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    # print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-
-    # FIXME:
-    x_test = np.array(x_test)
-    y_test = np.array(y_test)
-    x_train, x_test, y_train, y_test = x, x_test, y, y_test
-
-    # add
-    x_train, x_test_custom, y_train, y_test_custom = train_test_split(x_train, y_train, test_size=test_size)
-    # print(x_test.shape, x_test_custom.shape)
-    x_test = np.concatenate((x_test_custom, x_test))
-    y_test = np.concatenate((y_test_custom, y_test))
-
-    return x_train, y_train, x_test, y_test, classes
-
-
 def identity_block(X, f, filters, stage, block):
     """
     Implementation of the identity block as defined in Figure 3
@@ -524,8 +407,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
-    model = ResNet(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
