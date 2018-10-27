@@ -29,7 +29,7 @@ from matplotlib.pyplot import imshow
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
-# K.set_learning_phase(1)
+K.set_learning_phase(1)
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
@@ -532,7 +532,7 @@ if __name__ == '__main__':
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
     sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
 
-    model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
