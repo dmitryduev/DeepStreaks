@@ -1,17 +1,5 @@
 {% extends "template.html" %}
 
-{% block css %}
-    {{ dropzone.load_css() }}
-    {{ dropzone.style('border: 2px dashed #0087F7; margin: 10px 0 10px; min-height: 300px; width: 100%') }}
-
-    <style>
-    .dropzone .dz-preview .dz-image {
-        width: 80px;
-        height: 80px;
-    }
-    </style>
-{% endblock %}
-
 {% block nav_home %}
     active
 {% endblock %}
@@ -19,21 +7,21 @@
 {% block body_top %}
     {# only display for non logged-in users #}
 {#    {% if projects == None %}#}
-    <div class="container-fluid m-0 p-0">
-        <div class="jumbotron m-0 p-3 p-md-5 text-dark bg-light">
-            <div class="col-md-auto align-self-center px-0">
-                <div class="media">
-                    <img class="align-self-start mr-5" style="width: 200px;"
-                         src="{{-script_root-}}/static/img/ZTF_CompactGrayLB.png"
-                         alt="Zwicky Transient Facility">
-                    <div class="media-body">
-                        <h2 class="mt-0">Zwickyverse</h2>
-                        <p style="font-size: 1.2rem;">Simplifying data-set labeling for ZTF machine learning activities</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+{#    <div class="container-fluid m-0 p-0">#}
+{#        <div class="jumbotron m-0 p-3 p-md-5 text-dark bg-light">#}
+{#            <div class="col-md-auto align-self-center px-0">#}
+{#                <div class="media">#}
+{#                    <img class="align-self-start mr-5" style="width: 200px;"#}
+{#                         src="{{-script_root-}}/static/img/ZTF_CompactGrayLB.png"#}
+{#                         alt="Zwicky Transient Facility">#}
+{#                    <div class="media-body">#}
+{#                        <h2 class="mt-0">Zwickyverse</h2>#}
+{#                        <p style="font-size: 1.2rem;">Simplifying data-set labeling for ZTF machine learning activities</p>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 {#    {% endif %}#}
 {% endblock %}
 

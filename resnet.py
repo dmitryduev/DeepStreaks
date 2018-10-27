@@ -539,7 +539,7 @@ if __name__ == '__main__':
 
     batch_size = 32
 
-    model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    model.fit(X_train, Y_train, epochs=50, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
     # model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
     #           verbose=1, callbacks=[tensorboard])
 
