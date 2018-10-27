@@ -528,11 +528,11 @@ if __name__ == '__main__':
     model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
-    adam = Adam(lr=0.1, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
-    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
+    sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
 
-    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
