@@ -85,7 +85,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, resiz
 
                 if os.path.exists(image_path):
                     # the assumption is that images are grayscale
-                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) #/ 255.
+                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
                     img = np.expand_dims(img, 2)
                     x.append(img)
 
@@ -423,7 +423,7 @@ if __name__ == '__main__':
     batch_size = 32
 
     # model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
-    model.fit(X_train, Y_train, epochs=2, batch_size=batch_size, validation_split=0.05,
+    model.fit(X_train, Y_train, epochs=50, batch_size=batch_size, validation_split=0.05,
               verbose=1, callbacks=[tensorboard])
 
     # turn off learning phase (beware BatchNormalization!)
