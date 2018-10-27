@@ -29,7 +29,7 @@ from matplotlib.pyplot import imshow
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
-K.set_learning_phase(1)
+# K.set_learning_phase(1)
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
@@ -524,8 +524,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
-    model = ResNet(input_shape=image_shape, n_classes=n_classes)
+    model = ResNet50(input_shape=image_shape, n_classes=n_classes)
+    # model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
