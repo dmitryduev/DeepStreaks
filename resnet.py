@@ -12,14 +12,15 @@ from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNorm
                          AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
 from keras.models import Model, load_model
 from keras.callbacks import TensorBoard
+from keras.optimizers import Adam, SGD
 from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
-import pydot
-from IPython.display import SVG
-from keras.utils.vis_utils import model_to_dot
-from keras.utils import plot_model
+# import pydot
+# from IPython.display import SVG
+# from keras.utils.vis_utils import model_to_dot
+# from keras.utils import plot_model
 from resnets_utils import *
 from keras.initializers import glorot_uniform
 import scipy.misc
@@ -461,12 +462,12 @@ def ResNet(input_shape=(144, 144, 1), n_classes: int=1):
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='d')
 
     # Stage 4 (≈6 lines)
-    X = convolutional_block(X, f=3, filters=[256, 256, 512], stage=4, block='a', s=2)
-    X = identity_block(X, 3, [256, 256, 512], stage=4, block='b')
-    X = identity_block(X, 3, [256, 256, 512], stage=4, block='c')
-    X = identity_block(X, 3, [256, 256, 512], stage=4, block='d')
-    X = identity_block(X, 3, [256, 256, 512], stage=4, block='e')
-    X = identity_block(X, 3, [256, 256, 512], stage=4, block='f')
+    # X = convolutional_block(X, f=3, filters=[256, 256, 512], stage=4, block='a', s=2)
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='b')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='c')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='d')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='e')
+    # X = identity_block(X, 3, [256, 256, 512], stage=4, block='f')
 
     # Stage 5 (≈3 lines)
     # X = convolutional_block(X, f=3, filters=[512, 512, 1024], stage=5, block='a', s=2)
@@ -526,7 +527,12 @@ if __name__ == '__main__':
     # model = ResNet50(input_shape=image_shape, n_classes=n_classes)
     model = ResNet(input_shape=image_shape, n_classes=n_classes)
 
-    model.compile(optimizer='adam', loss=loss, metrics=['accuracy'])
+    # set up optimizer:
+    adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
+    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
+
+    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer='sgd', loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
