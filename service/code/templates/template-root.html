@@ -1,5 +1,11 @@
 {% extends "template.html" %}
 
+{# custom css #}
+{% block css %}
+    <link rel="stylesheet" href="{{-script_root-}}/static/css/bootstrap-table.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+{% endblock %}
+
 {% block nav_home %}
     active
 {% endblock %}
@@ -148,58 +154,62 @@
         var jd = new JulianDate();
 
         // build table using js
-        {#$(document).ready(function() {#}
-            $('#table').bootstrapTable({
-                height: getHeight(),
-                columns: [
-                    [
-                        {
-                            field: 'obs_date',
-                            title: 'T_obs, UTC',
-                            align: 'center',
-                            valign: 'middle',
-                            sortable: true,
-                            visible: true
-                        },
-                        {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
-                                            'length', 'sigma', 'lengtherr', 'sigmaerr', 'prob', 'rb', 'sl') %}
-                        {
-                            field: '{{field_id}}',
-                            title: '{{field_id}}',
-                            align: 'center',
-                            valign: 'middle',
-                            sortable: true,
-                            visible: true
-                        },
-                        {% endfor %}
-                    ]
-                ],
-                data: [
-                    {% for entry in data %}
-                        {
-                            obs_date: moment(jd.julian({{ entry['jd'] }}).getDate()).utc().format('YYYY/MM/DD_HH:mm:ss'),
-                            {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
-                                            'length', 'sigma', 'lengtherr', 'sigmaerr', 'prob', 'rb', 'sl') %}
-                            {{ field_id }}: "{{entry[field_id]}}",
-                            {% endfor %}
-                        },
-
+        $('#table').bootstrapTable({
+            height: getHeight(),
+            columns: [
+                [
+                    {
+                        field: 'obs_date',
+                        title: 'T_obs, UTC',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: true,
+                        visible: true
+                    },
+                    {# 'length', 'sigma', 'lengtherr', 'sigmaerr',  #}
+                    {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
+                                        'prob', 'rb', 'sl') %}
+                    {
+                        field: '{{field_id}}',
+                        title: '{{field_id}}',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: true,
+                        visible: true
+                    },
                     {% endfor %}
                 ]
-            });
-        {#});#}
+            ],
+            data: [
+                {% for entry in data %}
+                    {
+                        obs_date: moment(jd.julian({{ entry['jd'] }}).getDate()).utc().format('YYYY/MM/DD_HH:mm:ss'),
+                        {# 'length', 'sigma', 'lengtherr', 'sigmaerr',  #}
+                        {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
+                                            'prob', 'rb', 'sl') %}
+                        {{ field_id }}: "{{entry[field_id]}}",
+                        {% endfor %}
+                    },
+
+                {% endfor %}
+            ]
+        });
 
         // display details
         function detailFormatter(index, row, element) {
             var html = [];
+
+            let jdd = new JulianDate();
+            let date_utc = moment(jdd.julian(parseFloat(row['jd'])).getDate()).utc().format('YYYYMMDD');
 
             html.push("<div class=\"row p-0 m-0\">");
 
             // cutout
             html.push("<div class=\"col-4 p-0 m-0\">");
             html.push("<figure class='figure ml-3 mt-1 mb-1 align-top'>");
-            html.push("<img class='figure-img img-fluid mr-1' style='width: 295px' src='/data/"+ row['candid']+ "_" + row['objectId'] + "/lightcurve.jpg'>");
-            html.push("<figcaption class='figure-caption text-center'>Light curve</figcaption>");
+            html.push("<img class='figure-img img-fluid mr-1' style='width: 295px' src='/data/stamps/stamps_"+ date_utc
+                + "/strkid" + row['streakid']+ "_pid" + row['pid'] + "_scimref.jpg'>");
+            html.push("<figcaption class='figure-caption text-center'>Cutout</figcaption>");
             html.push("</figure>");
             html.push("</div>");
 
