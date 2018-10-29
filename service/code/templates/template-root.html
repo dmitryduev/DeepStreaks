@@ -5,24 +5,383 @@
 {% endblock %}
 
 {% block body_top %}
+    <div class="container-fluid mt-2">
 
+        <div id="accordion" role="tablist" class="mt-2">
+            <div class="card">
+                <div class="card-header" role="tab" id="headingCoordinatesTab">
+                    <h5 class="mb-0">
+                        <a data-toggle="collapse" href="#coordinatesTab" aria-expanded="true"
+                           aria-controls="queryTab">
+                            Search/Filter
+                        </a>
+                    </h5>
+                </div>
+                <div id="queryTab" class="collapse show" role="tabpanel" aria-labelledby="headingQueryTab">
+                    <div class="card-body">
+                        <form id="query_form" class="form" method="post">
+
+                            <div class="form-group row">
+                                <label for="filter" class="col-md-2 col-form-label">Filter</label>
+                                <div class="col-md-10">
+                                    <textarea class="form-control form-control-sm"
+                                              id="filter" name="filter"
+                                              placeholder="Query to db. MongoDB syntax, see help"
+                                              rows="8"></textarea>
+                                </div>
+                            </div>
+
+                            {# TODO: make user-friendy: date selection tool; rb, sl range selectors? #}
+
+                            <button type="button" class="btn btn-dark btn-sm" id="submit_query">Submit</button>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block body %}
-    {# only display for logged-in users #}
-    {% if user != None %}
-    <div class="container">
-        <!-- Seek and destroy -->
-        Yo, {{ user }}
-    </div>
+
+    <div class="container-fluid">
+
+    {% if data | length > 0 %}
+        <div id="toolbar" class="btn-group">
+            <button type="button" class="btn btn-outline-dark"
+                    style="cursor: pointer;" onclick="toggle_expansion()"
+                    data-toggle="tooltip" data-placement="top" title="Show/hide more">
+                <i id="expansion_toggle" class="fas fa-plus" aria-hidden="true"></i>
+            </button>
+
+            <button type="button" class="btn btn-outline-dark"
+                    style="cursor: pointer;" onclick="toggle_invert_cutouts()"
+                    data-toggle="tooltip" data-placement="top" title="Invert cutout colors">
+                <i id="expansion_toggle" class="fas fa-adjust" aria-hidden="true"></i>
+            </button>
+
+        </div>
+        <table id="table"
+               class="table table-hover table-condensed"
+               data-toggle="table"
+               data-toolbar="#toolbar"
+               data-pagination="true"
+               data-side-pagination="client"
+               data-minimum-count-columns="2"
+               data-page-size="20"
+               data-page-list="[20, 50, 100, 200, 500, 1000, All]"
+               data-search="true"
+               data-detail-view="true"
+               data-detail-formatter="detailFormatter"
+               data-show-columns="true"
+               data-show-multi-sort="true"
+               data-show-export="true"
+               data-export-types="['json', 'csv']"
+               data-export-options='{ "fileName": "ztf-streaks",
+                                      "worksheetName": "ztf-streaks1"
+                                     }'>
+        </table>
     {% endif %}
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog"
+         aria-labelledby="modal-query-id" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-query-id"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <pre><code id="modal-body-code" style="font-size:0.75em;"></code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+{#                    <button type="button" class="btn btn-primary">Save changes</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
 
 {% block js %}
 
+    <!-- Bootstrap table -->
+    <script src="{{-script_root-}}/static/js/bootstrap-table.js"></script>
+    <script src="{{-script_root-}}/static/js/bootstrap-table-en-US.js"></script>
+    <script src="{{-script_root-}}/static/js/tableExport.js"></script>
+    <script src="{{-script_root-}}/static/js/bootstrap-table-export.js"></script>
+    <script src="{{-script_root-}}/static/js/FileSaver.min.js"></script>
+    <script src="{{-script_root-}}/static/js/bootstrap-table-multiple-sort.js"></script>
+
+    <!-- Big int support for js -->
+    <script src="{{-script_root-}}/static/js/json-bigint.js"></script>
+
+    <!-- Julian dates -->
+    <script src="{{-script_root-}}/static/js/julianDate.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
     <script>
+        {% if data | length > 0 %}
+        // Fancy table stuff
+        function getHeight() {
+            var window_height = $(window).height();
+            {#console.log(window_height);#}
+            {#console.log(document.getElementById('table').getBoundingClientRect().top);#}
+            if (window_height > 1200) {
+                var top = document.getElementById('table').getBoundingClientRect().top;
+                return Math.max(560, window_height - top - 20);
+            }
+            else {
+                var top = document.getElementById('table').getBoundingClientRect().top;
+                return Math.max(560, window_height - top - 20);
+            }
+        }
+
+        var jd = new JulianDate();
+
+        // build table using js
+        {#$(document).ready(function() {#}
+            $('#table').bootstrapTable({
+                height: getHeight(),
+                columns: [
+                    [
+                        {
+                            field: 'obs_date',
+                            title: 'T_obs, UTC',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable: true,
+                            visible: true
+                        },
+                        {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
+                                            'length', 'sigma', 'lengtherr', 'sigmaerr', 'prob', 'rb', 'sl') %}
+                        {
+                            field: '{{field_id}}',
+                            title: '{{field_id}}',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable: true,
+                            visible: true
+                        },
+                        {% endfor %}
+                    ]
+                ],
+                data: [
+                    {% for entry in data %}
+                        {
+                            obs_date: moment(jd.julian({{ entry['jd'] }}).getDate()).utc().format('YYYY/MM/DD_HH:mm:ss'),
+                            {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
+                                            'length', 'sigma', 'lengtherr', 'sigmaerr', 'prob', 'rb', 'sl') %}
+                            {{ field_id }}: "{{entry[field_id]}}",
+                            {% endfor %}
+                        },
+
+                    {% endfor %}
+                ]
+            });
+        {#});#}
+
+        // display details
+        function detailFormatter(index, row, element) {
+            var html = [];
+
+            html.push("<div class=\"row p-0 m-0\">");
+
+            // cutout
+            html.push("<div class=\"col-4 p-0 m-0\">");
+            html.push("<figure class='figure ml-3 mt-1 mb-1 align-top'>");
+            html.push("<img class='figure-img img-fluid mr-1' style='width: 295px' src='/data/"+ row['candid']+ "_" + row['objectId'] + "/lightcurve.jpg'>");
+            html.push("<figcaption class='figure-caption text-center'>Light curve</figcaption>");
+            html.push("</figure>");
+            html.push("</div>");
+
+            {#// Buttons:#}
+            {#html.push("<div class=\"col-1 p-0 m-0\">");#}
+            {#html.push("<a role='button' download='" + row['candid'] + ".json' href='/alerts/" + row['candid'] +#}
+            {#    "?download=json'" +#}
+            {#    " class='btn btn-sm btn-outline-dark mt-1 ml-1 mb-1 align-top'>JSON <i class='fas fa-download'></i></a>");#}
+            {#// alert page:#}
+            {#html.push("<br>");#}
+            {#html.push("<a target='_blank' role='button' " + "href='/alerts/" + row['candid'] +#}
+            {#    "' class='btn btn-sm btn-outline-dark mt-1 ml-1 mb-1 align-top'>Details <i class='fas fa-external-link-alt'></i></a>");#}
+            {#html.push("</div>");#}
+
+            // close row
+            html.push("</div>");
+
+            return html.join('');
+        }
+
+
+        // reset height of table with search results
+        function resetTableHeight() {
+            var $table = $('#table');
+            $table.bootstrapTable('resetView', {
+                height: getHeight()
+            });
+        }
+        $(document).ready(function() {
+            // on load
+            if( $('#table').length ) {
+                resetTableHeight();
+            }
+        });
+        $(window).resize(function () {
+            // on window resize
+            if( $('#table').length ) {
+                resetTableHeight();
+            }
+        });
+
+        // on accordion collapse/show
+        $('#coordinatesTab').on('hidden.bs.collapse', function () {
+          resetTableHeight();
+        });
+        $('#coordinatesTab').on('shown.bs.collapse', function () {
+          resetTableHeight();
+        });
+
+        {# table sorting #}
+        function getOrder() {
+            var $table = $('#table');
+            return $table.bootstrapTable('getOptions').sortOrder === 'asc' ? -1 : 1;
+        }
+
+        function numberSorter(a, b) {
+            a = $.trim(a.replace(/<\/?[^>]+(>|$)/g, ""));
+            b = $.trim(b.replace(/<\/?[^>]+(>|$)/g, ""));
+            if (!a || a === 'None') return -1 * getOrder();
+            if (!b || b === 'None') return 1 * getOrder();
+            if (parseFloat(a) < parseFloat(b)) return -1;
+            if (parseFloat(a) > parseFloat(b)) return 1;
+            return 0;
+        }
+
+        function stringSorter(a, b) {
+            a = $.trim(a.replace(/<\/?[^>]+(>|$)/g, ""));
+            b = $.trim(b.replace(/<\/?[^>]+(>|$)/g, ""));
+            if (!a || a === 'None') return -1 * getOrder();
+            if (!b || b === 'None') return 1 * getOrder();
+            if (a < b) return -1;
+            if (a > b) return 1;
+            return 0;
+        }
+
+        {# expand all rows in table #}
+        function toggle_expansion(){
+            if ($("#expansion_toggle").hasClass('fa-plus')) {
+                $('#table').bootstrapTable('expandAllRows', false);
+            }
+            else {
+                $('#table').bootstrapTable('collapseAllRows', false);
+            }
+            $("#expansion_toggle").toggleClass('fa-plus fa-minus');
+        }
+
+        {# toggle cutout color invert #}
+        function toggle_invert_cutouts(){
+            $('.cutout').toggleClass('invert');
+        }
+
+
+        {# init tooltips #}
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
+
+
+        {# actions #}
+        {# download json as files #}
+        function download(json, name, type) {
+            var a = document.createElement("a");
+            var file = new Blob([json], {type: type});
+            var url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function(){
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        }
+
+        {% endif %}
+
+        // submit query
+        $(document).ready(function() {
+            $('#submit_query').click(function () {
+                bootbox.confirm({
+                    message: "Do you want to submit the query?",
+                    buttons: {
+                        cancel: {
+                            label: '<i class="fas fa-times"></i> Cancel'
+                        },
+                        confirm: {
+                            label: '<i class="fas fa-check"></i> Confirm'
+                        }
+                    },
+                    callback: function (result) {
+                        // console.log('This was logged in the callback: ' + result);
+                        // confirmed? emit request to server:
+                        if (result) {
+                            $('#query_form').submit();
+                        }
+                    }
+                });
+            });
+        });
+
+        {# show flashing messages #}
+        function showFlashingMessage(title, message, type) {
+            $.notify({title: title, message: message},
+                {placement: {
+                    from: "bottom",
+                    align: "right"
+                },
+                    type: type,
+                    template: '<div data-notify="container" class="col-xs-11 col-sm-3 alert alert-{0}" role="alert" ' +
+                    'style="max-width:400px; font-size: 0.75rem;">' +
+                    '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
+                    '<span data-notify="icon"></span> ' +
+                    '<span data-notify="title">{1}</span> ' +
+                    '<span data-notify="message">{2}</span>' +
+                    '<div class="progress" data-notify="progressbar">' +
+                    '<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" ' +
+                    'aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
+                    '</div>' +
+                    '<a href="{3}" target="{4}" data-notify="url"></a>' +
+                    '</div>'
+            });
+        }
+        {% if messages | length > 0 %}
+            $(document).ready(function() {
+                {% for message in messages %}
+                    showFlashingMessage('Info:', '{{ message[0] }}', '{{ message[1] }}');
+                {% endfor %}
+            });
+        {% endif %}
+    </script>
+
+    {# populate form from previous request #}
+    <script>
+        $(document).ready(function() {
+            {%-for key in form-%}
+                {%-if form[key] == 'on'-%}
+                    $('#{{-key-}}').prop('checked', true);
+                {%-else-%}
+                    $('#{{-key-}}').val("{{-form[key]|safe|replace('\"', '\'')-}}");
+                {%-endif-%}
+            {%-endfor-%}
+        })
     </script>
 
 {% endblock %}

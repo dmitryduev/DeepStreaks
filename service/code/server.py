@@ -490,22 +490,60 @@ def root():
         access_token = flask.session['access_token']
     else:
         access_token = None
+        return flask.redirect(flask.url_for('login'))
 
-    if flask.request.method == 'GET':
-        return flask.render_template('template-root.html',
-                                     logo=config['server']['logo'],
-                                     user=user_id,
-                                     data={})
+    form = ''
+    data = []
+    messages = []
 
-    elif flask.request.method == 'POST':
-        pass
+    # if flask.request.method == 'GET':
+    #     pass
+
+    if flask.request.method == 'POST':
+        try:
+            form = flask.request.form
+            # print(form)
+            query = dict()
+            query['filter'] = literal_eval(form['filter'])
+            # FIXME:
+            # query['projection'] = {'ades': 0}
+            query['projection'] = {}
+
+            # query own API:
+            if access_token is not None:
+                r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
+                                  json=query,
+                                  headers={'Authorization': 'Bearer {:s}'.format(access_token)})
+            else:
+                r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
+                                  json=query)
+
+            _data = r.json()
+            # print(_data)
+
+            if len(_data) == 0:
+                messages = [(u'Did not find anything.', u'info')]
+
+            data = _data
+
+        except Exception as e:
+            print(e)
+            messages = [(u'Failed to digest query.', u'danger')]
+
+    return flask.render_template('template-root.html',
+                                 logo=config['server']['logo'],
+                                 user=user_id,
+                                 form=form,
+                                 data=data,
+                                 messages=messages)
 
 
 ''' API '''
 
 
 @app.route('/streaks', strict_slashes=False, methods=['POST'])
-@jwt_optional
+# @jwt_optional
+@jwt_required
 def streaks():
     try:
         try:
@@ -530,16 +568,17 @@ def streaks():
 
         # prevent fraud: TODO: can add custom user permissions in the future
         if user_id is None:
-            query['filter'] = {'$and': [{'candidate.programid': 1}, query['filter']]}
+            # query['filter'] = {'$and': [{'candidate.programid': 1}, query['filter']]}
+            flask.abort(403)
 
         if len(query['projection']) == 0:
-            cursor = mongo.db.ZTF_alerts.find(query['filter'])  # .limit(2)
+            cursor = mongo.db[config['database']['db']].find(query['filter'])  # .limit(2)
         else:
-            cursor = mongo.db.ZTF_alerts.find(query['filter'], query['projection'])  # .limit(2)
+            cursor = mongo.db[config['database']['db']].find(query['filter'], query['projection'])  # .limit(2)
 
-        _alerts = list(cursor) if cursor is not None else []
+        _data = list(cursor) if cursor is not None else []
 
-        return flask.Response(dumps(_alerts), mimetype='application/json')
+        return flask.Response(dumps(_data), mimetype='application/json')
 
     except Exception as _e:
         # FIXME: this is for debugging
