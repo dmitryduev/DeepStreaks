@@ -505,6 +505,9 @@ def root():
             # print(form)
             query = dict()
             query['filter'] = literal_eval(form['filter'])
+            # FIXME?
+            query['limit'] = int(form['limit']) if 'limit' in form else None
+
             # FIXME:
             # query['projection'] = {'ades': 0}
             query['projection'] = {}
@@ -572,9 +575,16 @@ def streaks():
             flask.abort(403)
 
         if len(query['projection']) == 0:
-            cursor = mongo.db[config['database']['db']].find(query['filter'])  # .limit(2)
+            if query['limit'] is None:
+                cursor = mongo.db[config['database']['db']].find(query['filter'])  # .limit(2)
+            else:
+                cursor = mongo.db[config['database']['db']].find(query['filter']).limit(query['limit'])
         else:
-            cursor = mongo.db[config['database']['db']].find(query['filter'], query['projection'])  # .limit(2)
+            if query['limit'] is None:
+                cursor = mongo.db[config['database']['db']].find(query['filter'], query['projection'])  # .limit(2)
+            else:
+                cursor = mongo.db[config['database']['db']].find(query['filter'],
+                                                                 query['projection']).limit(query['limit'])
 
         _data = list(cursor) if cursor is not None else []
 
