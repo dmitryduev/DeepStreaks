@@ -19,7 +19,7 @@
                     <h5 class="mb-0">
                         <a data-toggle="collapse" href="#coordinatesTab" aria-expanded="true"
                            aria-controls="queryTab">
-                            Search/Filter
+                            General Search
                         </a>
                     </h5>
                 </div>
@@ -44,7 +44,8 @@
 
                                 <div class="col-md-10">
                                     <input type="text" class="form-control form-control-sm" id="limit"
-                                           name="limit" placeholder="Max number of entries to return">
+                                           name="limit"
+                                           placeholder="Max number of entries to return. Leave blank to get all.">
                                 </div>
                             </div>
 
@@ -64,7 +65,7 @@
 
     <div class="container-fluid">
 
-    {% if data | length > 0 %}
+{#    {% if data | length > 0 %}#}
         <div id="toolbar" class="btn-group">
             <button type="button" class="btn btn-outline-dark"
                     style="cursor: pointer;" onclick="toggle_expansion()"
@@ -99,7 +100,7 @@
                                       "worksheetName": "ztf-streaks1"
                                      }'>
         </table>
-    {% endif %}
+{#    {% endif %}#}
     </div>
 
     <!-- Modal -->
@@ -146,7 +147,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 
     <script>
-        {% if data | length > 0 %}
+{#        {% if data | length > 0 %}#}
         // Fancy table stuff
         function getHeight() {
             var window_height = $(window).height();
@@ -335,7 +336,7 @@
             }, 100);
         }
 
-        {% endif %}
+{#        {% endif %}#}
 
         // submit query
         $(document).ready(function() {

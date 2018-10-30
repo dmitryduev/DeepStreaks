@@ -497,7 +497,12 @@ def root():
     messages = []
 
     # if flask.request.method == 'GET':
-    #     pass
+    #     return flask.render_template('template-root.html',
+    #                                  logo=config['server']['logo'],
+    #                                  user=user_id,
+    #                                  form=form,
+    #                                  data=data,
+    #                                  messages=messages)
 
     if flask.request.method == 'POST':
         try:
@@ -506,39 +511,78 @@ def root():
             query = dict()
             query['filter'] = literal_eval(form['filter'])
             # FIXME?
-            query['limit'] = int(form['limit']) if 'limit' in form else None
+            query['limit'] = int(form['limit']) if ('limit' in form) and (len(form['limit']) > 0) else None
 
             # FIXME:
             # query['projection'] = {'ades': 0}
             query['projection'] = {}
 
-            # query own API:
-            if access_token is not None:
-                r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
-                                  json=query,
-                                  headers={'Authorization': 'Bearer {:s}'.format(access_token)})
+            # # query own API:
+            # if access_token is not None:
+            #     r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
+            #                       json=query,
+            #                       headers={'Authorization': 'Bearer {:s}'.format(access_token)})
+            # else:
+            #     r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
+            #                       json=query)
+            #
+            # # print(r)
+            #
+            # _data = r.json()
+            # # print(_data)
+            #
+            # if len(_data) == 0:
+            #     messages = [(u'Did not find anything.', u'info')]
+            #
+            # data = _data
+
+            if len(query['projection']) == 0:
+                if query['limit'] is None:
+                    cursor = mongo.db[config['database']['db']].find(query['filter'])  # .limit(2)
+                else:
+                    cursor = mongo.db[config['database']['db']].find(query['filter']).limit(query['limit'])
             else:
-                r = requests.post(os.path.join('http://', f"localhost:{config['server']['port']}", 'streaks'),
-                                  json=query)
+                if query['limit'] is None:
+                    cursor = mongo.db[config['database']['db']].find(query['filter'],
+                                                                     query['projection'])  # .limit(2)
+                else:
+                    cursor = mongo.db[config['database']['db']].find(query['filter'],
+                                                                     query['projection']).limit(query['limit'])
 
-            _data = r.json()
-            # print(_data)
-
-            if len(_data) == 0:
+            if cursor.count() == 0:
                 messages = [(u'Did not find anything.', u'info')]
 
-            data = _data
+            def iter_data():
+                """
+                    instead of first loading and then sending everything to user all at once,
+                     yield an alert at a time and stream to user
+                :param _user_id:
+                :param _jd_start:
+                :param _jd_end:
+                :return:
+                """
+                if cursor is not None:
+                    if cursor.count() > 0:
+                        for entry in cursor:
+                            yield entry
+
+            return flask.Response(stream_template('template-root.html',
+                                                  logo=config['server']['logo'],
+                                                  user=user_id,
+                                                  form=form,
+                                                  data=iter_data(),
+                                                  messages=messages))
 
         except Exception as e:
             print(e)
             messages = [(u'Failed to digest query.', u'danger')]
 
-    return flask.render_template('template-root.html',
-                                 logo=config['server']['logo'],
-                                 user=user_id,
-                                 form=form,
-                                 data=data,
-                                 messages=messages)
+    return flask.Response(stream_template('template-root.html',
+                                          logo=config['server']['logo'],
+                                          user=user_id,
+                                          form=form,
+                                          data=data,
+                                          messages=messages))
 
 
 ''' API '''
@@ -586,9 +630,34 @@ def streaks():
                 cursor = mongo.db[config['database']['db']].find(query['filter'],
                                                                  query['projection']).limit(query['limit'])
 
-        _data = list(cursor) if cursor is not None else []
+        # _data = list(cursor) if cursor is not None else []
+        #
+        # return flask.Response(dumps(_data), mimetype='application/json')
 
-        return flask.Response(dumps(_data), mimetype='application/json')
+        def generate():
+            """
+                Stream query result as JSON
+            :return:
+            """
+            yield '['
+
+            data = cursor.__iter__()
+            try:
+                r = next(data)
+                yield dumps(r)
+            except StopIteration:
+                # no results – close array and stop iteration
+                yield ']'
+                raise StopIteration
+
+            # loop over remaining results
+            for r in data:
+                yield ', ' + dumps(r)
+
+            # close array
+            yield ']'
+
+        return flask.Response(flask.stream_with_context(generate()), mimetype='application/json')
 
     except Exception as _e:
         # FIXME: this is for debugging
