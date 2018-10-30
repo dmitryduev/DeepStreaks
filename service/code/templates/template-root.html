@@ -15,9 +15,9 @@
 
         <div id="accordion" role="tablist" class="mt-2">
             <div class="card">
-                <div class="card-header" role="tab" id="headingCoordinatesTab">
+                <div class="card-header" role="tab" id="headingQueryTab">
                     <h5 class="mb-0">
-                        <a data-toggle="collapse" href="#coordinatesTab" aria-expanded="true"
+                        <a data-toggle="collapse" href="#queryTab" aria-expanded="true"
                            aria-controls="queryTab">
                             General Search
                         </a>
@@ -219,7 +219,7 @@
             // cutout
             html.push("<div class=\"col-4 p-0 m-0\">");
             html.push("<figure class='figure ml-3 mt-1 mb-1 align-top'>");
-            html.push("<img class='figure-img img-fluid mr-1' style='width: 295px' src='/data/stamps/stamps_"+ date_utc
+            html.push("<img class='figure-img img-fluid mr-1' style='max-width: 295px' src='/data/stamps/stamps_"+ date_utc
                 + "/strkid" + row['streakid']+ "_pid" + row['pid'] + "_scimref.jpg'>");
             html.push("<figcaption class='figure-caption text-center'>Cutout</figcaption>");
             html.push("</figure>");

@@ -457,6 +457,7 @@ def auth():
 
 @app.route('/data/<path:filename>')
 # @flask_login.login_required
+# @jwt_optional
 def data_static(filename):
     """
         Get files
