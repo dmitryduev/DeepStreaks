@@ -483,7 +483,7 @@ if __name__ == '__main__':
     #     input()
 
     # print model summary
-    print(model.summary())
+    # print(model.summary())
 
     ''' test predictions '''
     # turn off learning phase (beware BatchNormalization!)
