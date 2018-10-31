@@ -30,3 +30,10 @@ with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
     ... 
 ```
 and it will work.
+
+---
+
+```javascript
+$("input[type=checkbox][value='no_streak']").click();
+$("input[type=checkbox][value='no_streak']").prop("checked",true);
+```
