@@ -3,6 +3,7 @@ import math
 import datetime
 # import aiohttp
 import requests
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -96,10 +97,16 @@ def fetch_cutout(_id, jd, _path='./'):
 
 
 if __name__ == '__main__':
-    client = pymongo.MongoClient(host='private.caltech.edu', port=27023)
+    ''' load secrets '''
+    with open('./secrets.json') as sjson:
+        secrets = json.load(sjson)
+
+    client = pymongo.MongoClient(host=secrets['deep_asteroids_mongodb']['host'],
+                                 port=secrets['deep_asteroids_mongodb']['port'])
 
     db = client['deep-asteroids']
-    db.authenticate(name='ztf', password='ztfkicksass')
+    db.authenticate(name=secrets['deep_asteroids_mongodb']['user'],
+                    password=secrets['deep_asteroids_mongodb']['pwd'])
 
     # cursor = db['deep-asteroids'].find({}, {'_id': 1, 'rb': 1, 'sl': 1})
 

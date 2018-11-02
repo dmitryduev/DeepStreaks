@@ -4,120 +4,34 @@ import os
 import time
 import datetime
 from PIL import Image, ImageOps
-import json
-from sklearn.model_selection import train_test_split
+# import json
+# from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
                          AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
 from keras.models import Model, load_model
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping
 from keras.optimizers import Adam, SGD
-from keras.preprocessing import image
-from keras.utils import layer_utils
-from keras.utils.data_utils import get_file
-from keras.applications.imagenet_utils import preprocess_input
+# from keras.preprocessing import image
+# from keras.utils import layer_utils
+# from keras.utils.data_utils import get_file
+# from keras.applications.imagenet_utils import preprocess_input
 # import pydot
 # from IPython.display import SVG
 # from keras.utils.vis_utils import model_to_dot
 # from keras.utils import plot_model
-from resnets_utils import *
+# from resnets_utils import *
 from keras.initializers import glorot_uniform
-import scipy.misc
-from matplotlib.pyplot import imshow
+# import scipy.misc
+# from matplotlib.pyplot import imshow
 # %matplotlib inline
+
+from utils import load_data
 
 import keras.backend as K
 # K.set_image_data_format('channels_last')
 # K.set_learning_phase(1)
-
-
-def load_data(path: str='./data', project_id: str=None, binary: bool=True, resize: tuple=(144, 144), test_size=0.1):
-
-    # data:
-    x = []
-    # classifications:
-    y = []
-
-    # get json file with project metadata
-    project_meta_json = os.path.join(path, f'{project_id}.json')
-    with open(project_meta_json) as f:
-        project_meta = json.load(f)
-
-    # print(project_meta)
-
-    classes_list = project_meta['classes']
-
-    # if it's a binary problem, do {'class1': 0, 'class2': 1}
-    # if multi-class (N), do {'class1': np.array([1, 0, ..., 0]), 'class2': np.array([0, 1, ..., 0]),
-    #                         'classN': np.array([0, 0, ..., 1])}
-    if binary:
-        classes = {classes_list[0]: 0, classes_list[1]: 1}
-    else:
-        classes = {}
-        n_c = len(classes_list)
-
-        for ci, cls in enumerate(classes_list):
-            classes[cls] = np.zeros(n_c)
-            classes[cls][ci] = 1
-
-    # print(classes)
-
-    path_project = os.path.join(path, project_id)
-
-    for dataset_id in project_meta['datasets']:
-        print(f'Loading dataset {dataset_id}')
-
-        dataset_json = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*.json')))
-        if len(dataset_json) > 0:
-            dataset_json = dataset_json[-1]
-
-            with open(dataset_json) as f:
-                classifications = json.load(f)
-            # print(classifications)
-
-            path_dataset = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*')))[0]
-            # print(path_dataset)
-
-            for k, v in classifications.items():
-                # resize and normalize:
-                image_path = os.path.join(path_dataset, k)
-
-                if os.path.exists(image_path):
-                    # the assumption is that images are grayscale
-                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
-                    img = np.expand_dims(img, 2)
-                    x.append(img)
-
-                    image_class = classes[v[0]]
-                    y.append(image_class)
-
-    # numpy-fy and split to test/train
-
-    x = np.array(x)
-    y = np.array(y)
-
-    print(x.shape)
-    print(y.shape)
-
-    # check statistics on different classes
-    if not binary:
-        print('\n')
-        for i in classes.keys():
-            print(f'{i}:', np.sum(y[:, i]))
-        print('\n')
-    else:
-        print('\n')
-        cs = list(classes.keys())
-        print(f'{cs[0]}:', len(y) - np.sum(y))
-        print(f'{cs[1]}:', np.sum(y))
-        print('\n')
-
-    # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-
-    return x_train, y_train, x_test, y_test, classes
 
 
 def identity_block(X, f, filters, stage, block):
@@ -386,10 +300,6 @@ if __name__ == '__main__':
     project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
     # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
-    # X_train, Y_train, X_test, Y_test, classes = load_data_custom(path='./data',
-    #                                                              project_id='5b96af9c0354c9000b0aea36',
-    #                                                              binary=binary_classification,
-    #                                                              test_size=0.05)
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id=project_id,
                                                           binary=binary_classification,
@@ -420,13 +330,15 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5)
+
     batch_size = 32
 
     # model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
     model.fit(X_train, Y_train, epochs=50, batch_size=batch_size, shuffle=True,
               class_weight={0: 1, 1: 1},
               validation_split=0.05,
-              verbose=1, callbacks=[tensorboard])
+              verbose=1, callbacks=[tensorboard, early_stopping])
 
     # turn off learning phase (beware BatchNormalization!)
     # K.set_learning_phase(0)

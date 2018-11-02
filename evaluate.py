@@ -13,8 +13,9 @@ K.set_learning_phase(0)
 if __name__ == '__main__':
 
     path_models = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models'
-    model_names = {'rb': 'ResNet50_rb_50e_20181031_150155.h5',
-                   'sl': 'ResNet50_sl_20e_20181024_163759.h5'}
+    # model_names = {'rb': 'ResNet50_rb_50e_20181031_150155.h5',
+    #                'sl': 'ResNet50_sl_20e_20181024_163759.h5'}
+    model_names = {'rb': 'ResNet50_rb_50e_20181102_132634.h5'}
 
     models = dict()
     print('loading models...')
@@ -44,9 +45,9 @@ if __name__ == '__main__':
         rb = float(models['rb'].predict(x, batch_size=1)[0][0])
 
         if rb < 0.99:
-            # print(f'____{path_streak_stamp}: {rb}')
-            copyfile(path_streak_stamp, path_streak_stamp.replace('reals_20180901_20181031',
-                                                                  'reals_20180901_20181031_rb_lt_0.99'))
+            print(f'____{path_streak_stamp}: {rb}')
+            # copyfile(path_streak_stamp, path_streak_stamp.replace('reals_20180901_20181031',
+            #                                                       'reals_20180901_20181031_rb_lt_0.99'))
 
         print(f'{ip+1}/{len(path_streak_stamps)} {path_streak_stamp}: {rb}')
         scores.append(rb)
