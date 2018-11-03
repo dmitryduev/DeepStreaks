@@ -68,8 +68,8 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 
     model.add(Flatten())
 
-    model.add(Dense(256, activation='relu'))
-    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(256, activation='relu'))
+    model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
