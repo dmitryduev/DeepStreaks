@@ -32,7 +32,7 @@ def shallow_inception(input_shape=(144, 144, 1), n_classes: int=1):
     x = Flatten()(incept)
 
     # hidden FC layer
-    x = Dense(128, activation='relu')(x)
+    # x = Dense(128, activation='relu')(x)
 
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    # model = shallow_inception(input_shape=image_shape, n_classes=n_classes)
-    model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
+    model = shallow_inception(input_shape=image_shape, n_classes=n_classes)
+    # model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30)
 
     batch_size = 32
 
