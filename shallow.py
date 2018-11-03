@@ -47,7 +47,7 @@ def shallow_inception(input_shape=(144, 144, 1), n_classes: int=1):
 def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 
     model = Sequential()
-    # input: 100x100 images with 3 channels -> (100, 100, 3) tensors.
+    # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 32 convolution filters of size 3x3 each.
     model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
     model.add(Conv2D(32, (3, 3), activation='relu'))
@@ -107,16 +107,16 @@ if __name__ == '__main__':
     model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
-    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    # adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
     sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
 
-    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
-    # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=15)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
 
     batch_size = 32
 
