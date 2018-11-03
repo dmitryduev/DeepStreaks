@@ -120,6 +120,8 @@ if __name__ == '__main__':
     model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
 
+    print(model.summary())
+
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=30)
