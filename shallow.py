@@ -62,14 +62,14 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(Conv2D(64, (3, 3), activation='relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
 
-    # model.add(Dense(256, activation='relu'))
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     batch_size = 32
 
     # model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
-    model.fit(X_train, Y_train, epochs=50, batch_size=batch_size, shuffle=True,
+    model.fit(X_train, Y_train, epochs=100, batch_size=batch_size, shuffle=True,
               class_weight={0: 1, 1: 1},
               validation_split=0.05,
               verbose=1, callbacks=[tensorboard, early_stopping])
