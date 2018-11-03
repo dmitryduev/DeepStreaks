@@ -46,7 +46,7 @@ def shallow_inception(input_shape=(144, 144, 1), n_classes: int=1):
 
 def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 
-    # batch norm momentum
+    # # batch norm momentum
     # batch_norm_momentum = 0.2
 
     model = Sequential()
@@ -76,7 +76,7 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 if __name__ == '__main__':
     K.clear_session()
 
-    save_model = False
+    save_model = True
 
     ''' load data '''
     # streak / not streak? or with subclasses of bogus?
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
     batch_size = 32
 
