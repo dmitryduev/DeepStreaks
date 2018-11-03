@@ -78,12 +78,18 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
-def shallower_vgg(input_shape=(144, 144, 1), n_classes: int=1):
+def vgg6(input_shape=(144, 144, 1), n_classes: int=1):
+    """
+        VGG6
+    :param input_shape:
+    :param n_classes:
+    :return:
+    """
 
     # # batch norm momentum
     # batch_norm_momentum = 0.2
 
-    model = Sequential(name='ShallowerVGG')
+    model = Sequential(name='VGG6')
     # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 16 convolution filters of size 3x3 each.
     model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape))
@@ -111,12 +117,12 @@ def shallower_vgg(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
-def shallowest_vgg(input_shape=(144, 144, 1), n_classes: int=1):
+def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
 
     # # batch norm momentum
     # batch_norm_momentum = 0.2
 
-    model = Sequential(name='ShallowestVGG')
+    model = Sequential(name='VGG4')
     # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 16 convolution filters of size 3x3 each.
     model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape))
@@ -157,8 +163,8 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id=project_id,
@@ -180,14 +186,14 @@ if __name__ == '__main__':
     ''' build model '''
     # model = shallow_inception(input_shape=image_shape, n_classes=n_classes)
     # model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
-    model = shallower_vgg(input_shape=image_shape, n_classes=n_classes)
-    # model = shallowest_vgg(input_shape=image_shape, n_classes=n_classes)
+    model = vgg6(input_shape=image_shape, n_classes=n_classes)
+    # model = vgg4(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     # adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
-    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
+    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6, nesterov=True)
 
     model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
