@@ -78,6 +78,39 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
+def shallower_vgg(input_shape=(144, 144, 1), n_classes: int=1):
+
+    # # batch norm momentum
+    # batch_norm_momentum = 0.2
+
+    model = Sequential(name='ShallowVGG')
+    # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
+    # this applies 16 convolution filters of size 3x3 each.
+    model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape))
+    # model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
+    model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(4, 4)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+
+    model.add(Dense(256, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    # output layer
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    model.add(Dense(n_classes, activation=activation))
+
+    return model
+
+
 if __name__ == '__main__':
     K.clear_session()
 
@@ -113,7 +146,8 @@ if __name__ == '__main__':
 
     ''' build model '''
     # model = shallow_inception(input_shape=image_shape, n_classes=n_classes)
-    model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
+    # model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
+    model = shallower_vgg(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
