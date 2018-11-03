@@ -33,6 +33,7 @@ def shallow_inception(input_shape=(144, 144, 1), n_classes: int=1):
 
     # hidden FC layer
     # x = Dense(128, activation='relu')(x)
+    x = Dense(64, activation='relu')(x)
 
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
