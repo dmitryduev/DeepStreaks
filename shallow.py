@@ -57,15 +57,19 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
     # model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
+
     model.add(Dense(256, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
