@@ -46,10 +46,14 @@ def shallow_inception(input_shape=(144, 144, 1), n_classes: int=1):
 
 def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
 
+    # batch norm momentum
+    batch_norm_momentum = 0.2
+
     model = Sequential()
     # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 32 convolution filters of size 3x3 each.
     model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
+    model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
@@ -107,9 +111,10 @@ if __name__ == '__main__':
     model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
-    # adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    # adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
-    sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
+    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
 
     # model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
     model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
