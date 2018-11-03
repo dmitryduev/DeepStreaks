@@ -157,8 +157,8 @@ if __name__ == '__main__':
     loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
-    # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
+    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
 
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id=project_id,
@@ -180,8 +180,8 @@ if __name__ == '__main__':
     ''' build model '''
     # model = shallow_inception(input_shape=image_shape, n_classes=n_classes)
     # model = shallow_vgg(input_shape=image_shape, n_classes=n_classes)
-    # model = shallower_vgg(input_shape=image_shape, n_classes=n_classes)
-    model = shallowest_vgg(input_shape=image_shape, n_classes=n_classes)
+    model = shallower_vgg(input_shape=image_shape, n_classes=n_classes)
+    # model = shallowest_vgg(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     batch_size = 32
 
     # model.fit(X_train, Y_train, epochs=20, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
-    model.fit(X_train, Y_train, epochs=100, batch_size=batch_size, shuffle=True,
+    model.fit(X_train, Y_train, epochs=200, batch_size=batch_size, shuffle=True,
               class_weight={0: 1, 1: 1},
               validation_split=0.05,
               verbose=1, callbacks=[tensorboard, early_stopping])
