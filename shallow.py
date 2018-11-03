@@ -92,27 +92,27 @@ def vgg6(input_shape=(144, 144, 1), n_classes: int=1):
     model = Sequential(name='VGG6')
     # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 16 convolution filters of size 3x3 each.
-    model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape))
+    model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape, name='conv1'))
     # model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
-    model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(Conv2D(16, (3, 3), activation='relu', name='conv2'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu', name='conv3'))
+    model.add(Conv2D(32, (3, 3), activation='relu', name='conv4'))
     model.add(MaxPooling2D(pool_size=(4, 4)))
     # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
 
-    model.add(Dense(256, activation='relu'))
+    model.add(Dense(256, activation='relu', name='fc_1'))
     # model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     # output layer
     activation = 'sigmoid' if n_classes == 1 else 'softmax'
-    model.add(Dense(n_classes, activation=activation))
+    model.add(Dense(n_classes, activation=activation, name='fc_out'))
 
     return model
 
