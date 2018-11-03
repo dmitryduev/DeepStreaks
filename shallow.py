@@ -49,7 +49,7 @@ def shallow_vgg(input_shape=(144, 144, 1), n_classes: int=1):
     # # batch norm momentum
     # batch_norm_momentum = 0.2
 
-    model = Sequential()
+    model = Sequential(name='ShallowVGG')
     # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
     # this applies 32 convolution filters of size 3x3 each.
     model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
