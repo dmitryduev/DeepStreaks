@@ -116,8 +116,8 @@ if __name__ == '__main__':
     # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
     # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6)
 
-    # model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
-    model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
