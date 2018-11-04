@@ -509,7 +509,7 @@ class Watcher(AbstractObserver):
                 # book-keeping for the future [if a model is retrained]
                 doc['scores'] = dict()
                 for model in self.models:
-                    doc['scores'][model] = {self.config['models'][model]: scores[model]}
+                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
 
                 doc['last_modified'] = utc_now()
 
