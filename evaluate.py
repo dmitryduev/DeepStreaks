@@ -29,7 +29,7 @@ if __name__ == '__main__':
     model_input_shape = models['rb_vgg6'].input_shape[1:3]
 
     path_streaks_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/' + \
-                        'reals_20181102'
+                        'reals_20181102_20181103'
 
     path_streak_stamps = glob.glob(os.path.join(path_streaks_base, '*.jpg'))
 

@@ -327,12 +327,12 @@ class AbstractObserver(ABC):
 
         # DL models:
         self.models = dict()
-        for model in ('rb', 'sl'):
-            print(*time_stamps(), f'loading {model} model {self.config["models"][model]}')
+        for model in self.config['models']:
+            print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
             self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
                                                          self.config['models'][model]))
 
-        self.model_input_shape = self.models['rb'].input_shape[1:3]
+        self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
 
         print(*time_stamps(), 'OBSERVER: AND NOW MY WATCH BEGINS!')
 
@@ -490,22 +490,26 @@ class Watcher(AbstractObserver):
                 x = np.expand_dims(x, 2)
                 x = np.expand_dims(x, 0)
 
-                tic = time.time()
-                rb = float(self.models['rb'].predict(x)[0][0])
-                # print(rb)
-                sl = float(self.models['sl'].predict(x)[0][0])
-                # print(sl)
-                toc = time.time()
-                print(*time_stamps(), f'Forward prop took {toc-tic} seconds.')
+                scores = dict()
+                for model in self.models:
+                    tic = time.time()
+                    score = float(self.models[model].predict(x)[0][0])
+                    scores[model] = score
+                    toc = time.time()
+                    print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
 
-                # doc['scores'] = {'rb': rb, 'sl': sl}
-                # store the most recent scores "on the facade"
-                doc['rb'] = rb
-                doc['sl'] = sl
+                # default rb models
+                doc['rb'] = scores[self.config['default_models']['rb']]
+                doc['sl'] = scores[self.config['default_models']['sl']]
 
-                # but keep track of history if recomputed in the future
-                doc['scores'] = {'rb': [(rb, self.config['models']['rb'])],
-                                 'sl': [(sl, self.config['models']['sl'])]}
+                # current working models, for the ease of db access:
+                for model in self.models:
+                    doc[model] = scores[model]
+
+                # book-keeping for the future [if a model is retrained]
+                doc['scores'] = dict()
+                for model in self.models:
+                    doc['scores'][model] = {self.config['models'][model]: scores[model]}
 
                 doc['last_modified'] = utc_now()
 
