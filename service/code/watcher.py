@@ -400,6 +400,27 @@ class AbstractObserver(ABC):
             traceback.print_exc()
             print(_e)
 
+    def insert_or_replace_db_entry(self, _collection=None, _db_entry=None):
+        """
+            Insert a document _doc to collection _collection in DB.
+            It is monitored for timeout in case DB connection hangs for some reason
+        :param _collection:
+        :param _db_entry:
+        :return:
+        """
+        assert _collection is not None, 'Must specify collection'
+        assert _db_entry is not None, 'Must specify document'
+        try:
+            self.insert_db_entry(_collection, _db_entry)
+        except Exception as _e:
+            try:
+                self.replace_db_entry(_collection, {'_id': _db_entry['_id']}, _db_entry)
+            except Exception as __e:
+                print(*time_stamps(), 'Error inserting/replacing {:s} into {:s}'.format(str(_db_entry['_id']),
+                                                                                        _collection))
+                traceback.print_exc()
+                print(__e)
+
     def insert_multiple_db_entries(self, _collection=None, _db_entries=None):
         """
             Insert a document _doc to collection _collection in DB.
@@ -515,8 +536,8 @@ class Watcher(AbstractObserver):
 
                 # print(doc)
 
-                self.insert_db_entry(_collection=self.config['database']['collection_main'],
-                                     _db_entry=doc)
+                self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
+                                                _db_entry=doc)
 
                 print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
 

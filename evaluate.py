@@ -24,12 +24,12 @@ if __name__ == '__main__':
     models = {m: load_model(os.path.join(path_models, model_names[m])) for m in model_names.keys()}
     print('done')
 
-    # print(models['rb'].summary())
+    # print(models['rb_vgg6'].summary())
 
     model_input_shape = models['rb_vgg6'].input_shape[1:3]
 
     path_streaks_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/' + \
-                        'reals_20181102_20181103'
+                        'reals_20181102_20181104'
 
     path_streak_stamps = glob.glob(os.path.join(path_streaks_base, '*.jpg'))
 
