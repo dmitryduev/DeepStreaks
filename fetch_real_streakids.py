@@ -47,8 +47,8 @@ if __name__ == '__main__':
     with open(json_filename, 'w') as outfile:
         json.dump(reals, outfile, sort_keys=True, indent=2)
 
-    # real_ids = []
-    # for date in reals:
-    #     real_ids += reals[date]
-    #
-    # print(real_ids)
+    real_ids = []
+    for date in reals:
+        real_ids += reals[date]
+
+    print('\n', real_ids)
