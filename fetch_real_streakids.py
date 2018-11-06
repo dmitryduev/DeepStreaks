@@ -12,7 +12,8 @@ if __name__ == '__main__':
     with open('./secrets.json') as sjson:
         secrets = json.load(sjson)
 
-    date_start = datetime.datetime(2018, 5, 31)
+    # date_start = datetime.datetime(2018, 5, 31)
+    date_start = datetime.datetime(2018, 11, 1)
     date_end = datetime.datetime.utcnow()
 
     session = requests.Session()
@@ -21,7 +22,7 @@ if __name__ == '__main__':
 
     reals = dict()
 
-    for dd in range((date_end - date_start).days):
+    for dd in range((date_end - date_start).days + 1):
 
         # date = '20180929'
         date = (date_start + datetime.timedelta(days=dd)).strftime('%Y%m%d')
@@ -45,3 +46,9 @@ if __name__ == '__main__':
 
     with open(json_filename, 'w') as outfile:
         json.dump(reals, outfile, sort_keys=True, indent=2)
+
+    # real_ids = []
+    # for date in reals:
+    #     real_ids += reals[date]
+    #
+    # print(real_ids)

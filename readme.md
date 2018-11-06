@@ -128,7 +128,7 @@ docker run -d --restart always --name deep-asteroids-mongo -p 27023:27017 -v dee
 
 Build and launch the app container:
 ```bash
-docker build -t deep-asteroids:latest -f Dockerfile .
+docker build --rm -t deep-asteroids:latest -f Dockerfile .
 #docker run --name deep-asteroids -d --restart always -p 8001:4000 -v /scratch/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 # test mode:
 #docker run -it --rm --name deep-asteroids -p 8001:4000 -v deep-asteroids-volume:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest

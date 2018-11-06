@@ -15,13 +15,18 @@ if __name__ == '__main__':
     path_models = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models'
     # model_names = {'rb': 'ResNet50_rb_50e_20181031_150155.h5',
     #                'sl': 'ResNet50_sl_20e_20181024_163759.h5'}
-    model_names = {'rb_resnet50': 'ResNet50_rb_50e_20181102_132634.h5',
-                   'sl_resnet50': 'ResNet50_sl_50e_20181103_012034.h5',
-                   'rb_vgg6': 'VGG6_rb_78e_20181103_001536.h5',
+
+    # model_names = {'rb_resnet50': 'ResNet50_rb_50e_20181102_132634.h5',
+    #                'sl_resnet50': 'ResNet50_sl_50e_20181103_012034.h5',
+    #                'rb_vgg6': 'VGG6_rb_78e_20181103_001536.h5',
+    #                'sl_vgg6': 'VGG6_sl_68e_20181102_234533.h5'}
+
+    model_names = {'rb_vgg6': 'VGG6_rb_78e_20181103_001536.h5',
                    'sl_vgg6': 'VGG6_sl_68e_20181102_234533.h5'}
 
     print('loading models...')
     models = {m: load_model(os.path.join(path_models, model_names[m])) for m in model_names.keys()}
+    print(models['rb_vgg6'].summary())
     print('done')
 
     # print(models['rb_vgg6'].summary())
@@ -29,7 +34,7 @@ if __name__ == '__main__':
     model_input_shape = models['rb_vgg6'].input_shape[1:3]
 
     path_streaks_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/' + \
-                        'reals_20181102_20181104'
+                        'reals_20181101_20181105'
 
     path_streak_stamps = glob.glob(os.path.join(path_streaks_base, '*.jpg'))
 

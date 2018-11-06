@@ -19,6 +19,9 @@ Other metadata is at /scr/qye/ssmBackend/streaks/
 /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/qye/ssmBackend/streaks/2018\* /scratch/ztf/streaks/meta/
 ```
 
+crontab:
+```cron```
+
 ---
 
 Implementing Batch Normalization in Tensorflow:
