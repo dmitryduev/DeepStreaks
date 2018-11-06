@@ -20,7 +20,10 @@ Other metadata is at /scr/qye/ssmBackend/streaks/
 ```
 
 crontab:
-```cron```
+```crontab
+* * * * * /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/apache/htdocs/marshals/ssm/zsrs/stamps_`date -u "+\%Y\%m\%d"`/ /scratch/ztf/streaks/stamps/stamps_`date -u "+\%Y\%m\%d"`/ >/scratch/duev/cron.log 2>&1
+*/5 * * * * /usr/bin/rsync -av --delete-after -e 'ssh -p 22' duev@yupana.caltech.edu:/scr/qye/ssmBackend/streaks/`date -u "+\%Y\%m\%d"`/ /scratch/ztf/streaks/meta/`date -u "+\%Y\%m\%d"`/ >/scratch/duev/cron.log 2>&1
+```
 
 ---
 
@@ -36,7 +39,9 @@ and it will work.
 
 ---
 
+Mark all cutouts on page as "no_streak" (check all checkboxes)
+
 ```javascript
 $("input[type=checkbox][value='no_streak']").click();
-$("input[type=checkbox][value='no_streak']").prop("checked",true);
+//$("input[type=checkbox][value='no_streak']").prop("checked",true);
 ```
