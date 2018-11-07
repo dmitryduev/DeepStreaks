@@ -180,7 +180,7 @@
                     },
                     {# 'length', 'sigma', 'lengtherr', 'sigmaerr',  #}
                     {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
-                                        'prob', 'rb', 'sl') %}
+                                        'prob', 'rb', 'sl', 'kd') %}
                     {
                         field: '{{field_id}}',
                         title: '{{field_id}}',
@@ -198,7 +198,7 @@
                         obs_date: moment(jd.julian({{ entry['jd'] }}).getDate()).utc().format('YYYY/MM/DD_HH:mm:ss'),
                         {# 'length', 'sigma', 'lengtherr', 'sigmaerr',  #}
                         {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
-                                            'prob', 'rb', 'sl') %}
+                                            'prob', 'rb', 'sl', 'kd') %}
                         {{ field_id }}: "{{entry[field_id]}}",
                         {% endfor %}
                     },
