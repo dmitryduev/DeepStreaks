@@ -519,9 +519,9 @@ class Watcher(AbstractObserver):
                     toc = time.time()
                     print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
 
-                # default rb models
-                doc['rb'] = scores[self.config['default_models']['rb']]
-                doc['sl'] = scores[self.config['default_models']['sl']]
+                # default DL models
+                for dl in self.config['default_models']:
+                    doc[dl] = scores[self.config['default_models'][dl]]
 
                 # current working models, for the ease of db access:
                 for model in self.models:
