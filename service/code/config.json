@@ -60,7 +60,7 @@
   "default_models": {
     "rb": "rb_vgg6",
     "sl": "sl_vgg6",
-    "kd": "kd_vgg6"
+    "kd": "kd_resnet50"
   },
 
   "misc": {
