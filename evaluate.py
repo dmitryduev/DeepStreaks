@@ -23,7 +23,8 @@ if __name__ == '__main__':
 
     model_names = {'rb_vgg6': 'VGG6_rb_78e_20181103_001536.h5',
                    'sl_vgg6': 'VGG6_sl_68e_20181102_234533.h5',
-                   'kd_vgg6': 'VGG6_kd_63e_20181106_152448.h5'}
+                   'kd_vgg6': 'VGG6_kd_63e_20181106_152448.h5',
+                   'kd_resnet50': 'ResNet50_kd_32e_20181106_171833.h5'}
 
     print('loading models...')
     models = {m: load_model(os.path.join(path_models, model_names[m])) for m in model_names.keys()}

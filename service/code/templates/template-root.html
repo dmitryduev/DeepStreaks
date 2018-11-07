@@ -190,6 +190,14 @@
                         visible: true
                     },
                     {% endfor %}
+                    {
+                        field: 'scores',
+                        title: 'scores',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: false,
+                        visible: false
+                    }
                 ]
             ],
             data: [
@@ -198,7 +206,7 @@
                         obs_date: moment(jd.julian({{ entry['jd'] }}).getDate()).utc().format('YYYY/MM/DD_HH:mm:ss'),
                         {# 'length', 'sigma', 'lengtherr', 'sigmaerr',  #}
                         {% for field_id in ('jd', 'fid', 'pid', 'diffmaglim', 'programid', 'streakid',
-                                            'prob', 'rb', 'sl', 'kd') %}
+                                            'prob', 'rb', 'sl', 'kd', 'scores') %}
                         {{ field_id }}: "{{entry[field_id]}}",
                         {% endfor %}
                     },
