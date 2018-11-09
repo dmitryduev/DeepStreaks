@@ -17,14 +17,14 @@ def fetch_cutout(_id, date_utc, _path='./'):
 
 if __name__ == '__main__':
 
-    # path_out = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/reals_20181101_20181105'
-    path_out = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/reals_20181106'
+    path_out = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/reals_20181101_20181108'
+    # path_out = '/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/reals_20181106'
 
     if not os.path.exists(path_out):
         os.makedirs(path_out)
 
-    # json_filename = 'reals_20181101_20181105.json'
-    json_filename = 'reals_20181106.json'
+    json_filename = 'reals_20181101_20181108.json'
+    # json_filename = 'reals_20181106.json'
 
     with open(json_filename, 'r') as f:
         data = json.load(f)

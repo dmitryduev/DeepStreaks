@@ -96,8 +96,10 @@ def fetch_cutout(_id, jd, _path='./'):
         #                                     '20181105_161419__rb_gt_0.97__sl_gt_0.85', f'{_id}_scimref.jpg'))) and \
         #         (not os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/' +
         #                                          '20181105_164845__rb_gt_0.97__sl_gt_0.85', f'{_id}_scimref.jpg'))):
-        with open(filename, 'wb') as f:
-            f.write(r.content)
+        if (not os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'+
+                                            '20181102_124622__rb_gt_0.8', f'{_id}_scimref.jpg'))):
+            with open(filename, 'wb') as f:
+                f.write(r.content)
 
 
 if __name__ == '__main__':
@@ -113,6 +115,25 @@ if __name__ == '__main__':
                     password=secrets['deep_asteroids_mongodb']['pwd'])
 
     # cursor = db['deep-asteroids'].find({}, {'_id': 1, 'rb': 1, 'sl': 1})
+
+    ''' training sets for the sl classifier (short/long) '''
+    cursor = db['deep-asteroids'].aggregate([
+        {'$match': {'rb': {'$gt': 0.93}}},
+        {'$project': {'_id': 1, 'jd': 1}},
+        {'$sample': {'size': 8000}}
+    ], allowDiskUse=True)
+
+    streaks = list(cursor)
+
+    path = os.path.join('data-raw', datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '__rb_gt_0.93')
+    os.makedirs(path)
+
+    num_streaks = len(streaks)
+    for si, streak in enumerate(streaks):
+        print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+        fetch_cutout(streak['_id'], streak['jd'], path)
+
+    raise Exception('HAENDE HOCH!!')
 
     ''' training sets for the kd classifier (keep/ditch) '''
     cursor = db['deep-asteroids'].aggregate([

@@ -298,8 +298,8 @@ if __name__ == '__main__':
 
     # load data
     # project_id = '5b96af9c0354c9000b0aea36'  # real vs bogus
-    # project_id = '5b99b2c6aec3c500103a14de'  # short vs long
-    project_id = '5be0ae7958830a0018821794'  # keep vs ditch
+    project_id = '5b99b2c6aec3c500103a14de'  # short vs long
+    # project_id = '5be0ae7958830a0018821794'  # keep vs ditch
 
     X_train, Y_train, X_test, Y_test, classes = load_data(path='./data',
                                                           project_id=project_id,
@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=30)
 
     batch_size = 32
 
