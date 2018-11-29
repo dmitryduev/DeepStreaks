@@ -85,13 +85,17 @@ def jd2date(jd):
     return datetime.datetime(year, month, int(np.floor(day)))
 
 
-def fetch_cutout(_id, jd, _base_url='http://private.caltech.edu:8001/data/stamps/', _path='./'):
+def fetch_cutout(_id, date_utc, _path_out='./'):
+    _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
+                f"{secrets['deep_asteroids_service']['host']}:{secrets['deep_asteroids_service']['port']}"
+    _base_url = os.path.join(_base_url, 'data/stamps')
 
     try:
-        date_utc = jd2date(jd).strftime('%Y%m%d')
         url = os.path.join(_base_url, f'stamps_{date_utc}/{_id}_scimref.jpg')
 
-        filename = os.path.join(_path, f'{_id}_scimref.jpg')
+        print(url)
+
+        filename = os.path.join(_path_out, f'{_id}_scimref.jpg')
         r = requests.get(url, stream=True)
 
         if r.status_code == 200:
@@ -108,7 +112,7 @@ def fetch_cutout(_id, jd, _base_url='http://private.caltech.edu:8001/data/stamps
 
 def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
                          date_end=datetime.datetime.utcnow(),
-                         _path='./'):
+                         _path_out='./'):
     try:
         # date_start = datetime.datetime(2018, 5, 31)
         # date_start = datetime.datetime(2018, 11, 1)
@@ -140,7 +144,7 @@ def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
 
         json_filename = f'reals_{date_start.strftime("%Y%m%d")}_{date_end.strftime("%Y%m%d")}.json'
 
-        with open(os.path.join(_path, json_filename), 'w') as outfile:
+        with open(os.path.join(_path_out, json_filename), 'w') as outfile:
             json.dump(reals, outfile, sort_keys=True, indent=2)
 
         real_ids = []
@@ -149,23 +153,56 @@ def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
 
         print('\n', real_ids)
 
-        return True
+        return {'status': 'success', 'path_json': os.path.join(_path_out, json_filename)}
 
     except Exception as e:
         print(str(e))
 
-    return False
+    return {'status': 'failed'}
+
+
+def fetch_reals(path_json, path_out='./'):
+
+    with open(path_json, 'r') as f:
+        data = json.load(f)
+
+    dates = sorted(list(data.keys()))
+
+    _path_out = os.path.join(path_out, f'reals_{dates[0]}_{dates[-1]}')
+    if not os.path.exists(_path_out):
+        os.makedirs(_path_out)
+
+    for date in data:
+        if len(data[date]) > 0:
+            print(date)
+            for streak_id in data[date]:
+                try:
+                    print(f'fetching {streak_id}')
+                    fetch_cutout(streak_id, date, _path_out)
+
+                except Exception as e:
+                    print(str(e))
+                    continue
 
 
 def main(date_start=datetime.datetime(2018, 5, 31),
          date_end=datetime.datetime.utcnow()):
 
     date_now_utc = datetime.datetime.utcnow()
-    path_campaign = os.path.join('./data-raw', date_now_utc.strftime("%Y%m%d_%H%M%S"))
+    path_campaign = os.path.join('./data-raw', f'campaign_{date_now_utc.strftime("%Y%m%d_%H%M%S")}')
+    if not os.path.exists(path_campaign):
+        os.makedirs(path_campaign)
 
-    fetch_real_streakids(date_start=date_start,
-                         date_end=date_end,
-                         _path=path_campaign)
+    print('Fetching real streakid\'s')
+    r = fetch_real_streakids(date_start=date_start,
+                             date_end=date_end,
+                             _path_out=path_campaign)
+
+    if r['status'] == 'success':
+        print('Fetching real streaks')
+        fetch_reals(r['path_json'], path_out=path_campaign)
+
+    print('Sampling classifications')
 
 
 if __name__ == '__main__':
@@ -174,4 +211,4 @@ if __name__ == '__main__':
     with open('./secrets.json') as sjson:
         secrets = json.load(sjson)
 
-    main(date_start=datetime.datetime(2018, 11, 1))
+    main(date_start=datetime.datetime(2018, 11, 27))
