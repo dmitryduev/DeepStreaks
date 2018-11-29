@@ -10,7 +10,7 @@ body {
     /*!*font-size: 0.9rem;*!*/
     font-size: 0.9rem;
     /*font-weight: 300;*/
-    font-weight: lighter !important;
+    font-weight: 400 !important;
     /* Margin bottom by footer height */
     margin-bottom: 50px;
 }

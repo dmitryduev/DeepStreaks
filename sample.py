@@ -96,10 +96,10 @@ def fetch_cutout(_id, jd, _path='./'):
         #                                     '20181105_161419__rb_gt_0.97__sl_gt_0.85', f'{_id}_scimref.jpg'))) and \
         #         (not os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/' +
         #                                          '20181105_164845__rb_gt_0.97__sl_gt_0.85', f'{_id}_scimref.jpg'))):
-        if (not os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'+
-                                            '20181102_124622__rb_gt_0.8', f'{_id}_scimref.jpg'))):
-            with open(filename, 'wb') as f:
-                f.write(r.content)
+        # if (not os.path.exists(os.path.join('/Users/dmitryduev/_caltech/python/deep-asteroids/data-raw/'+
+        #                                     '20181102_124622__rb_gt_0.8', f'{_id}_scimref.jpg'))):
+        with open(filename, 'wb') as f:
+            f.write(r.content)
 
 
 if __name__ == '__main__':
