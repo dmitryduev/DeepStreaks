@@ -1,14 +1,18 @@
 import pymongo
 import math
 import datetime
-# import aiohttp
 import requests
 import json
 import numpy as np
+from astropy.time import Time
 import matplotlib.pyplot as plt
 import os
 from bs4 import BeautifulSoup
 import re
+from typing import Union
+
+
+date_type = Union[datetime.datetime, float]
 
 
 def jd_to_date(jd):
@@ -85,10 +89,16 @@ def jd2date(jd):
     return datetime.datetime(year, month, int(np.floor(day)))
 
 
-def fetch_cutout(_id, date_utc, _path_out='./'):
+def fetch_cutout(_id: str, date: date_type, _path_out: str='./'):
     _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
                 f"{secrets['deep_asteroids_service']['host']}:{secrets['deep_asteroids_service']['port']}"
     _base_url = os.path.join(_base_url, 'data/stamps')
+
+    # print(type(date))
+    if isinstance(date, datetime.datetime) or isinstance(date, datetime.date):
+        date_utc = date
+    elif isinstance(date, float):
+        date_utc = jd2date(date).strftime('%Y%m%d')
 
     try:
         url = os.path.join(_base_url, f'stamps_{date_utc}/{_id}_scimref.jpg')
@@ -178,11 +188,181 @@ def fetch_reals(path_json, path_out='./'):
             for streak_id in data[date]:
                 try:
                     print(f'fetching {streak_id}')
-                    fetch_cutout(streak_id, date, _path_out)
+                    fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out)
 
                 except Exception as e:
                     print(str(e))
                     continue
+
+
+def sample(date_start=datetime.datetime(2018, 5, 31),
+           date_end=datetime.datetime.utcnow(),
+           n_samples: int=1000,
+           path_out='./'):
+
+    try:
+        jd_start = Time(date_start, format='datetime', scale='utc').jd
+        jd_end = Time(date_end, format='datetime', scale='utc').jd
+        print(jd_start, jd_end)
+
+        client = pymongo.MongoClient(host=secrets['deep_asteroids_mongodb']['host'],
+                                     port=secrets['deep_asteroids_mongodb']['port'])
+
+        db = client['deep-asteroids']
+        db.authenticate(name=secrets['deep_asteroids_mongodb']['user'],
+                        password=secrets['deep_asteroids_mongodb']['pwd'])
+
+        ''' training sets for the rb classifiers (real/bogus) '''
+        rb_classifiers = ('rb_vgg6', 'rb_resnet50')
+
+        # rb > 0.8: n_samples cutouts
+        # high score by either of the classifiers in the family
+        high_rb_score = [{rb_classifier: {'$gt': 0.8}} for rb_classifier in rb_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_rb_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'rb_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '__rb_gt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        # rb < 0.8: n_samples cutouts
+        # low score by either of the classifiers in the family
+        low_rb_score = [{classifier: {'$lt': 0.8}} for classifier in rb_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': low_rb_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'rb_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '__rb_lt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        ''' training sets for the sl classifier (short/long) '''
+        sl_classifiers = ('sl_vgg6', 'sl_resnet50')
+
+        # rb > 0.9, sl > 0.8: n_samples cutouts
+        high_rb_score = [{rb_classifier: {'$gt': 0.9}} for rb_classifier in rb_classifiers]
+        high_sl_score = [{sl_classifier: {'$gt': 0.8}} for sl_classifier in sl_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_rb_score},
+                                 {'$or': high_sl_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'sl_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') +
+                            '__rb_gt_0.9__sl_gt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        # rb > 0.9, sl < 0.8: n_samples cutouts
+        low_sl_score = [{sl_classifier: {'$lt': 0.8}} for sl_classifier in sl_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_rb_score},
+                                 {'$or': low_sl_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'sl_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') +
+                            '__rb_gt_0.8__sl_lt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            # todo: pyprind instead
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        ''' training sets for the kd classifier (keep/ditch) '''
+        kd_classifiers = ('kd_vgg6', 'kd_resnet50')
+
+        # rb > 0.9, sl > 0.9, kd > 0.8: n_samples cutouts
+        high_rb_score = [{rb_classifier: {'$gt': 0.9}} for rb_classifier in rb_classifiers]
+        high_sl_score = [{sl_classifier: {'$gt': 0.9}} for sl_classifier in sl_classifiers]
+        high_kd_score = [{kd_classifier: {'$gt': 0.8}} for kd_classifier in kd_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_rb_score},
+                                 {'$or': high_sl_score},
+                                 {'$or': high_kd_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'kd_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') +
+                            '__rb_gt_0.9__sl_gt_0.9__kd_gt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        # rb > 0.9, sl > 0.9, sl < 0.8: n_samples cutouts
+        low_kd_score = [{kd_classifier: {'$lt': 0.8}} for kd_classifier in kd_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_rb_score},
+                                 {'$or': high_sl_score},
+                                 {'$or': low_kd_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'kd_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') +
+                            '__rb_gt_0.9__sl_gt_0.9__kd_lt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        for si, streak in enumerate(streaks):
+            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+
+        return {'status': 'success'}
+
+    except Exception as e:
+        print(str(e))
+
+    return {'status': 'failed'}
 
 
 def main(date_start=datetime.datetime(2018, 5, 31),
@@ -203,6 +383,13 @@ def main(date_start=datetime.datetime(2018, 5, 31),
         fetch_reals(r['path_json'], path_out=path_campaign)
 
     print('Sampling classifications')
+    sample(date_start=date_start,
+           date_end=date_end,
+           n_samples=10,
+           path_out=path_campaign)
+
+    print('Uploading to Zwickyverse')
+    # todo
 
 
 if __name__ == '__main__':
@@ -211,4 +398,4 @@ if __name__ == '__main__':
     with open('./secrets.json') as sjson:
         secrets = json.load(sjson)
 
-    main(date_start=datetime.datetime(2018, 11, 27))
+    main(date_start=datetime.datetime(2018, 11, 29))
