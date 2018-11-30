@@ -12,9 +12,15 @@ import re
 from typing import Union
 import pyprind
 from zwickyverse import Private
+import glob
 
 
 date_type = Union[datetime.datetime, float]
+
+
+''' load secrets '''
+with open('./secrets.json') as sjson:
+    secrets = json.load(sjson)
 
 
 def jd_to_date(jd):
@@ -406,11 +412,46 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
     return {'status': 'failed'}
 
 
+def upload_to_zwickyverse(_project_ids: dict, _campaign_name: str='', _path_campaign: str='./',
+                          protocol='https', host='private.caltech.edu', port=443,
+                          _v: bool=True):
+
+    with Private(protocol=protocol, host=host, port=port,
+                 username=secrets['zwickyverse']['user'], password=secrets['zwickyverse']['pwd'], verbose=_v) as p:
+
+        # get metadata of all projects
+        projects = p.get_project()
+        project_ids_zv = [pid['_id'] for pid in projects]
+
+        for cls, project_id in _project_ids.items():
+            # make sure project_id exists:
+            if project_id in project_ids_zv:
+                # datasets to upload:
+                dataset_names = [os.path.basename(cls_path) for cls_path
+                                 in glob.glob(os.path.join(_path_campaign, f'{cls}_*'))]
+                if _v:
+                    print(dataset_names)
+
+                for dataset_name in dataset_names:
+                    path = os.path.abspath(os.path.join(_path_campaign, dataset_name))
+                    images = glob.glob(os.path.join(path, '*.jpg'))  # image absolute paths
+                    # print(images)
+                    ds_id = p.add_dataset(project_id=project_id, name=dataset_name,
+                                          description=_campaign_name, files=images)
+                    if _v:
+                        print(f'created dataset in project {project_id}: {ds_id}')
+
+            else:
+                print(f'project_id {project_id} not found on the server')
+
+
 def main(date_start=datetime.datetime(2018, 5, 31),
          date_end=datetime.datetime.utcnow()):
 
     date_now_utc = datetime.datetime.utcnow()
-    path_campaign = os.path.join('./data-raw', f'campaign_{date_now_utc.strftime("%Y%m%d_%H%M%S")}')
+    campaign_name = f'campaign_{date_now_utc.strftime("%Y%m%d_%H%M%S")}'
+
+    path_campaign = os.path.join('./data-raw', campaign_name)
     if not os.path.exists(path_campaign):
         os.makedirs(path_campaign)
 
@@ -426,17 +467,16 @@ def main(date_start=datetime.datetime(2018, 5, 31),
     print('Sampling classifications')
     sample(date_start=date_start,
            date_end=date_end,
-           n_samples=10,
+           n_samples=1000,
            path_out=path_campaign)
 
     print('Uploading to Zwickyverse')
-    # todo
+    project_ids = {'rb': '5b96af9c0354c9000b0aea36',
+                   'sl': '5b99b2c6aec3c500103a14de',
+                   'kd': '5be0ae7958830a0018821794'}
+    upload_to_zwickyverse(_project_ids=project_ids, _campaign_name=campaign_name, _path_campaign=path_campaign)
 
 
 if __name__ == '__main__':
 
-    ''' load secrets '''
-    with open('./secrets.json') as sjson:
-        secrets = json.load(sjson)
-
-    main(date_start=datetime.datetime(2018, 11, 29))
+    main(date_start=datetime.datetime(2018, 11, 1))
