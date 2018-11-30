@@ -10,6 +10,8 @@ import os
 from bs4 import BeautifulSoup
 import re
 from typing import Union
+import pyprind
+from zwickyverse import Private
 
 
 date_type = Union[datetime.datetime, float]
@@ -89,12 +91,14 @@ def jd2date(jd):
     return datetime.datetime(year, month, int(np.floor(day)))
 
 
-def fetch_cutout(_id: str, date: date_type, _path_out: str='./'):
+def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
     _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
                 f"{secrets['deep_asteroids_service']['host']}:{secrets['deep_asteroids_service']['port']}"
     _base_url = os.path.join(_base_url, 'data/stamps')
 
-    # print(type(date))
+    if _v:
+        print(type(date))
+
     if isinstance(date, datetime.datetime) or isinstance(date, datetime.date):
         date_utc = date
     elif isinstance(date, float):
@@ -103,7 +107,8 @@ def fetch_cutout(_id: str, date: date_type, _path_out: str='./'):
     try:
         url = os.path.join(_base_url, f'stamps_{date_utc}/{_id}_scimref.jpg')
 
-        print(url)
+        if _v:
+            print(url)
 
         filename = os.path.join(_path_out, f'{_id}_scimref.jpg')
         r = requests.get(url, stream=True)
@@ -122,7 +127,7 @@ def fetch_cutout(_id: str, date: date_type, _path_out: str='./'):
 
 def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
                          date_end=datetime.datetime.utcnow(),
-                         _path_out='./'):
+                         _path_out='./', _v: bool=True):
     try:
         # date_start = datetime.datetime(2018, 5, 31)
         # date_start = datetime.datetime(2018, 11, 1)
@@ -145,8 +150,9 @@ def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
                     soup = BeautifulSoup(result.content, 'html.parser')
                     # cutouts = re.findall(r'stamps_(.*)//(strkid.*)_scimref', str(soup))
                     cutouts = re.findall(r'(strkid.*)_scimref', str(soup))
-                    print(date)
-                    print(cutouts)
+                    if _v:
+                        print(date)
+                        print(cutouts)
                     if len(cutouts) > 0:
                         reals[date] = cutouts
             except Exception as e:
@@ -161,7 +167,8 @@ def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
         for date in reals:
             real_ids += reals[date]
 
-        print('\n', real_ids)
+        if _v:
+            print('\n', real_ids)
 
         return {'status': 'success', 'path_json': os.path.join(_path_out, json_filename)}
 
@@ -171,7 +178,7 @@ def fetch_real_streakids(date_start=datetime.datetime(2018, 5, 31),
     return {'status': 'failed'}
 
 
-def fetch_reals(path_json, path_out='./'):
+def fetch_reals(path_json, path_out='./', _v: bool=True):
 
     with open(path_json, 'r') as f:
         data = json.load(f)
@@ -182,12 +189,16 @@ def fetch_reals(path_json, path_out='./'):
     if not os.path.exists(_path_out):
         os.makedirs(_path_out)
 
+    if _v:
+        bar = pyprind.ProgBar(len(data), stream=1, title='Fetching real streaks...', monitor=True)
     for date in data:
         if len(data[date]) > 0:
-            print(date)
+            if _v:
+                bar.update(iterations=1, item_id=date)
+                # print(date)
             for streak_id in data[date]:
                 try:
-                    print(f'fetching {streak_id}')
+                    # print(f'fetching {streak_id}')
                     fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out)
 
                 except Exception as e:
@@ -198,12 +209,13 @@ def fetch_reals(path_json, path_out='./'):
 def sample(date_start=datetime.datetime(2018, 5, 31),
            date_end=datetime.datetime.utcnow(),
            n_samples: int=1000,
-           path_out='./'):
+           path_out='./', _v: bool=True):
 
     try:
         jd_start = Time(date_start, format='datetime', scale='utc').jd
         jd_end = Time(date_end, format='datetime', scale='utc').jd
-        print(jd_start, jd_end)
+        if _v:
+            print(jd_start, jd_end)
 
         client = pymongo.MongoClient(host=secrets['deep_asteroids_mongodb']['host'],
                                      port=secrets['deep_asteroids_mongodb']['port'])
@@ -232,9 +244,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for rb___rb_gt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         # rb < 0.8: n_samples cutouts
         # low score by either of the classifiers in the family
@@ -253,9 +270,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for rb___rb_lt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         ''' training sets for the sl classifier (short/long) '''
         sl_classifiers = ('sl_vgg6', 'sl_resnet50')
@@ -279,9 +301,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for sl__rb_gt_0.9__sl_gt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         # rb > 0.9, sl < 0.8: n_samples cutouts
         low_sl_score = [{sl_classifier: {'$lt': 0.8}} for sl_classifier in sl_classifiers]
@@ -301,10 +328,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for sl__rb_gt_0.9__sl_lt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            # todo: pyprind instead
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         ''' training sets for the kd classifier (keep/ditch) '''
         kd_classifiers = ('kd_vgg6', 'kd_resnet50')
@@ -330,9 +361,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for kd__rb_gt_0.9__sl_gt_0.9__kd_gt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         # rb > 0.9, sl > 0.9, sl < 0.8: n_samples cutouts
         low_kd_score = [{kd_classifier: {'$lt': 0.8}} for kd_classifier in kd_classifiers]
@@ -353,9 +389,14 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         os.makedirs(path)
 
         num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for kd__rb_gt_0.9__sl_gt_0.9__kd_lt_0.8', monitor=True)
         for si, streak in enumerate(streaks):
-            print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
             fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
 
         return {'status': 'success'}
 
