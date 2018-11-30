@@ -106,7 +106,7 @@ def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
         print(type(date))
 
     if isinstance(date, datetime.datetime) or isinstance(date, datetime.date):
-        date_utc = date
+        date_utc = date.strftime('%Y%m%d')
     elif isinstance(date, float):
         date_utc = jd2date(date).strftime('%Y%m%d')
 
@@ -117,7 +117,7 @@ def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
             print(url)
 
         filename = os.path.join(_path_out, f'{_id}_scimref.jpg')
-        r = requests.get(url, stream=True)
+        r = requests.get(url, timeout=10)
 
         if r.status_code == 200:
             with open(filename, 'wb') as f:
@@ -205,7 +205,7 @@ def fetch_reals(path_json, path_out='./', _v: bool=True):
             for streak_id in data[date]:
                 try:
                     # print(f'fetching {streak_id}')
-                    fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out)
+                    fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out, _v=False)
 
                 except Exception as e:
                     print(str(e))
@@ -414,7 +414,7 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
 
 def upload_to_zwickyverse(_project_ids: dict, _campaign_name: str='', _path_campaign: str='./',
                           protocol='https', host='private.caltech.edu', port=443,
-                          _v: bool=True):
+                          _upload_reals: bool = True, _upload_samples: bool=True, _v: bool=True):
 
     with Private(protocol=protocol, host=host, port=port,
                  username=secrets['zwickyverse']['user'], password=secrets['zwickyverse']['pwd'], verbose=_v) as p:
@@ -423,26 +423,51 @@ def upload_to_zwickyverse(_project_ids: dict, _campaign_name: str='', _path_camp
         projects = p.get_project()
         project_ids_zv = [pid['_id'] for pid in projects]
 
-        for cls, project_id in _project_ids.items():
-            # make sure project_id exists:
-            if project_id in project_ids_zv:
-                # datasets to upload:
-                dataset_names = [os.path.basename(cls_path) for cls_path
-                                 in glob.glob(os.path.join(_path_campaign, f'{cls}_*'))]
-                if _v:
-                    print(dataset_names)
-
-                for dataset_name in dataset_names:
-                    path = os.path.abspath(os.path.join(_path_campaign, dataset_name))
-                    images = glob.glob(os.path.join(path, '*.jpg'))  # image absolute paths
-                    # print(images)
-                    ds_id = p.add_dataset(project_id=project_id, name=dataset_name,
-                                          description=_campaign_name, files=images)
+        # upload reals:
+        if _upload_reals:
+            for cls, project_id in _project_ids.items():
+                # make sure project_id exists:
+                if project_id in project_ids_zv:
+                    # datasets to upload:
+                    dataset_names = [os.path.basename(cls_path) for cls_path
+                                     in glob.glob(os.path.join(_path_campaign, f'reals_*')) if os.path.isdir(cls_path)]
                     if _v:
-                        print(f'created dataset in project {project_id}: {ds_id}')
+                        print(dataset_names)
 
-            else:
-                print(f'project_id {project_id} not found on the server')
+                    for dataset_name in dataset_names:
+                        path = os.path.abspath(os.path.join(_path_campaign, dataset_name))
+                        images = glob.glob(os.path.join(path, '*.jpg'))  # image absolute paths
+                        # print(images)
+                        ds_id = p.add_dataset(project_id=project_id, name=dataset_name,
+                                              description=_campaign_name, files=images)
+                        if _v:
+                            print(f'created dataset in project {project_id}: {ds_id}')
+
+                else:
+                    print(f'project_id {project_id} not found on the server')
+
+        # upload samples:
+        if _upload_samples:
+            for cls, project_id in _project_ids.items():
+                # make sure project_id exists:
+                if project_id in project_ids_zv:
+                    # datasets to upload:
+                    dataset_names = [os.path.basename(cls_path) for cls_path
+                                     in glob.glob(os.path.join(_path_campaign, f'{cls}_*'))]
+                    if _v:
+                        print(dataset_names)
+
+                    for dataset_name in dataset_names:
+                        path = os.path.abspath(os.path.join(_path_campaign, dataset_name))
+                        images = glob.glob(os.path.join(path, '*.jpg'))  # image absolute paths
+                        # print(images)
+                        ds_id = p.add_dataset(project_id=project_id, name=dataset_name,
+                                              description=_campaign_name, files=images)
+                        if _v:
+                            print(f'created dataset in project {project_id}: {ds_id}')
+
+                else:
+                    print(f'project_id {project_id} not found on the server')
 
 
 def main(date_start=datetime.datetime(2018, 5, 31),
@@ -474,7 +499,9 @@ def main(date_start=datetime.datetime(2018, 5, 31),
     project_ids = {'rb': '5b96af9c0354c9000b0aea36',
                    'sl': '5b99b2c6aec3c500103a14de',
                    'kd': '5be0ae7958830a0018821794'}
-    upload_to_zwickyverse(_project_ids=project_ids, _campaign_name=campaign_name, _path_campaign=path_campaign)
+    upload_to_zwickyverse(_project_ids=project_ids,
+                          _campaign_name=campaign_name, _path_campaign=path_campaign,
+                          _upload_reals=True, _upload_samples=True)
 
 
 if __name__ == '__main__':
