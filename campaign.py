@@ -330,7 +330,7 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
         streaks = list(cursor)
 
         path = os.path.join(path_out, 'sl_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') +
-                            '__rb_gt_0.8__sl_lt_0.8')
+                            '__rb_gt_0.9__sl_lt_0.8')
         os.makedirs(path)
 
         num_streaks = len(streaks)
