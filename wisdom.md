@@ -45,3 +45,10 @@ Mark all cutouts on page as "no_streak" (check all checkboxes)
 $("input[type=checkbox][value='no_streak']").click();
 //$("input[type=checkbox][value='no_streak']").prop("checked",true);
 ```
+
+---
+
+Unzip datasets
+```bash
+for f in *.zip; do unzip -d ${f%.zip} $f; done;
+```
