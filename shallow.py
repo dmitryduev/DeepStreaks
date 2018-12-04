@@ -220,12 +220,15 @@ if __name__ == '__main__':
 
     print('Evaluating on test set')
     preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
-    print("Loss = " + str(preds[0]))
-    print("Test Accuracy = " + str(preds[1]))
+    test_loss = preds[0]
+    test_accuracy = preds[1]
+    print("Loss = " + str(test_loss))
+    print("Test Accuracy = " + str(test_accuracy))
 
-    if save_model:
-        model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}.h5'
-        model.save(model_save_name)
+    model_save_name = f'./{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}'
+    if True:
+        model_save_name_h5 = f'{model_save_name}.h5'
+        model.save(model_save_name_h5)
 
     print(f'Batch size: {batch_size}')
     preds = model.predict(x=X_test, batch_size=batch_size)
@@ -241,3 +244,12 @@ if __name__ == '__main__':
 
     print('Normalized confusion matrix:')
     print(confusion_matr_normalized)
+
+    # save test loss/accuracy and confusion matrices in a text file:
+    with open(f'./{model_save_name}.txt', 'w') as f:
+        f.write(f'Loss = {test_loss:.4f}\n')
+        f.write(f'Test Accuracy = {test_accuracy:.4f}\n')
+        f.write('\nConfusion matrix:\n')
+        f.write(confusion_matr)
+        f.write('\nNormalized confusion matrix:\n')
+        f.write(confusion_matr_normalized)
