@@ -250,6 +250,6 @@ if __name__ == '__main__':
         f.write(f'Loss = {test_loss:.4f}\n')
         f.write(f'Test Accuracy = {test_accuracy:.4f}\n')
         f.write('\nConfusion matrix:\n')
-        f.write(confusion_matr)
+        f.write(str(confusion_matr))
         f.write('\nNormalized confusion matrix:\n')
-        f.write(confusion_matr_normalized)
+        f.write(str(confusion_matr_normalized))
