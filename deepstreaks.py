@@ -345,21 +345,25 @@ if __name__ == '__main__':
                                                           verbose=args.verbose)
 
     # training data weights
-    class_weight = dict()
     if args.class_weight:
         # weight data class depending on number of examples?
-        num_training_examples = X_train.shape[0]
         if not binary_classification:
-            for i, _ in enumerate(classes.keys()):
-                class_weight[i] = np.sum(Y_train[:, i]) / num_training_examples
+            num_training_examples_per_class = np.sum(Y_train, axis=0)
         else:
-            class_weight[0] = (len(Y_train) - np.sum(Y_train)) / num_training_examples
-            class_weight[1] = np.sum(Y_train) / num_training_examples
-    else:
-        for i, _ in enumerate(classes.keys()):
-            class_weight[i] = 1
+            num_training_examples_per_class = np.array([len(Y_train) - np.sum(Y_train), np.sum(Y_train)])
 
-    print(f'Class weights: {class_weight}')
+        assert 0 not in num_training_examples_per_class, 'found class without any examples!'
+
+        # fewer examples -- larger weight
+        weights = (1 / num_training_examples_per_class) / np.linalg.norm((1 / num_training_examples_per_class))
+        normalized_weight = weights / np.max(weights)
+
+        class_weight = {i: w for i, w in enumerate(normalized_weight)}
+
+    else:
+        class_weight = {i: 1 for i, _ in enumerate(classes.keys())}
+
+    print(f'Class weights: {class_weight}\n')
 
     # image shape:
     image_shape = X_train.shape[1:]
