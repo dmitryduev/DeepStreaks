@@ -273,19 +273,25 @@ def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train DeepStreaks')
-    parser.add_argument('--project_id',
+    parser.add_argument('--project_id', type=str,
                         help='Zwickyverse project id. As of 20181204:\n' +
                              "\t'5b96af9c0354c9000b0aea36'  : real vs bogus" +
                              "\t'5b99b2c6aec3c500103a14de'  : short vs long" +
                              "\t'5be0ae7958830a0018821794'  : keep vs ditch" +
                              "\t'5c05bbdc826480000a95c0bf'  : one shot",
                         default='5b96af9c0354c9000b0aea36')
-    parser.add_argument('--path_data',
+    parser.add_argument('--path_data', type=str,
                         help='Local path to data',
                         default='./data')
-    parser.add_argument('--model',
+    parser.add_argument('--model', type=str,
                         help='Choose model to train: VGG4, VGG6, ResNet50, DenseNet121',
                         default='VGG6')
+    parser.add_argument('--epochs', type=int,
+                        help='Number of train epochs',
+                        default=200)
+    parser.add_argument('--patience', type=int,
+                        help='Early stop training if no val_acc improvement after this many epochs',
+                        default=50)
 
     args = parser.parse_args()
     project_id = args.project_id
