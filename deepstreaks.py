@@ -307,18 +307,23 @@ if __name__ == '__main__':
     parser.add_argument('--patience', type=int,
                         help='Early stop training if no val_acc improvement after this many epochs',
                         default=50)
+    parser.add_argument('--class_weight', action='store_true',
+                        help='Weight training data by class depending on number of examples')
+    parser.add_argument('--verbose', action='store_true',
+                        help='Verbose')
 
     args = parser.parse_args()
     project_id = args.project_id
     path_data = args.path_data
 
     # known models:
-    models = {'VGG4': vgg4,
-              'VGG6': vgg6,
-              'ResNet50': ResNet50,
-              'DenseNet121': DenseNet}
+    models = {'VGG4': {'model': vgg4, 'grayscale': True},
+              'VGG6': {'model': vgg6, 'grayscale': True},
+              'ResNet50': {'model': ResNet50, 'grayscale': True},
+              'DenseNet121': {'model': DenseNet, 'grayscale': False}
+              }
     assert args.model in models, f'Unknown model: {args.model}'
-    grayscale = True if args.model != 'DenseNet121' else False
+    grayscale = models[args.model]['grayscale']
 
     K.clear_session()
 
@@ -336,7 +341,25 @@ if __name__ == '__main__':
                                                           binary=binary_classification,
                                                           grayscale=grayscale,
                                                           resize=(144, 144),
-                                                          test_size=0.1)
+                                                          test_size=0.1,
+                                                          verbose=args.verbose)
+
+    # training data weights
+    class_weight = dict()
+    if args.class_weight:
+        # weight data class depending on number of examples?
+        num_training_examples = X_train.shape[0]
+        if not binary_classification:
+            for i, _ in enumerate(classes.keys()):
+                class_weight[i] = np.sum(Y_train[:, i]) / num_training_examples
+        else:
+            class_weight[0] = (len(Y_train) - np.sum(Y_train)) / num_training_examples
+            class_weight[1] = np.sum(Y_train) / num_training_examples
+    else:
+        for i, _ in enumerate(classes.keys()):
+            class_weight[i] = 1
+
+    print(f'Class weights: {class_weight}')
 
     # image shape:
     image_shape = X_train.shape[1:]
@@ -350,7 +373,7 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    model = models[args.model](input_shape=image_shape, n_classes=n_classes)
+    model = models[args.model]['model'](input_shape=image_shape, n_classes=n_classes)
     # model = vgg4(input_shape=image_shape, n_classes=n_classes)
 
     # set up optimizer:

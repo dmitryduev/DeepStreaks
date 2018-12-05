@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 
 def load_data(path: str='./data', project_id: str=None, binary: bool=True, grayscale: bool=True,
-              resize: tuple=(144, 144), test_size=0.1):
+              resize: tuple=(144, 144), test_size=0.1, verbose: bool=True):
 
     # data:
     x = []
@@ -41,7 +41,8 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
     path_project = os.path.join(path, project_id)
 
     for dataset_id in project_meta['datasets']:
-        print(f'Loading dataset {dataset_id}')
+        if verbose:
+            print(f'Loading dataset {dataset_id}')
 
         dataset_json = sorted(glob.glob(os.path.join(path_project, f'{dataset_id}.*.json')))
         if len(dataset_json) > 0:
@@ -82,24 +83,26 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
     x = np.array(x)
     y = np.array(y)
 
-    print(x.shape)
-    print(y.shape)
+    if verbose:
+        print(x.shape)
+        print(y.shape)
 
-    # check statistics on different classes
-    if not binary:
-        print('\n')
-        for i in classes.keys():
-            print(f'{i}:', np.sum(y[:, i]))
-        print('\n')
-    else:
-        print('\n')
-        cs = list(classes.keys())
-        print(f'{cs[0]}:', len(y) - np.sum(y))
-        print(f'{cs[1]}:', np.sum(y))
-        print('\n')
+        # check statistics on different classes
+        if not binary:
+            print('\n')
+            for i in classes.keys():
+                print(f'{i}:', np.sum(y[:, i]))
+            print('\n')
+        else:
+            print('\n')
+            cs = list(classes.keys())
+            print(f'{cs[0]}:', len(y) - np.sum(y))
+            print(f'{cs[1]}:', np.sum(y))
+            print('\n')
 
     # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
+    if verbose:
+        print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
 
     return x_train, y_train, x_test, y_test, classes
