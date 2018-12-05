@@ -398,7 +398,7 @@ if __name__ == '__main__':
     batch_size = 32
 
     model.fit(X_train, Y_train, epochs=200, batch_size=batch_size, shuffle=True,
-              class_weight={0: 1, 1: 1},
+              class_weight=class_weight,
               validation_split=0.05,
               verbose=1, callbacks=[tensorboard, early_stopping])
 
