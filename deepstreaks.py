@@ -322,7 +322,9 @@ if __name__ == '__main__':
     ''' build model '''
     # known models:
     models = {'VGG4': vgg4,
-              'VGG6': vgg6}
+              'VGG6': vgg6,
+              'ResNet50': ResNet50}
+    assert args.model in models, f'Unknown model: {args.model}'
     model = models[args.model](input_shape=image_shape, n_classes=n_classes)
     # model = vgg4(input_shape=image_shape, n_classes=n_classes)
 
