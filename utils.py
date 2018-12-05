@@ -69,7 +69,7 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
                     else:
                         # make it rgb:
                         img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
-                        rgbimg = Image.new("RGBA", img.size)
+                        rgbimg = Image.new("RGB", img.size)
                         rgbimg.paste(img)
                         img = np.array(rgbimg) / 255.
 
