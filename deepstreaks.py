@@ -3,7 +3,8 @@ import argparse
 from sklearn.metrics import confusion_matrix
 from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
-                         AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D, concatenate, Dropout
+                         AveragePooling2D, MaxPooling2D, GlobalAveragePooling2D, GlobalMaxPooling2D, \
+                         concatenate, Dropout
 from keras.models import Model, Sequential, load_model
 from keras.applications.densenet import DenseNet121
 from keras.callbacks import TensorBoard, EarlyStopping
@@ -314,9 +315,24 @@ def DenseNet_imagenet(input_shape=(144, 144, 3), n_classes: int=2):
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
 
-    model = DenseNet121(include_top=True,
-                        weights='imagenet', input_tensor=X_input,
-                        input_shape=input_shape, classes=2)
+    base_model = DenseNet121(include_top=False, weights='imagenet', input_tensor=X_input)
+
+    # add a global spatial average pooling layer
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    # let's add a fully-connected layer
+    x = Dense(256, activation='relu')(x)
+    # and a logistic layer
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    predictions = Dense(n_classes, activation=activation)(x)
+
+    # this is the model we will train
+    model = Model(inputs=base_model.input, outputs=predictions)
+
+    # first: train only the top layers (which were randomly initialized)
+    # i.e. freeze all convolutional layers
+    for layer in base_model.layers:
+        layer.trainable = False
 
     return model
 
@@ -334,7 +350,7 @@ if __name__ == '__main__':
                         help='Local path to data',
                         default='./data')
     parser.add_argument('--model', type=str,
-                        help='Choose model to train: VGG4, VGG6, ResNet50, DenseNet121',
+                        help='Choose model to train: FC4, VGG4, VGG6, ResNet50, DenseNet121, DenseNet121_imagenet',
                         default='VGG6')
     parser.add_argument('--loss', type=str,
                         help='Loss function: binary_crossentropy or categorical_crossentropy',
@@ -355,7 +371,8 @@ if __name__ == '__main__':
     path_data = args.path_data
 
     # known models:
-    models = {'VGG4': {'model': vgg4, 'grayscale': True},
+    models = {'FC4': {'model': fc4, 'grayscale': True},
+              'VGG4': {'model': vgg4, 'grayscale': True},
               'VGG6': {'model': vgg6, 'grayscale': True},
               'ResNet50': {'model': ResNet50, 'grayscale': True},
               'DenseNet121': {'model': DenseNet, 'grayscale': False},
