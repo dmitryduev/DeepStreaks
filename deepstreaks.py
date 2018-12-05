@@ -284,6 +284,18 @@ def DenseNet(input_shape=(144, 144, 3), n_classes: int=2):
     return model
 
 
+def DenseNet_imagenet(input_shape=(144, 144, 3), n_classes: int=2):
+
+    # Define the input as a tensor with shape input_shape
+    X_input = Input(input_shape)
+
+    model = DenseNet121(include_top=True,
+                        weights='imagenet', input_tensor=X_input,
+                        input_shape=input_shape, classes=2)
+
+    return model
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train DeepStreaks')
     parser.add_argument('--project_id', type=str,
@@ -299,6 +311,9 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str,
                         help='Choose model to train: VGG4, VGG6, ResNet50, DenseNet121',
                         default='VGG6')
+    parser.add_argument('--loss', type=str,
+                        help='Loss function: binary_crossentropy or categorical_crossentropy',
+                        default='binary_crossentropy')
     parser.add_argument('--epochs', type=int,
                         help='Number of train epochs',
                         default=200)
@@ -318,7 +333,8 @@ if __name__ == '__main__':
     models = {'VGG4': {'model': vgg4, 'grayscale': True},
               'VGG6': {'model': vgg6, 'grayscale': True},
               'ResNet50': {'model': ResNet50, 'grayscale': True},
-              'DenseNet121': {'model': DenseNet, 'grayscale': False}
+              'DenseNet121': {'model': DenseNet, 'grayscale': False},
+              'DenseNet121_imagenet': {'model': DenseNet_imagenet, 'grayscale': False}
               }
     assert args.model in models, f'Unknown model: {args.model}'
     grayscale = models[args.model]['grayscale']
@@ -328,10 +344,9 @@ if __name__ == '__main__':
     save_model = True
 
     ''' load data '''
-    binary_classification = True
-    # binary_classification = False
+    loss = args.loss
+    binary_classification = True if loss == 'binary_crossentropy' else False
     n_classes = 1 if binary_classification else 2
-    loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
 
     # load data
     X_train, Y_train, X_test, Y_test, classes = load_data(path=path_data,
