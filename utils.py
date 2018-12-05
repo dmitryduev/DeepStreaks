@@ -59,11 +59,18 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
                 image_path = os.path.join(path_dataset, k)
 
                 if os.path.exists(image_path):
-                    # the assumption is that images are grayscale
-                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
-                    img = np.expand_dims(img, 2)
 
-                    # if not grayscale:
+                    if grayscale:
+                        # the assumption is that images are grayscale
+                        img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                        img = np.expand_dims(img, 2)
+
+                    else:
+                        # make it rgb:
+                        img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
+                        rgbimg = Image.new("RGBA", img.size)
+                        rgbimg.paste(img)
+                        img = rgbimg
 
                     x.append(img)
 
