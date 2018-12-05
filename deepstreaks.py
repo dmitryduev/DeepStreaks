@@ -1,0 +1,215 @@
+import argparse
+
+from sklearn.metrics import confusion_matrix
+from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
+                         AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D, concatenate, Dropout
+from keras.models import Model, Sequential, load_model
+from keras.callbacks import TensorBoard, EarlyStopping
+from keras.optimizers import Adam, SGD
+import datetime
+import numpy as np
+
+from utils import load_data
+import keras.backend as K
+
+
+def vgg6(input_shape=(144, 144, 1), n_classes: int=1):
+    """
+        VGG6
+    :param input_shape:
+    :param n_classes:
+    :return:
+    """
+
+    # # batch norm momentum
+    # batch_norm_momentum = 0.2
+
+    model = Sequential(name='VGG6')
+    # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
+    # this applies 16 convolution filters of size 3x3 each.
+    model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape, name='conv1'))
+    # model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
+    model.add(Conv2D(16, (3, 3), activation='relu', name='conv2'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(32, (3, 3), activation='relu', name='conv3'))
+    model.add(Conv2D(32, (3, 3), activation='relu', name='conv4'))
+    model.add(MaxPooling2D(pool_size=(4, 4)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+
+    model.add(Dense(256, activation='relu', name='fc_1'))
+    # model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    # output layer
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    model.add(Dense(n_classes, activation=activation, name='fc_out'))
+
+    return model
+
+
+def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
+
+    # # batch norm momentum
+    # batch_norm_momentum = 0.2
+
+    model = Sequential(name='VGG4')
+    # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
+    # this applies 16 convolution filters of size 3x3 each.
+    model.add(Conv2D(16, (3, 3), activation='relu', input_shape=input_shape))
+    # model.add(BatchNormalization(axis=-1, momentum=batch_norm_momentum))
+    # model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    # model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(4, 4)))
+    # model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+
+    model.add(Dense(256, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    # output layer
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    model.add(Dense(n_classes, activation=activation))
+
+    return model
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Train DeepStreaks')
+    parser.add_argument('--project_id',
+                        help='Zwickyverse project id. As of 20181204:\n' +
+                             "\t'5b96af9c0354c9000b0aea36'  : real vs bogus" +
+                             "\t'5b99b2c6aec3c500103a14de'  : short vs long" +
+                             "\t'5be0ae7958830a0018821794'  : keep vs ditch" +
+                             "\t'5c05bbdc826480000a95c0bf'  : one shot",
+                        default='5b96af9c0354c9000b0aea36')
+    parser.add_argument('--path_data',
+                        help='Local path to data',
+                        default='./data')
+    parser.add_argument('--model',
+                        help='Choose model to train: VGG4, VGG6, ResNet50, DenseNet121',
+                        default='VGG6')
+
+    args = parser.parse_args()
+    project_id = args.project_id
+    path_data = args.path_data
+
+    K.clear_session()
+
+    save_model = True
+
+    ''' load data '''
+    binary_classification = True
+    # binary_classification = False
+    n_classes = 1 if binary_classification else 2
+    loss = 'binary_crossentropy' if binary_classification else 'categorical_crossentropy'
+
+    # load data
+    X_train, Y_train, X_test, Y_test, classes = load_data(path=path_data,
+                                                          project_id=project_id,
+                                                          binary=binary_classification,
+                                                          resize=(144, 144),
+                                                          test_size=0.1)
+
+    # image shape:
+    image_shape = X_train.shape[1:]
+    print('Input image shape:', image_shape)
+
+    print("Number of training examples = " + str(X_train.shape[0]))
+    print("Number of test examples = " + str(X_test.shape[0]))
+    print("X_train shape: " + str(X_train.shape))
+    print("Y_train shape: " + str(Y_train.shape))
+    print("X_test shape: " + str(X_test.shape))
+    print("Y_test shape: " + str(Y_test.shape))
+
+    ''' build model '''
+    # known models:
+    models = {'VGG4': vgg4,
+              'VGG6': vgg6}
+    model = models[args.model](input_shape=image_shape, n_classes=n_classes)
+    # model = vgg4(input_shape=image_shape, n_classes=n_classes)
+
+    # set up optimizer:
+    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    # adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    # sgd = SGD(lr=0.01, momentum=0.0, decay=0.0)
+    # sgd = SGD(lr=0.01, momentum=0.9, decay=1e-6, nesterov=True)
+
+    model.compile(optimizer=adam, loss=loss, metrics=['accuracy'])
+    # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
+
+    print(model.summary())
+
+    tensorboard = TensorBoard(log_dir=f'./logs/{datetime.datetime.now().strftime(model.name + "_%Y%m%d_%H%M%S")}')
+
+    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
+
+    batch_size = 32
+
+    model.fit(X_train, Y_train, epochs=200, batch_size=batch_size, shuffle=True,
+              class_weight={0: 1, 1: 1},
+              validation_split=0.05,
+              verbose=1, callbacks=[tensorboard, early_stopping])
+
+    # print('Evaluating on training set to check for BatchNorm behavior:')
+    # preds = model.evaluate(X_train, Y_train, batch_size=batch_size)
+    # print("Loss in prediction mode = " + str(preds[0]))
+    # print("Training Accuracy in prediction mode = " + str(preds[1]))
+
+    print('Evaluating on test set')
+    preds = model.evaluate(X_test, Y_test, batch_size=batch_size)
+    test_loss = preds[0]
+    test_accuracy = preds[1]
+    print("Loss = " + str(test_loss))
+    print("Test Accuracy = " + str(test_accuracy))
+
+    model_save_name = f'./{project_id}_{model.name}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    if True:
+        model_save_name_h5 = f'{model_save_name}.h5'
+        model.save(model_save_name_h5)
+
+    print(f'Batch size: {batch_size}')
+    preds = model.predict(x=X_test, batch_size=batch_size)
+
+    # round probs to nearest int (0 or 1)
+    labels_pred = np.rint(preds)
+    confusion_matr = confusion_matrix(Y_test, labels_pred)
+    confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+    print('Confusion matrix:')
+    print(confusion_matr)
+
+    print('Normalized confusion matrix:')
+    print(confusion_matr_normalized)
+
+    # save test loss/accuracy and confusion matrices in a text file:
+    with open(f'./{model_save_name}.txt', 'w') as f:
+        f.write(f'Input image shape: {str(image_shape)}\n')
+
+        f.write(f'Number of training examples = {str(X_train.shape[0])}\n')
+        f.write(f'Number of test examples = {str(X_test.shape[0])}\n')
+        f.write(f'X_train shape: {str(X_train.shape)}\n')
+        f.write(f'Y_train shape: {str(Y_train.shape)}\n')
+        f.write(f'X_test shape: {str(X_test.shape)}\n')
+        f.write(f'Y_test shape: {str(Y_test.shape)}\n')
+
+        f.write('\nModel summary:\n')
+        f.write(str(model.summary()))
+
+        f.write(f'\nLoss = {test_loss:.4f}\n')
+        f.write(f'Test Accuracy = {test_accuracy:.4f}\n')
+        f.write('\nConfusion matrix:\n')
+        f.write(str(confusion_matr))
+        f.write('\nNormalized confusion matrix:\n')
+        f.write(str(confusion_matr_normalized))
