@@ -272,6 +272,31 @@ def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
+def fc4(input_shape=(144, 144, 1), n_classes: int=1):
+
+    # # batch norm momentum
+    # batch_norm_momentum = 0.2
+
+    model = Sequential(name='FC4')
+    # input: 144x144 images with 1 channel -> (144, 144, 1) tensors.
+    model.add(Flatten(input_shape=input_shape))
+
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dropout(0.25))
+
+    model.add(Dense(1024, activation='relu'))
+    model.add(Dropout(0.25))
+
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.5))
+
+    # output layer
+    activation = 'sigmoid' if n_classes == 1 else 'softmax'
+    model.add(Dense(n_classes, activation=activation))
+
+    return model
+
+
 def DenseNet(input_shape=(144, 144, 3), n_classes: int=2):
 
     # Define the input as a tensor with shape input_shape

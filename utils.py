@@ -90,8 +90,8 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
         # check statistics on different classes
         if not binary:
             print('\n')
-            for i in classes.keys():
-                print(f'{i}:', np.sum(y[:, i]))
+            for i, ii in enumerate(sorted(classes.keys())):
+                print(f'{ii}:', np.sum(y[:, i]))
             print('\n')
         else:
             print('\n')
