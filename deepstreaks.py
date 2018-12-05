@@ -312,6 +312,14 @@ if __name__ == '__main__':
     project_id = args.project_id
     path_data = args.path_data
 
+    # known models:
+    models = {'VGG4': vgg4,
+              'VGG6': vgg6,
+              'ResNet50': ResNet50,
+              'DenseNet121': DenseNet}
+    assert args.model in models, f'Unknown model: {args.model}'
+    grayscale = True if args.model != 'DenseNet121' else False
+
     K.clear_session()
 
     save_model = True
@@ -326,6 +334,7 @@ if __name__ == '__main__':
     X_train, Y_train, X_test, Y_test, classes = load_data(path=path_data,
                                                           project_id=project_id,
                                                           binary=binary_classification,
+                                                          grayscale=grayscale,
                                                           resize=(144, 144),
                                                           test_size=0.1)
 
@@ -341,11 +350,6 @@ if __name__ == '__main__':
     print("Y_test shape: " + str(Y_test.shape))
 
     ''' build model '''
-    # known models:
-    models = {'VGG4': vgg4,
-              'VGG6': vgg6,
-              'ResNet50': ResNet50}
-    assert args.model in models, f'Unknown model: {args.model}'
     model = models[args.model](input_shape=image_shape, n_classes=n_classes)
     # model = vgg4(input_shape=image_shape, n_classes=n_classes)
 
