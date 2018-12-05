@@ -274,12 +274,10 @@ def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
 
 def DenseNet(input_shape=(144, 144, 3), n_classes: int=2):
 
-    blocks = [6, 12, 24, 16]
-
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
 
-    model = DenseNet121(blocks=blocks, include_top=True,
+    model = DenseNet121(include_top=True,
                         weights=None, input_tensor=X_input,
                         input_shape=input_shape, classes=2)
 
