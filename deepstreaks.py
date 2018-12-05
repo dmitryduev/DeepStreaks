@@ -5,6 +5,7 @@ from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, \
                          AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D, concatenate, Dropout
 from keras.models import Model, Sequential, load_model
+from keras.applications.densenet import DenseNet121
 from keras.callbacks import TensorBoard, EarlyStopping
 from keras.optimizers import Adam, SGD
 from keras.initializers import glorot_uniform
@@ -271,6 +272,20 @@ def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
+def DenseNet(input_shape=(144, 144, 3)):
+
+    blocks = [6, 12, 24, 16]
+
+    # Define the input as a tensor with shape input_shape
+    X_input = Input(input_shape)
+
+    model = DenseNet121(blocks=blocks, include_top=True,
+                        weights=None, input_tensor=X_input,
+                        input_shape=input_shape, classes=2)
+
+    return model
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train DeepStreaks')
     parser.add_argument('--project_id', type=str,
@@ -398,8 +413,8 @@ if __name__ == '__main__':
         f.write(f'X_test shape: {str(X_test.shape)}\n')
         f.write(f'Y_test shape: {str(Y_test.shape)}\n')
 
-        f.write('\nModel summary:\n')
-        f.write(str(model.summary()))
+        # f.write('\nModel summary:\n')
+        # f.write(str(model.summary()))
 
         f.write(f'\nLoss = {test_loss:.4f}\n')
         f.write(f'Test Accuracy = {test_accuracy:.4f}\n')

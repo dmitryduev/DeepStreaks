@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 from sklearn.model_selection import train_test_split
 
 
-def load_data(path: str='./data', project_id: str=None, binary: bool=True,
+def load_data(path: str='./data', project_id: str=None, binary: bool=True, grayscale: bool=True,
               resize: tuple=(144, 144), test_size=0.1):
 
     # data:
@@ -62,6 +62,9 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True,
                     # the assumption is that images are grayscale
                     img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
                     img = np.expand_dims(img, 2)
+
+                    # if not grayscale:
+
                     x.append(img)
 
                     image_class = classes[v[0]]
