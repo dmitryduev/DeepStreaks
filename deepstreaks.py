@@ -272,7 +272,7 @@ def vgg4(input_shape=(144, 144, 1), n_classes: int=1):
     return model
 
 
-def DenseNet(input_shape=(144, 144, 3)):
+def DenseNet(input_shape=(144, 144, 3), n_classes: int=2):
 
     blocks = [6, 12, 24, 16]
 
