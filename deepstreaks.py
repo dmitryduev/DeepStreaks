@@ -523,6 +523,9 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str,
                         help='Choose model to train: FC4, VGG4, VGG6, ResNet50, DenseNet121, DenseNet121_imagenet',
                         default='VGG6')
+    parser.add_argument('--batch_size', type=int,
+                        help='Batch size',
+                        default=32)
     parser.add_argument('--loss', type=str,
                         help='Loss function: binary_crossentropy or categorical_crossentropy',
                         default='binary_crossentropy')
@@ -629,11 +632,13 @@ if __name__ == '__main__':
 
     tensorboard = TensorBoard(log_dir=f'./logs/{model_name}')
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=50)
+    patience = args.patience
+    early_stopping = EarlyStopping(monitor='val_loss', patience=patience)
 
-    batch_size = 32
+    batch_size = args.batch_size
 
-    model.fit(X_train, Y_train, epochs=200, batch_size=batch_size, shuffle=True,
+    epochs = args.epochs
+    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, shuffle=True,
               class_weight=class_weight,
               validation_split=0.05,
               verbose=1, callbacks=[tensorboard, early_stopping])
