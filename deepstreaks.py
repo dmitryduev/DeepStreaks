@@ -432,7 +432,7 @@ def DenseNet(input_shape=(144, 144, 1), n_classes: int=1, include_top: bool=True
     return model
 
 
-def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1):
+def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1, freeze_weights: bool=False):
 
     BASE_WEIGTHS_PATH = (
         'https://github.com/keras-team/keras-applications/'
@@ -502,8 +502,9 @@ def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1):
 
     # first: train only the top layers (which were randomly initialized)
     # i.e. freeze all convolutional layers
-    for layer in base_model.layers:
-        layer.trainable = False
+    if freeze_weights:
+        for layer in base_model.layers:
+            layer.trainable = False
 
     return model
 
