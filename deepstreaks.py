@@ -498,7 +498,7 @@ def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1):
     else:
         raise Exception('Do not have such weights :(')
 
-    model.load_weights(weights_path)
+    model.load_weights(weights_path, skip_mismatch=True)
 
     # first: train only the top layers (which were randomly initialized)
     # i.e. freeze all convolutional layers
