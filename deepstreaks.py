@@ -6,7 +6,7 @@ from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNorm
                          AveragePooling2D, MaxPooling2D, GlobalAveragePooling2D, GlobalMaxPooling2D, \
                          concatenate, Dropout
 from keras.models import Model, Sequential, load_model
-from keras.applications.densenet import DenseNet121
+# from keras.applications.densenet import DenseNet121
 from keras.callbacks import TensorBoard, EarlyStopping
 from keras.optimizers import Adam, SGD
 from keras.initializers import glorot_uniform
@@ -466,6 +466,30 @@ def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1):
     # base densenet to freeze
     base_model = DenseNet(input_shape=input_shape, n_classes=n_classes, include_top=False)
 
+    # load imagenet weights:
+    if blocks == [6, 12, 24, 16]:
+        weights_path = keras_utils.get_file(
+            'densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5',
+            DENSENET121_WEIGHT_PATH_NO_TOP,
+            cache_subdir='models',
+            file_hash='30ee3e1110167f948a6b9946edeeb738')
+    elif blocks == [6, 12, 32, 32]:
+        weights_path = keras_utils.get_file(
+            'densenet169_weights_tf_dim_ordering_tf_kernels_notop.h5',
+            DENSENET169_WEIGHT_PATH_NO_TOP,
+            cache_subdir='models',
+            file_hash='b8c4d4c20dd625c148057b9ff1c1176b')
+    elif blocks == [6, 12, 48, 32]:
+        weights_path = keras_utils.get_file(
+            'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5',
+            DENSENET201_WEIGHT_PATH_NO_TOP,
+            cache_subdir='models',
+            file_hash='c13680b51ded0fb44dff2d8f86ac8bb1')
+    else:
+        raise Exception('Do not have such weights :(')
+
+    base_model.load_weights(weights_path, skip_mismatch=True)
+
     x = base_model.output
     # add a global spatial average pooling layer
     x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
@@ -475,30 +499,6 @@ def DenseNet_imagenet(input_shape=(144, 144, 1), n_classes: int=1):
 
     # this is the model we will train
     model = Model(inputs=base_model.input, outputs=predictions, name='densenet121_imagenet')
-
-    # load imagenet weights:
-    if blocks == [6, 12, 24, 16]:
-        weights_path = keras_utils.get_file(
-            'densenet121_weights_tf_dim_ordering_tf_kernels.h5',
-            DENSENET121_WEIGHT_PATH,
-            cache_subdir='models',
-            file_hash='9d60b8095a5708f2dcce2bca79d332c7')
-    elif blocks == [6, 12, 32, 32]:
-        weights_path = keras_utils.get_file(
-            'densenet169_weights_tf_dim_ordering_tf_kernels.h5',
-            DENSENET169_WEIGHT_PATH,
-            cache_subdir='models',
-            file_hash='d699b8f76981ab1b30698df4c175e90b')
-    elif blocks == [6, 12, 48, 32]:
-        weights_path = keras_utils.get_file(
-            'densenet201_weights_tf_dim_ordering_tf_kernels.h5',
-            DENSENET201_WEIGHT_PATH,
-            cache_subdir='models',
-            file_hash='1ceb130c1ea1b78c3bf6114dbdfd8807')
-    else:
-        raise Exception('Do not have such weights :(')
-
-    model.load_weights(weights_path, skip_mismatch=True)
 
     # first: train only the top layers (which were randomly initialized)
     # i.e. freeze all convolutional layers
