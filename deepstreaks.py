@@ -553,7 +553,7 @@ if __name__ == '__main__':
               'VGG4': {'model': vgg4, 'grayscale': True},
               'VGG6': {'model': vgg6, 'grayscale': True},
               'ResNet50': {'model': ResNet50, 'grayscale': True},
-              'DenseNet121': {'model': DenseNet, 'grayscale': False},
+              'DenseNet121': {'model': DenseNet, 'grayscale': True},
               'DenseNet121_imagenet': {'model': DenseNet_imagenet, 'grayscale': False}
               }
     assert args.model in models, f'Unknown model: {args.model}'
