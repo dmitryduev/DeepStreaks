@@ -50,18 +50,25 @@
   },
 
   "models": {
-    "rb_resnet50": "ResNet50_rb_50e_20181102_132634.h5",
-    "rb_vgg6": "VGG6_rb_78e_20181103_001536.h5",
-    "sl_vgg6": "VGG6_sl_68e_20181102_234533.h5",
-    "sl_resnet50": "ResNet50_sl_42e_20181108_171448.h5",
-    "kd_vgg6": "VGG6_kd_63e_20181106_152448.h5",
-    "kd_resnet50": "ResNet50_kd_32e_20181106_171833.h5"
+    "rb_vgg6": "5b96af9c0354c9000b0aea36_VGG6_20181207_151757.h5",
+    "rb_resnet50": "5b96af9c0354c9000b0aea36_ResNet50_20181207_154224.h5",
+    "rb_densenet121": "5b96af9c0354c9000b0aea36_densenet121_20181208_124900.h5",
+    "sl_vgg6": "5b99b2c6aec3c500103a14de_VGG6_20181207_182618.h5",
+    "sl_resnet50": "5b99b2c6aec3c500103a14de_ResNet50_20181207_184230.h5",
+    "sl_densenet121": "5b99b2c6aec3c500103a14de_densenet121_20181208_190211.h5",
+    "kd_vgg6": "5be0ae7958830a0018821794_VGG6_20181207_235456.h5",
+    "kd_resnet50": "5be0ae7958830a0018821794_ResNet50_20181208_001918.h5",
+    "kd_densenet121": "5be0ae7958830a0018821794_densenet121_20181208_031302.h5",
+    "os_vgg6": "5c05bbdc826480000a95c0bf_VGG6_20181207_133144.h5",
+    "os_resnet50": "5c05bbdc826480000a95c0bf_ResNet50_20181206_231234.h5",
+    "os_densenet121": "5c05bbdc826480000a95c0bf_densenet121_20181206_145821.h5"
   },
 
   "default_models": {
     "rb": "rb_vgg6",
     "sl": "sl_resnet50",
-    "kd": "kd_resnet50"
+    "kd": "kd_resnet50",
+    "os": "os_densenet121"
   },
 
   "misc": {
