@@ -517,7 +517,7 @@ if __name__ == '__main__':
                              "\t'5b99b2c6aec3c500103a14de'  : short vs long" +
                              "\t'5be0ae7958830a0018821794'  : keep vs ditch" +
                              "\t'5c05bbdc826480000a95c0bf'  : one shot",
-                        default='5b96af9c0354c9000b0aea36')
+                        default='5c05bbdc826480000a95c0bf')
     parser.add_argument('--path_data', type=str,
                         help='Local path to data',
                         default='./data')
