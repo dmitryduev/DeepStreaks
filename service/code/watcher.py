@@ -15,6 +15,7 @@ import datetime
 from xml.etree import ElementTree
 from keras.models import load_model
 from PIL import Image, ImageOps
+from copy import deepcopy
 
 
 class XmlListConfig(list):
@@ -414,7 +415,21 @@ class AbstractObserver(ABC):
             self.insert_db_entry(_collection, _db_entry)
         except Exception as _e:
             try:
-                self.replace_db_entry(_collection, {'_id': _db_entry['_id']}, _db_entry)
+                print(*time_stamps(), 'Found entry, updating..')
+
+                # merge scores:
+                scores = self.db['db'][_collection].find_one({'_id': _db_entry['_id']},
+                                                             {'_id': 0, 'scores': 1})['scores']
+                _db_entry_megred_scores = deepcopy(_db_entry)
+                new_scores = _db_entry_megred_scores['scores']
+                for _model in new_scores:
+                    if _model in scores:
+                        for _m in new_scores[_model]:
+                            scores[_model][_m] = new_scores[_model][_m]
+                    else:
+                        scores[_model] = new_scores[_model]
+
+                self.replace_db_entry(_collection, {'_id': _db_entry['_id']}, _db_entry_megred_scores)
             except Exception as __e:
                 print(*time_stamps(), 'Error inserting/replacing {:s} into {:s}'.format(str(_db_entry['_id']),
                                                                                         _collection))
