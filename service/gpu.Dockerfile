@@ -6,6 +6,8 @@ RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get 
 
 # Install and set up python 3.7.1
 
+RUN apt-get -y install libffi-dev
+
 # ensure local python is preferred over distribution python
 ENV PATH /usr/local/bin:$PATH
 
