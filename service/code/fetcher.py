@@ -399,6 +399,14 @@ class qaWatcher:
                         try:
                             with tarfile.open(os.path.join(self.stamps_dir, txt)) as tar:
                                 tar.extractall(path=self.stamps_dir)
+                            # move files from unpacked dir
+                            base_name = txt.split('.tar.gz')[0]
+                            unpacked_dir = os.path.join(self.stamps_dir, base_name)
+                            files = os.listdir(unpacked_dir)
+                            for f in files:
+                                shutil.move(os.path.join(unpacked_dir, f), self.stamps_dir)
+                            # delete dir
+                            shutil.rmtree(unpacked_dir)
                         except Exception as _e:
                             print(str(_e))
                             # failed to unpack? will try again on next loop iteration
