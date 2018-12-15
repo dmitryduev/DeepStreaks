@@ -511,6 +511,8 @@ class Watcher(AbstractObserver):
 
                 doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
+                doc['basename'] = base_name
+
                 # parse ADES:
                 path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}', f'{base_name}_strkcutouts')
                 path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
