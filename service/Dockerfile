@@ -3,7 +3,6 @@ FROM python:3.6-slim
 # Install vim, git, and cron
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
     apt-get -y install cron && apt-get -y install git
-# TODO: add gcc for flask-misaka?
 
 # place to keep our app and the data:
 RUN mkdir -p /app
