@@ -15,4 +15,4 @@ pymongo>=3.6.1
 socketIO_client>=0.7.2
 tensorflow>=1.10.[0
 -e git://github.com/Supervisor/supervisor.git#egg=supervisor
--e git://github.com/dmitryduev/broker.git#egg=penquins
+-e git://github.com/dmitryduev/kowalski.git#egg=penquins

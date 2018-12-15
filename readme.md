@@ -130,7 +130,9 @@ Build and launch the app container:
 ```bash
 docker build --rm -t deep-asteroids:latest -f Dockerfile .
 # rico:
-#docker run --name deep-asteroids -d --restart always -p 8001:4000 -v /data/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+#docker run --runtime=nvidia --name deep-asteroids -d --restart always -p 8001:4000 -v /data/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
+# test mode:
+#docker run -it --runtime=nvidia --name deep-asteroids -p 8001:4000 -v /data/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 # private:
 #docker run --name deep-asteroids -d --restart always -p 8001:4000 -v /scratch/ztf/streaks:/data --link deep-asteroids-mongo:mongo deep-asteroids:latest
 # test mode:
