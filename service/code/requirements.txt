@@ -1,5 +1,6 @@
 aplpy>=1.1.1
 astropy>=3.0.3
+beautifulsoup4>=4.6.0
 flask>=1.0.2
 flask_jwt_extended>=3.12.1
 flask_login>=0.4.1

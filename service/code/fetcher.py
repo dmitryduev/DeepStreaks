@@ -24,9 +24,6 @@ with open('/app/config.json') as cjson:
 with open('/app/secrets.json') as sjson:
     secrets = json.load(sjson)
 
-for k in secrets:
-    config[k].update(secrets.get(k, {}))
-
 
 def utc_now():
     return datetime.datetime.now(pytz.utc)
