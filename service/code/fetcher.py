@@ -368,7 +368,7 @@ class qaWatcher:
                 txt = link.getText()
 
                 # get compressed streaks
-                if 'strkcutouts' in txt and txt not in self.processed_stamps:
+                if ('strkcutouts' in txt) and (txt not in self.processed_stamps):
 
                     # link_list.append(txt)
 
@@ -420,7 +420,7 @@ class qaWatcher:
 
                                 # get compressed streaks
 
-                if 'streaks' in txt and txt not in self.processed_meta:
+                if ('streaks' in txt) and (txt not in self.processed_meta):
 
                     if self.transfer_to_local:
                         # fetch
