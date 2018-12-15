@@ -17,7 +17,7 @@
   "path": {
     "path_app": "/app",
     "path_logs": "/app/logs/",
-    "path_data": "/data/",
+    "path_data": "/data/streaks/",
     "path_models": "/app/models/",
     "path_tmp": "/app/_tmp/",
     "help": {
