@@ -4,6 +4,18 @@ FROM nvidia/cuda:9.0-devel
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
     apt-get -y install cron && apt-get -y install git && apt-get -y install wget
 
+# Install libcudnn
+
+ENV CUDNN_VERSION 7.4.1.5
+LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+            libcudnn7=$CUDNN_VERSION-1+cuda9.0 \
+            libcudnn7-dev=$CUDNN_VERSION-1+cuda9.0 && \
+    apt-mark hold libcudnn7 && \
+    rm -rf /var/lib/apt/lists/*
+
+
 # Install and set up python 3.6.7 and pip 18.1
 
 RUN apt-get -y install libffi-dev build-essential checkinstall \
