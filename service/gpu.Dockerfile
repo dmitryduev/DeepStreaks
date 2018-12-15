@@ -4,7 +4,7 @@ FROM nvidia/cuda:9.1-devel
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
     apt-get -y install cron && apt-get -y install git && apt-get -y install wget
 
-# Install and set up python 3.7.1 and pip 18.1
+# Install and set up python 3.6.7 and pip 18.1
 
 RUN apt-get -y install libffi-dev build-essential checkinstall \
                        libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev \
@@ -24,9 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
-ENV PYTHON_VERSION 3.7.1
-
-#RUN apt-get
+ENV PYTHON_VERSION 3.6.7
 
 RUN set -ex \
 	\
