@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.1-devel
+FROM nvidia/cuda:9.0-devel
 
 # Install vim, git, cron, wget
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
