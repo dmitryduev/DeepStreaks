@@ -12,8 +12,8 @@ LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
 RUN apt-get update && apt-get install -y --no-install-recommends \
             libcudnn7=$CUDNN_VERSION-1+cuda9.0 \
             libcudnn7-dev=$CUDNN_VERSION-1+cuda9.0 && \
-    apt-mark hold libcudnn7 && \
-    rm -rf /var/lib/apt/lists/*
+    apt-mark hold libcudnn7
+    # && rm -rf /var/lib/apt/lists/*
 
 
 # Install and set up python 3.6.7 and pip 18.1
