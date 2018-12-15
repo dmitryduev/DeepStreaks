@@ -487,6 +487,8 @@ class Watcher(AbstractObserver):
         filename = message['filename'] if 'filename' in message else None
         assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
 
+        base_name = filename.split('_streaks.txt')[0]
+
         obsdate = message['obsdate'] if 'obsdate' in message else None
         assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
@@ -510,7 +512,7 @@ class Watcher(AbstractObserver):
                 doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
                 # parse ADES:
-                path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
+                path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}', f'{base_name}_strkcutouts')
                 path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
                 path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
 

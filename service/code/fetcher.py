@@ -471,7 +471,7 @@ class qaWatcher:
                 pass
 
 
-def main(time_skip=False, get_alerts=True, obsdate=None):
+def main(time_skip=False, obsdate=None):
 
     y = qaWatcher(obsdate=obsdate, data_dir='/data/streaks/', batch_size=128)
     s = time.time()
@@ -503,6 +503,7 @@ def main(time_skip=False, get_alerts=True, obsdate=None):
                 except Exception as e:
                     print(str(e))
                     pass
+
         if 'Cov' in l:
             pass
             # ccd_link = '%s/%s/' % (y.night_url, l)
@@ -511,8 +512,8 @@ def main(time_skip=False, get_alerts=True, obsdate=None):
             for ccd in ccds:
                 # ccd_link = '%s/%s/%s' % (y.night_url, l, ccd)
                 ccd_link = os.path.join(y.night_url, l, ccd)
-                # qa_files = y.get_qa_files(ccd_link, get_alerts=get_alerts)
-                y.get_qa_files(ccd_link, get_alerts=get_alerts)
+                # qa_files = y.get_qa_files(ccd_link)
+                y.get_qa_files(ccd_link)
 
     # print(qa_files)
     print(f'Loop took {time.time() - s} seconds')
