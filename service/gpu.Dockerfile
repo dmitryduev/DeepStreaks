@@ -1,6 +1,6 @@
-FROM nvidia/cuda:9.1-base
+FROM nvidia/cuda:9.1-devel
 
-# Install vim, git, and cron
+# Install vim, git, cron, wget
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
     apt-get -y install cron && apt-get -y install git && apt-get -y install wget
 
@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 ENV PYTHON_VERSION 3.7.1
+
+#RUN apt-get
 
 RUN set -ex \
 	\
