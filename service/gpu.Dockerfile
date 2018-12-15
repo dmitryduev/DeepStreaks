@@ -4,9 +4,11 @@ FROM nvidia/cuda:9.1-devel
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
     apt-get -y install cron && apt-get -y install git && apt-get -y install wget
 
-# Install and set up python 3.7.1
+# Install and set up python 3.7.1 and pip 18.1
 
-RUN apt-get -y install libffi-dev
+RUN apt-get -y install libffi-dev build-essential checkinstall \
+                       libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev \
+                       tk-dev libgdbm-dev libc6-dev libbz2-dev
 
 # ensure local python is preferred over distribution python
 ENV PATH /usr/local/bin:$PATH
@@ -68,9 +70,6 @@ RUN cd /usr/local/bin \
 	&& ln -s pydoc3 pydoc \
 	&& ln -s python3 python \
 	&& ln -s python3-config python-config
-
-RUN apt-get -y install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev \
-                       tk-dev libgdbm-dev libc6-dev libbz2-dev
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
 ENV PYTHON_PIP_VERSION 18.1
