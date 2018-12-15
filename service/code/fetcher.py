@@ -114,6 +114,8 @@ class qaWatcher:
         # Check that the directory exists
         if not os.path.exists(self.stamps_dir):
             os.makedirs(self.stamps_dir)
+        if not os.path.exists(self.meta_dir):
+            os.makedirs(self.meta_dir)
 
         self.night_url = os.path.join(self.base_url, self.obsdate)
 
