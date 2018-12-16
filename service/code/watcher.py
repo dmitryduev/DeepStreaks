@@ -326,6 +326,8 @@ class AbstractObserver(ABC):
                                                                                background=True)
         self.db['db'][self.config['database']['collection_main']].create_index([('kd', pymongo.DESCENDING)],
                                                                                background=True)
+        self.db['db'][self.config['database']['collection_main']].create_index([('os', pymongo.DESCENDING)],
+                                                                               background=True)
 
         for model in self.config['models']:
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
