@@ -42,4 +42,4 @@ CMD /bin/bash
 
 #CMD cron && crontab /etc/cron.d/fetch-cron && /bin/bash
 #CMD cron && crontab /etc/cron.d/fetch-cron && /usr/local/bin/supervisord -n -c supervisord.conf
-#CMD gunicorn -w 8 -b 0.0.0.0:4000 server:app
+#CMD gunicorn -w 4 -b 0.0.0.0:4000 server:app
