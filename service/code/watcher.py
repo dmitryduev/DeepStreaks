@@ -193,7 +193,8 @@ class Manager(object):
             os.makedirs(self.path_data)
 
         # keep track of processed stuff
-        self.processed = dict()
+        self.processed_meta = dict()
+        self.processed_img = dict()
 
         print(*time_stamps(), 'MANAGER: AND NOW MY WATCH BEGINS!')
 
@@ -226,7 +227,7 @@ class Manager(object):
                     print(*time_stamps(), f'Processing data from {obsdate}')
 
                     # clean up self.processed_alerts
-                    obsdates = list(self.processed.keys())
+                    obsdates = list(self.processed_meta.keys())
 
                     print(*time_stamps(), 'Dates on watch:', obsdates)
 
@@ -235,22 +236,30 @@ class Manager(object):
                             if _od != obsdate:
                                 print(*time_stamps(), f'No need to look at {_od}, dropping')
                                 try:
-                                    self.processed.pop(_od, None)
+                                    self.processed_meta.pop(_od, None)
+                                    self.processed_img.pop(_od, None)
                                 finally:
                                     pass
 
                     if obsdate not in obsdates:
                         # use set/dict as search operation is much faster
-                        self.processed[obsdate] = set()
+                        self.processed_meta[obsdate] = set()
+                        self.processed_img[obsdate] = set()
 
-                    print(*time_stamps(), f'Processed meta files for {obsdate} so far:', len(self.processed[obsdate]))
+                    print(*time_stamps(),
+                          f'Processed cutout files for {obsdate} so far: {len(self.processed_img[obsdate])}')
+                    print(*time_stamps(),
+                          f'Processed meta files for {obsdate} so far: {len(self.processed_meta[obsdate])}')
 
-                    # go
+                    # go img cutouts
+                    # todo
+
+                    # go meta
                     meta_files = glob.glob(os.path.join(self.path_data, 'meta', obsdate, 'ztf_*_streaks.txt'))
                     num_meta_files = len(meta_files)
                     print(*time_stamps(), f'Found {num_meta_files} meta files for {obsdate}')
 
-                    if len(self.processed[obsdate]) == num_meta_files:
+                    if len(self.processed_meta[obsdate]) == num_meta_files:
                         print(*time_stamps(), f'Apparently already looked at all available meta files for {obsdate}')
 
                     else:
@@ -263,13 +272,14 @@ class Manager(object):
                                 # strip file name:
                                 meta_name = os.path.basename(filename)
 
-                                if meta_name not in self.processed[obsdate]:
-                                    # notify subscribed watcher(s):
-                                    self.notify(message={'obsdate': obsdate,
+                                if meta_name not in self.processed_meta[obsdate]:
+                                    # notify subscribed meta watcher(s):
+                                    self.notify(message={'datatype': 'meta',
+                                                         'obsdate': obsdate,
                                                          'filename': filename})
 
-                                    # save as processed
-                                    self.processed[obsdate].add(meta_name)
+                                    # save as processed_meta
+                                    self.processed_meta[obsdate].add(meta_name)
 
                                 else:
                                     print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
@@ -288,7 +298,7 @@ class Manager(object):
                                 continue
 
                     print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:',
-                          len(self.processed[obsdate]))
+                          len(self.processed_meta[obsdate]))
                     # take a nap when done
                     print(*time_stamps(), 'Sleeping for 1 minute...')
                     time.sleep(60 * 1)
@@ -484,90 +494,114 @@ class AbstractObserver(ABC):
         pass
 
 
-class Watcher(AbstractObserver):
+class WatcherMeta(AbstractObserver):
 
     def update(self, message):
 
-        filename = message['filename'] if 'filename' in message else None
-        assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
+        datatype = message['datatype'] if 'datatype' in message else None
+        assert datatype is not None, (*time_stamps(), 'Bad message: no datatype.')
 
-        # base_name = filename.split('_streaks.txt')[0]
+        if datatype == 'meta':
 
-        obsdate = message['obsdate'] if 'obsdate' in message else None
-        assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
+            filename = message['filename'] if 'filename' in message else None
+            assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
 
-        # TODO: digest
-        df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
-        df = df.drop(0)
-        for index, row in df.iterrows():
-            try:
-                _tmp = row.to_dict()
-                doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
-                # manually fix types
-                if 'jd' in doc:
-                    doc['jd'] = float(doc['jd'])
-                if 'pid' in doc:
-                    doc['pid'] = int(doc['pid'])
-                if 'streakid' in doc:
-                    doc['streakid'] = int(doc['streakid'])
-                if 'strid' in doc:
-                    doc['strid'] = int(doc['strid'])
+            # base_name = filename.split('_streaks.txt')[0]
 
-                doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+            obsdate = message['obsdate'] if 'obsdate' in message else None
+            assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
-                # doc['base_name'] = base_name
+            # TODO: digest
+            df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
+            df = df.drop(0)
+            for index, row in df.iterrows():
+                try:
+                    _tmp = row.to_dict()
+                    doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
+                    # manually fix types
+                    if 'jd' in doc:
+                        doc['jd'] = float(doc['jd'])
+                    if 'pid' in doc:
+                        doc['pid'] = int(doc['pid'])
+                    if 'streakid' in doc:
+                        doc['streakid'] = int(doc['streakid'])
+                    if 'strid' in doc:
+                        doc['strid'] = int(doc['strid'])
 
-                # parse ADES:
-                path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
-                # path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}', f'{base_name}_strkcutouts')
-                path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
-                path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
+                    doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
-                tree = ElementTree.parse(path_streak_ades)
-                root = tree.getroot()
-                xmldict = XmlDictConfig(root)
-                # print(xmldict)
-                doc['ades'] = xmldict
+                    # doc['base_name'] = base_name
 
-                # Compute ML scores:
-                x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
-                                                                                      Image.BILINEAR)) / 255.
-                x = np.expand_dims(x, 2)
-                x = np.expand_dims(x, 0)
+                    # parse ADES:
+                    path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
+                    # path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}', f'{base_name}_strkcutouts')
+                    path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
+                    path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
 
-                scores = dict()
-                for model in self.models:
-                    tic = time.time()
-                    score = float(self.models[model].predict(x)[0][0])
-                    scores[model] = score
-                    toc = time.time()
-                    print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
+                    tree = ElementTree.parse(path_streak_ades)
+                    root = tree.getroot()
+                    xmldict = XmlDictConfig(root)
+                    # print(xmldict)
+                    doc['ades'] = xmldict
 
-                # default DL models
-                for dl in self.config['default_models']:
-                    doc[dl] = scores[self.config['default_models'][dl]]
+                    # Compute ML scores:
+                    x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
+                                                                                          Image.BILINEAR)) / 255.
+                    x = np.expand_dims(x, 2)
+                    x = np.expand_dims(x, 0)
 
-                # current working models, for the ease of db access:
-                for model in self.models:
-                    doc[model] = scores[model]
+                    scores = dict()
+                    for model in self.models:
+                        tic = time.time()
+                        score = float(self.models[model].predict(x)[0][0])
+                        scores[model] = score
+                        toc = time.time()
+                        print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
 
-                # book-keeping for the future [if a model is retrained]
-                doc['scores'] = dict()
-                for model in self.models:
-                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
+                    # default DL models
+                    for dl in self.config['default_models']:
+                        doc[dl] = scores[self.config['default_models'][dl]]
 
-                doc['last_modified'] = utc_now()
+                    # current working models, for the ease of db access:
+                    for model in self.models:
+                        doc[model] = scores[model]
 
-                # print(doc)
+                    # book-keeping for the future [if a model is retrained]
+                    doc['scores'] = dict()
+                    for model in self.models:
+                        doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
 
-                self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
-                                                _db_entry=doc)
+                    doc['last_modified'] = utc_now()
 
-                print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
+                    # print(doc)
 
-            except Exception as _e:
-                traceback.print_exc()
-                print(_e)
+                    self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
+                                                    _db_entry=doc)
+
+                    print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
+
+                except Exception as _e:
+                    traceback.print_exc()
+                    print(_e)
+
+
+class WatcherImg(AbstractObserver):
+
+    def update(self, message):
+        datatype = message['datatype'] if 'datatype' in message else None
+        assert datatype is not None, (*time_stamps(), 'Bad message: no datatype.')
+
+        if datatype == 'img':
+
+            filename = message['filename'] if 'filename' in message else None
+            assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
+
+            # base_name = filename.split('_streaks.txt')[0]
+
+            obsdate = message['obsdate'] if 'obsdate' in message else None
+            assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
+
+            # TODO: digest
 
 
 if __name__ == '__main__':
@@ -582,9 +616,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     manager = Manager(_config_file=args.config_file, _obsdate=args.obsdate, _enforce=args.enforce)
-    watcher = Watcher(_config_file=args.config_file)
+    watcher_meta = WatcherMeta(_config_file=args.config_file)
+    watcher_img = WatcherImg(_config_file=args.config_file)
 
-    manager.subscribe(watcher)
+    manager.subscribe(watcher_meta)
+    manager.subscribe(watcher_img)
     manager.run()
 
     # python watcher.py config.json --obsdate 20180927 --enforce

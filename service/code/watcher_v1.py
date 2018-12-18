@@ -156,7 +156,7 @@ class Watcher(object):
         if not os.path.exists(self.path_data):
             os.makedirs(self.path_data)
 
-        # keep track of processed stuff
+        # keep track of processed_meta stuff
         self.processed = dict()
 
         # db:
@@ -417,7 +417,7 @@ class Watcher(object):
                         self.insert_db_entry(_collection=self.config['database']['collection_main'],
                                              _db_entry=doc)
 
-                    # save as processed
+                    # save as processed_meta
                     self.processed[obsdate].add(meta_name)
 
                 else:
