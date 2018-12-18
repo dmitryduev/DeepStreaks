@@ -279,7 +279,7 @@ class Manager(object):
                                              'obsdate': obsdate,
                                              'path_images': unprocessed_image_files})
 
-                    # add now processed files to processed_img set
+                    # add (now) processed files to processed_img set
                     # self.processed_img[obsdate] = self.processed_img[obsdate].union(unprocessed_image_files)
                     self.processed_img[obsdate] |= unprocessed_image_files
 
@@ -368,22 +368,6 @@ class AbstractObserver(ABC):
         for model in self.config['models']:
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
                                                                                    background=True)
-
-        if self.verbose:
-            print(*time_stamps(), 'Done')
-
-        # DL models:
-        self.models = dict()
-        for model in self.config['models']:
-            if self.verbose:
-                print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
-            self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
-                                                         self.config['models'][model]))
-
-        self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
-
-        if self.verbose:
-            print(*time_stamps(), 'OBSERVER: AND NOW MY WATCH BEGINS!')
 
     def init_db(self):
         _client = pymongo.MongoClient(username=self.config['database']['admin'],
@@ -524,12 +508,41 @@ class AbstractObserver(ABC):
             traceback.print_exc()
             print(_e)
 
+    def update_db_entry(self, _collection=None, _filter=None, _db_entry_upd=None,
+                        _upsert=True, _bypass_document_validation=False):
+        """
+            Update/upsert a document matching _filter to collection _collection in DB.
+        :param _collection:
+        :param _filter:
+        :param _db_entry_upd:
+        :param _upsert:
+        :param _bypass_document_validation:
+        :return:
+        """
+        assert _collection is not None, 'Must specify collection'
+        assert _filter is not None, 'Must specify filter'
+        assert _db_entry_upd is not None, 'Must specify update statement'
+        try:
+            self.db['db'][_collection].update_one(_filter, _db_entry_upd,
+                                                  upsert=_upsert,
+                                                  bypass_document_validation=_bypass_document_validation)
+        except Exception as _e:
+            print(*time_stamps(), f'Error: updating/upserting in {_collection}: {_filter}  {_db_entry_upd}')
+            traceback.print_exc()
+            print(_e)
+
     @abstractmethod
     def update(self, message):
         pass
 
 
 class WatcherMeta(AbstractObserver):
+
+    def __init__(self, _config_file='config.json', _verbose=True):
+        super().__init__(_config_file=_config_file, _verbose=_verbose)
+
+        if self.verbose:
+            print(*time_stamps(), 'META OBSERVER: AND NOW MY WATCH BEGINS!')
 
     def update(self, message):
 
@@ -581,33 +594,34 @@ class WatcherMeta(AbstractObserver):
                     # print(xmldict)
                     doc['ades'] = xmldict
 
-                    # Compute ML scores:
-                    x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
-                                                                                          Image.BILINEAR)) / 255.
-                    x = np.expand_dims(x, 2)
-                    x = np.expand_dims(x, 0)
+                    if False:
+                        # Compute ML scores:
+                        x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
+                                                                                              Image.BILINEAR)) / 255.
+                        x = np.expand_dims(x, 2)
+                        x = np.expand_dims(x, 0)
 
-                    scores = dict()
-                    for model in self.models:
-                        tic = time.time()
-                        score = float(self.models[model].predict(x)[0][0])
-                        scores[model] = score
-                        toc = time.time()
-                        if self.verbose:
-                            print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
+                        scores = dict()
+                        for model in self.models:
+                            tic = time.time()
+                            score = float(self.models[model].predict(x)[0][0])
+                            scores[model] = score
+                            toc = time.time()
+                            if self.verbose:
+                                print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
 
-                    # default DL models
-                    for dl in self.config['default_models']:
-                        doc[dl] = scores[self.config['default_models'][dl]]
+                        # default DL models
+                        for dl in self.config['default_models']:
+                            doc[dl] = scores[self.config['default_models'][dl]]
 
-                    # current working models, for the ease of db access:
-                    for model in self.models:
-                        doc[model] = scores[model]
+                        # current working models, for the ease of db access:
+                        for model in self.models:
+                            doc[model] = scores[model]
 
-                    # book-keeping for the future [if a model is retrained]
-                    doc['scores'] = dict()
-                    for model in self.models:
-                        doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
+                        # book-keeping for the future [if a model is retrained]
+                        doc['scores'] = dict()
+                        for model in self.models:
+                            doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
 
                     doc['last_modified'] = utc_now()
 
@@ -616,6 +630,9 @@ class WatcherMeta(AbstractObserver):
                     # todo: replace with upsert
                     # self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
                     #                                 _db_entry=doc)
+                    self.update_db_entry(_collection=self.config['database']['collection_main'],
+                                         _filter={'_id': doc_id}, _db_entry_upd={'$set': doc},
+                                         _upsert=True)
 
                     if self.verbose:
                         print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
@@ -626,6 +643,22 @@ class WatcherMeta(AbstractObserver):
 
 
 class WatcherImg(AbstractObserver):
+
+    def __init__(self, _config_file='config.json', _verbose=True):
+        super().__init__(_config_file=_config_file, _verbose=_verbose)
+
+        # DL models:
+        self.models = dict()
+        for model in self.config['models']:
+            if self.verbose:
+                print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
+            self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
+                                                         self.config['models'][model]))
+
+        self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
+
+        if self.verbose:
+            print(*time_stamps(), 'IMAGE OBSERVER: AND NOW MY WATCH BEGINS!')
 
     @staticmethod
     def load_data_predict(path_images=(), grayscale: bool = True, resize: tuple = (144, 144)):
@@ -670,7 +703,50 @@ class WatcherImg(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # TODO: digest
+            if self.verbose:
+                print(*time_stamps(), 'loading image data')
+                tic = time.time()
+            images, image_ids = self.load_data_predict(path_images=path_images)
+            if self.verbose:
+                toc = time.time()
+                print(*time_stamps(), images.shape)
+                print(*time_stamps(), f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
 
+            batch_size = 32
+
+            scores = dict()
+            for model in self.config['models']:
+                tic = time.time()
+                scores[model] = self.models[model].predict(images, batch_size=batch_size)
+                toc = time.time()
+                if self.verbose:
+                    print(*time_stamps(),
+                          f'{model}: forward prop with batch_size={batch_size} took {toc-tic} seconds.')
+                    print(*time_stamps(), scores[model].shape)
+
+            for ii, image_id in enumerate(image_ids):
+                # build doc to insert/upsert into bd:
+                doc = dict()
+                # doc_models = {model: float(scores[model][ii]) for model in self.config['models']}
+
+                # default DL models
+                for dl in self.config['default_models']:
+                    doc[dl] = float(scores[self.config['default_models'][dl]][ii])
+
+                # current working models, for the ease of db access:
+                for model in self.models:
+                    doc[model] = float(scores[model][ii])
+
+                # book-keeping for the future [if a model is retrained]
+                doc['scores'] = dict()
+                for model in self.models:
+                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model][ii]}
+
+                doc['last_modified'] = utc_now()
+
+                self.update_db_entry(_collection=self.config['database']['collection_main'],
+                                     _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
+                                     _upsert=True)
 
 
 if __name__ == '__main__':
