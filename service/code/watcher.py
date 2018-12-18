@@ -586,8 +586,8 @@ class WatcherMeta(AbstractObserver):
                     path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
                     # path_streak = os.path.join(self.path_data, 'stamps',
                     #                            f'stamps_{obsdate}', f'{base_name}_strkcutouts')
-                    path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
-                    path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
+                    path_streak_ades = os.path.join(path_streak, f'{doc_id}_ades.xml')
+                    # path_streak_stamp = os.path.join(path_streak, f'{doc_id}_scimref.jpg')
 
                     tree = ElementTree.parse(path_streak_ades)
                     root = tree.getroot()
@@ -599,7 +599,6 @@ class WatcherMeta(AbstractObserver):
 
                     # print(doc)
 
-                    # todo: replace with upsert
                     # self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
                     #                                 _db_entry=doc)
                     self.update_db_entry(_collection=self.config['database']['collection_main'],
@@ -607,7 +606,7 @@ class WatcherMeta(AbstractObserver):
                                          _upsert=True)
 
                     if self.verbose:
-                        print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
+                        print(*time_stamps(), f'Successfully processed {doc_id}.')
 
                 except Exception as _e:
                     traceback.print_exc()
@@ -674,7 +673,7 @@ class WatcherImg(AbstractObserver):
             obsdate = message['obsdate'] if 'obsdate' in message else None
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
-            # TODO: digest
+            # digest
             if self.verbose:
                 print(*time_stamps(), 'loading image data')
                 tic = time.time()
@@ -684,7 +683,7 @@ class WatcherImg(AbstractObserver):
                 print(*time_stamps(), images.shape)
                 print(*time_stamps(), f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
 
-            batch_size = 32
+            batch_size = int(self.config['misc']['batch_size'])
 
             scores = dict()
             for model in self.config['models']:
@@ -696,6 +695,9 @@ class WatcherImg(AbstractObserver):
                           f'{model}: forward prop with batch_size={batch_size} took {toc-tic} seconds.')
                     print(*time_stamps(), scores[model].shape)
 
+            if self.verbose:
+                print(*time_stamps(), 'ingesting results into db')
+                tic = time.time()
             for ii, image_id in enumerate(image_ids):
                 # build doc to upsert into bd:
                 doc = dict()
@@ -719,6 +721,9 @@ class WatcherImg(AbstractObserver):
                 self.update_db_entry(_collection=self.config['database']['collection_main'],
                                      _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
                                      _upsert=True)
+            if self.verbose:
+                toc = time.time()
+                print(*time_stamps(), f'done ingesting results into db, operation took {toc-tic} seconds')
 
 
 if __name__ == '__main__':

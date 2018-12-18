@@ -71,6 +71,7 @@
   },
 
   "misc": {
-    "logging_level": "debug"
+    "logging_level": "debug",
+    "batch_size": 32
   }
 }
