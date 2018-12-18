@@ -47,10 +47,10 @@ def load_data_predict(path_images=(), grayscale: bool=True,
 
 if __name__ == '__main__':
 
-    # path_data = '/Users/dmitryduev/_caltech/python/deep-asteroids/data/' + \
-    #             '5b96af9c0354c9000b0aea36/5b9b5de7dc6dc50010f3a0f2.20180914_165216'
+    path_data = '/Users/dmitryduev/_caltech/python/deep-asteroids/data/' + \
+                '5b96af9c0354c9000b0aea36/5b9b5de7dc6dc50010f3a0f2.20180914_165216'
 
-    path_data = '/data/streaks/stamps/stamps_20181215'
+    # path_data = '/data/streaks/stamps/stamps_20181215'
 
     path_streaks = glob.glob(os.path.join(path_data, '*.jpg'))
 
@@ -58,13 +58,13 @@ if __name__ == '__main__':
 
     print('loading image data')
     tic = time.time()
-    images, image_ids = load_data_predict(path_images=tuple(find_files(path_data)))
+    images, image_ids = load_data_predict(path_images=set(find_files(path_data)))
     toc = time.time()
     print(images.shape)
     print(f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
 
-    # path_model = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models/VGG6_rb_78e_20181103_001536.h5'
-    path_model = '/app/models/5b96af9c0354c9000b0aea36_VGG6_20181207_151757.h5'
+    path_model = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models/VGG6_rb_78e_20181103_001536.h5'
+    # path_model = '/app/models/5b96af9c0354c9000b0aea36_VGG6_20181207_151757.h5'
 
     print('loading model')
     # model = tf.keras.models.load_model(path_model)
@@ -93,3 +93,5 @@ if __name__ == '__main__':
     scores = model.predict(images, batch_size=batch_size)
     toc = time.time()
     print(f'running prediction with batch_size={batch_size} took {toc-tic} seconds.')
+
+    print(scores.shape)

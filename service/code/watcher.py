@@ -208,6 +208,15 @@ class Manager(object):
         for subscriber in self.__subscribers:
             subscriber.update(message)
 
+    @staticmethod
+    def find_files(root_dir, extension: str = 'jpg', top_level_only: bool=True):
+        for dir_name, subdir_list, file_list in os.walk(root_dir, followlinks=True):
+            for f_name in file_list:
+                if f_name.endswith(f'.{extension}'):
+                    yield os.path.join(dir_name, f_name)
+            if top_level_only:
+                break
+
     def run(self):
         """
             This could be replaced with a Kafka watcher in the future
@@ -253,6 +262,7 @@ class Manager(object):
 
                     # go img cutouts
                     # todo
+                    image_files = set(self.find_files(os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')))
 
                     # go meta
                     meta_files = glob.glob(os.path.join(self.path_data, 'meta', obsdate, 'ztf_*_streaks.txt'))
@@ -316,8 +326,9 @@ class Manager(object):
 
 class AbstractObserver(ABC):
 
-    def __init__(self, _config_file='config.json'):
+    def __init__(self, _config_file='config.json', _verbose=True):
         self.config = get_config(_config_file)
+        self.verbose = _verbose
 
         # base dir to look for data
         self.path_data = self.config['path']['path_data']
@@ -327,7 +338,8 @@ class AbstractObserver(ABC):
         self.init_db()
         self.connect_to_db()
 
-        print(*time_stamps(), 'Creating/checking indices')
+        if self.verbose:
+            print(*time_stamps(), 'Creating/checking indices')
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
                                                                                background=True)
         for model in self.config['default_models']:
@@ -338,18 +350,21 @@ class AbstractObserver(ABC):
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
                                                                                    background=True)
 
-        print(*time_stamps(), 'Done')
+        if self.verbose:
+            print(*time_stamps(), 'Done')
 
         # DL models:
         self.models = dict()
         for model in self.config['models']:
-            print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
+            if self.verbose:
+                print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
             self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
                                                          self.config['models'][model]))
 
         self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
 
-        print(*time_stamps(), 'OBSERVER: AND NOW MY WATCH BEGINS!')
+        if self.verbose:
+            print(*time_stamps(), 'OBSERVER: AND NOW MY WATCH BEGINS!')
 
     def init_db(self):
         _client = pymongo.MongoClient(username=self.config['database']['admin'],
@@ -429,7 +444,8 @@ class AbstractObserver(ABC):
             self.insert_db_entry(_collection, _db_entry)
         except Exception as _e:
             try:
-                print(*time_stamps(), 'Found entry, updating..')
+                if self.verbose:
+                    print(*time_stamps(), 'Found entry, updating..')
 
                 # merge scores:
                 scores = self.db['db'][_collection].find_one({'_id': _db_entry['_id']},
@@ -511,7 +527,7 @@ class WatcherMeta(AbstractObserver):
             obsdate = message['obsdate'] if 'obsdate' in message else None
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
-            # TODO: digest
+            # digest
             df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
             df = df.drop(0)
             for index, row in df.iterrows():
@@ -528,13 +544,15 @@ class WatcherMeta(AbstractObserver):
                     if 'strid' in doc:
                         doc['strid'] = int(doc['strid'])
 
-                    doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+                    # doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
+                    doc_id = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
                     # doc['base_name'] = base_name
 
                     # parse ADES:
                     path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
-                    # path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}', f'{base_name}_strkcutouts')
+                    # path_streak = os.path.join(self.path_data, 'stamps',
+                    #                            f'stamps_{obsdate}', f'{base_name}_strkcutouts')
                     path_streak_ades = os.path.join(path_streak, f'{doc["_id"]}_ades.xml')
                     path_streak_stamp = os.path.join(path_streak, f'{doc["_id"]}_scimref.jpg')
 
@@ -556,7 +574,8 @@ class WatcherMeta(AbstractObserver):
                         score = float(self.models[model].predict(x)[0][0])
                         scores[model] = score
                         toc = time.time()
-                        print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
+                        if self.verbose:
+                            print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
 
                     # default DL models
                     for dl in self.config['default_models']:
@@ -575,10 +594,12 @@ class WatcherMeta(AbstractObserver):
 
                     # print(doc)
 
-                    self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
-                                                    _db_entry=doc)
+                    # todo: replace with upsert
+                    # self.insert_or_replace_db_entry(_collection=self.config['database']['collection_main'],
+                    #                                 _db_entry=doc)
 
-                    print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
+                    if self.verbose:
+                        print(*time_stamps(), f'Successfully processed {doc["_id"]}.')
 
                 except Exception as _e:
                     traceback.print_exc()
@@ -587,14 +608,42 @@ class WatcherMeta(AbstractObserver):
 
 class WatcherImg(AbstractObserver):
 
+    @staticmethod
+    def load_data_predict(path_images=(), grayscale: bool = True, resize: tuple = (144, 144)):
+
+        num_images = len(path_images)
+        num_channels = 1 if grayscale else 3
+
+        # allocate:
+        data = np.zeros((num_images, *resize, num_channels))
+        img_ids = np.zeros(num_images, dtype=object)
+
+        for ii, path_image in enumerate(path_images):
+            image_basename = os.path.basename(path_image)
+            img_id = image_basename.split('_scimref.jpg')[0]
+            img_ids[ii] = img_id
+
+            if grayscale:
+                img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
+                img = np.expand_dims(img, 2)
+            else:
+                img = ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)
+                rgbimg = Image.new("RGB", img.size)
+                rgbimg.paste(img)
+                img = np.array(rgbimg) / 255.
+
+            data[ii, :] = img
+
+        return data, img_ids
+
     def update(self, message):
         datatype = message['datatype'] if 'datatype' in message else None
         assert datatype is not None, (*time_stamps(), 'Bad message: no datatype.')
 
         if datatype == 'img':
 
-            filename = message['filename'] if 'filename' in message else None
-            assert filename is not None, (*time_stamps(), 'Bad message: no filename.')
+            path_images = message['path_images'] if 'path_images' in message else None
+            assert path_images is not None, (*time_stamps(), 'Bad message: no path_images.')
 
             # base_name = filename.split('_streaks.txt')[0]
 
@@ -602,6 +651,7 @@ class WatcherImg(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # TODO: digest
+
 
 
 if __name__ == '__main__':
