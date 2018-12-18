@@ -105,10 +105,10 @@ RUN set -ex; \
 
 
 # place to keep our app and the data:
-RUN mkdir -p /app
-RUN mkdir -p /app/models
-RUN mkdir -p /app/logs
-RUN mkdir -p /data
+RUN mkdir -p /app && \
+    mkdir -p /app/models && \
+    mkdir -p /app/logs && \
+    mkdir -p /data
 
 ## Add crontab file in the cron directory
 #ADD code/crontab /etc/cron.d/fetch-cron

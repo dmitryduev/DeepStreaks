@@ -5,10 +5,10 @@ RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get 
     apt-get -y install cron && apt-get -y install git
 
 # place to keep our app and the data:
-RUN mkdir -p /app
-RUN mkdir -p /app/models
-RUN mkdir -p /app/logs
-RUN mkdir -p /data
+RUN mkdir -p /app && \
+    mkdir -p /app/models && \
+    mkdir -p /app/logs && \
+    mkdir -p /data
 
 ## Add crontab file in the cron directory
 #ADD code/crontab /etc/cron.d/fetch-cron

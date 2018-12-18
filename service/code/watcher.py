@@ -361,10 +361,11 @@ class AbstractObserver(ABC):
             print(*time_stamps(), 'Creating/checking indices')
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
                                                                                background=True)
+        # index default model scores
         for model in self.config['default_models']:
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
                                                                                    background=True)
-
+        # index working model scores
         for model in self.config['models']:
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
                                                                                    background=True)
@@ -594,35 +595,6 @@ class WatcherMeta(AbstractObserver):
                     # print(xmldict)
                     doc['ades'] = xmldict
 
-                    if False:
-                        # Compute ML scores:
-                        x = np.array(ImageOps.grayscale(Image.open(path_streak_stamp)).resize(self.model_input_shape,
-                                                                                              Image.BILINEAR)) / 255.
-                        x = np.expand_dims(x, 2)
-                        x = np.expand_dims(x, 0)
-
-                        scores = dict()
-                        for model in self.models:
-                            tic = time.time()
-                            score = float(self.models[model].predict(x)[0][0])
-                            scores[model] = score
-                            toc = time.time()
-                            if self.verbose:
-                                print(*time_stamps(), f'Forward prop for {model} took {toc-tic} seconds.')
-
-                        # default DL models
-                        for dl in self.config['default_models']:
-                            doc[dl] = scores[self.config['default_models'][dl]]
-
-                        # current working models, for the ease of db access:
-                        for model in self.models:
-                            doc[model] = scores[model]
-
-                        # book-keeping for the future [if a model is retrained]
-                        doc['scores'] = dict()
-                        for model in self.models:
-                            doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model]}
-
                     doc['last_modified'] = utc_now()
 
                     # print(doc)
@@ -725,7 +697,7 @@ class WatcherImg(AbstractObserver):
                     print(*time_stamps(), scores[model].shape)
 
             for ii, image_id in enumerate(image_ids):
-                # build doc to insert/upsert into bd:
+                # build doc to upsert into bd:
                 doc = dict()
                 # doc_models = {model: float(scores[model][ii]) for model in self.config['models']}
 
@@ -740,7 +712,7 @@ class WatcherImg(AbstractObserver):
                 # book-keeping for the future [if a model is retrained]
                 doc['scores'] = dict()
                 for model in self.models:
-                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: scores[model][ii]}
+                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: float(scores[model][ii])}
 
                 doc['last_modified'] = utc_now()
 
