@@ -263,6 +263,25 @@ class Manager(object):
                     # go img cutouts
                     # todo
                     image_files = set(self.find_files(os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')))
+                    # unprocessed files are the difference between two sets
+                    unprocessed_image_files = image_files - self.processed_img[obsdate]
+
+                    # todo: magic
+                    num_img_files = len(image_files)
+                    print(*time_stamps(), f'Found {num_img_files} image cutout files for {obsdate}')
+
+                    if len(unprocessed_image_files) == 0:
+                        print(*time_stamps(), f'Apparently already looked at all available image files for {obsdate}')
+
+                    else:
+                        # notify subscribed img watcher(s):
+                        self.notify(message={'datatype': 'img',
+                                             'obsdate': obsdate,
+                                             'path_images': unprocessed_image_files})
+
+                    # add now processed files to processed_img set
+                    # self.processed_img[obsdate] = self.processed_img[obsdate].union(unprocessed_image_files)
+                    self.processed_img[obsdate] |= unprocessed_image_files
 
                     # go meta
                     meta_files = glob.glob(os.path.join(self.path_data, 'meta', obsdate, 'ztf_*_streaks.txt'))
