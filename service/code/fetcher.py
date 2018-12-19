@@ -86,7 +86,7 @@ def deg2dms(x):
 
 class qaWatcher:
     def __init__(self, obsdate=None, transfer_to_local=True,
-                 data_dir='/data/ztf/ztf_alerts/',
+                 data_dir='/data/streaks/',
                  batch_size=128):
         """
         Look for new qa files
@@ -97,7 +97,7 @@ class qaWatcher:
 
         ''' set up logging at init '''
         self.logger, self.logger_utc_date = self.set_up_logging(_name='fetcher', _mode='a')
-        print(self.logger, self.logger_utc_date)
+        # print(self.logger, self.logger_utc_date)
 
         self.base_url = 'https://ztfweb.ipac.caltech.edu/ztf/depot/'
         if obsdate is not None:

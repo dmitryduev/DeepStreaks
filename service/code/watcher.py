@@ -13,7 +13,8 @@ from numba import jit
 import numpy as np
 import datetime
 from xml.etree import ElementTree
-from keras.models import load_model
+# from keras.models import load_model
+from keras.models import model_from_json
 from PIL import Image, ImageOps
 from copy import deepcopy
 
@@ -613,8 +614,14 @@ class WatcherMeta(AbstractObserver):
                     print(_e)
 
 
-def load_model_helper(path):
-    return load_model(path)
+def load_model_helper(path, model_base_name):
+    # return load_model(path)
+    with open(os.path.join(path, f'{model_base_name}.architecture.json'), 'r') as json_file:
+        loaded_model_json = json_file.read()
+    m = model_from_json(loaded_model_json)
+    m.load_weights(os.path.join(path, f'{model_base_name}.weights.h5'))
+
+    return m
 
 
 class WatcherImg(AbstractObserver):
@@ -627,8 +634,7 @@ class WatcherImg(AbstractObserver):
         for model in self.config['models']:
             if self.verbose:
                 print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
-            self.models[model] = load_model_helper(os.path.join(self.config['path']['path_models'],
-                                                                self.config['models'][model]))
+            self.models[model] = load_model_helper(self.config['path']['path_models'], self.config['models'][model])
             # self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
             #                                              self.config['models'][model]))
 

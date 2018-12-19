@@ -656,10 +656,16 @@ if __name__ == '__main__':
     print("Loss = " + str(test_loss))
     print("Test Accuracy = " + str(test_accuracy))
 
+    # save the full model [h5] and also separately weights [h5] and architecture [json]:
     model_save_name = f'./{model_name}'
     if True:
         model_save_name_h5 = f'{model_save_name}.h5'
         model.save(model_save_name_h5)
+
+        model.save_weights(f'{model_save_name}.weights.h5')
+        model_json = model.to_json()
+        with open(f'{model_save_name}.architecture.json', 'w') as json_file:
+            json_file.write(model_json)
 
     print(f'Batch size: {batch_size}')
     preds = model.predict(x=X_test, batch_size=batch_size)
