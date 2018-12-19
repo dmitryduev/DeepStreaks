@@ -641,21 +641,34 @@ class WatcherImg(AbstractObserver):
         data = np.zeros((num_images, *resize, num_channels))
         img_ids = np.zeros(num_images, dtype=object)
 
+        failed_ii = []
+
         for ii, path_image in enumerate(path_images):
-            image_basename = os.path.basename(path_image)
-            img_id = image_basename.split('_scimref.jpg')[0]
-            img_ids[ii] = img_id
+            try:
+                image_basename = os.path.basename(path_image)
+                img_id = image_basename.split('_scimref.jpg')[0]
+                img_ids[ii] = img_id
 
-            if grayscale:
-                img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
-                img = np.expand_dims(img, 2)
-            else:
-                img = ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)
-                rgbimg = Image.new("RGB", img.size)
-                rgbimg.paste(img)
-                img = np.array(rgbimg) / 255.
+                if grayscale:
+                    img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
+                    img = np.expand_dims(img, 2)
+                else:
+                    img = ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)
+                    rgbimg = Image.new("RGB", img.size)
+                    rgbimg.paste(img)
+                    img = np.array(rgbimg) / 255.
 
-            data[ii, :] = img
+                data[ii, :] = img
+
+            except Exception as e:
+                print(str(e))
+                failed_ii.append(ii)
+                continue
+
+        # remove rows that raised errors:
+        if len(failed_ii) > 0:
+            data = np.delete(data, failed_ii, axis=0)
+            img_ids = np.delete(img_ids, failed_ii, axis=0)
 
         return data, img_ids
 
@@ -686,9 +699,10 @@ class WatcherImg(AbstractObserver):
             batch_size = int(self.config['misc']['batch_size'])
 
             scores = dict()
+
             for model in self.config['models']:
                 tic = time.time()
-                scores[model] = self.models[model].predict(images, batch_size=batch_size)
+                scores[model] = self.models[model].predict(images, batch_size=batch_size, verbose=self.verbose)
                 toc = time.time()
                 if self.verbose:
                     print(*time_stamps(),
