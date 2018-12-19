@@ -613,6 +613,10 @@ class WatcherMeta(AbstractObserver):
                     print(_e)
 
 
+def load_model_helper(path):
+    return load_model(path)
+
+
 class WatcherImg(AbstractObserver):
 
     def __init__(self, _config_file='config.json', _verbose=True):
@@ -623,8 +627,10 @@ class WatcherImg(AbstractObserver):
         for model in self.config['models']:
             if self.verbose:
                 print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
-            self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
-                                                         self.config['models'][model]))
+            self.models[model] = load_model_helper(os.path.join(self.config['path']['path_models'],
+                                                                self.config['models'][model]))
+            # self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
+            #                                              self.config['models'][model]))
 
         self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
 
