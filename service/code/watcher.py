@@ -262,12 +262,10 @@ class Manager(object):
                           f'Processed meta files for {obsdate} so far: {len(self.processed_meta[obsdate])}')
 
                     # go img cutouts
-                    # todo
                     image_files = set(self.find_files(os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')))
                     # unprocessed files are the difference between two sets
                     unprocessed_image_files = image_files - self.processed_img[obsdate]
 
-                    # todo: magic
                     num_img_files = len(image_files)
                     print(*time_stamps(), f'Found {num_img_files} image cutout files for {obsdate}')
 
