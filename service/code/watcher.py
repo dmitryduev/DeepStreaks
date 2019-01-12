@@ -644,6 +644,8 @@ class WatcherImg(AbstractObserver):
     @staticmethod
     def load_data_predict(path_images=(), grayscale: bool = True, resize: tuple = (144, 144)):
 
+        # todo: parallelize it
+
         num_images = len(path_images)
         num_channels = 1 if grayscale else 3
 

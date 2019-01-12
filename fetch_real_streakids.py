@@ -13,7 +13,8 @@ if __name__ == '__main__':
         secrets = json.load(sjson)
 
     # date_start = datetime.datetime(2018, 5, 31)
-    date_start = datetime.datetime(2018, 11, 1)
+    # date_start = datetime.datetime(2018, 11, 1)
+    date_start = datetime.datetime(2018, 12, 1)
     date_end = datetime.datetime.utcnow()
 
     session = requests.Session()
