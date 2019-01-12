@@ -1,4 +1,4 @@
-# deep-asteroids: detecting Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
+# DeepStreaks: identifying Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
 
 ## Models: architecture, data, training, and performance
 
@@ -78,8 +78,8 @@ The (mis)classifications are based on an `0.5` score cut: completeness can be in
 
 Clone the repo and cd to the `service` directory:
 ```bash
-git clone https://github.com/dmitryduev/deep-asteroids.git
-cd deep-asteroids/service
+git clone https://github.com/dmitryduev/DeepStreaks.git
+cd DeepStreaks/service
 ```
 
 Create `secrets.json` with the admin user/password for the web app:
