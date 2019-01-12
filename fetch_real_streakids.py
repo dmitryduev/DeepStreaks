@@ -18,8 +18,7 @@ if __name__ == '__main__':
     date_end = datetime.datetime.utcnow()
 
     session = requests.Session()
-    session.auth = ('ztfss', '2018cl')
-    # session.auth = (secrets['yupana']['user'], secrets['yupana']['pwd'])
+    session.auth = (secrets['yupana']['user'], secrets['yupana']['pwd'])
 
     reals = dict()
 
