@@ -6,8 +6,8 @@ from PIL import Image, ImageOps
 from sklearn.model_selection import train_test_split
 
 
-def load_data(path: str='./data', project_id: str=None, binary: bool=True, grayscale: bool=True,
-              resize: tuple=(144, 144), test_size=0.1, verbose: bool=True):
+def load_data(path: str = './data', project_id: str = None, binary: bool = True, grayscale: bool = True,
+              resize: tuple = (144, 144), test_size=0.1, verbose: bool = True, random_state=None):
 
     # data:
     x = []
@@ -100,8 +100,11 @@ def load_data(path: str='./data', project_id: str=None, binary: bool=True, grays
             print(f'{cs[1]}:', np.sum(y))
             print('\n')
 
-    # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=42)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
+    if random_state is None:
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
+    else:
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=random_state)
+
     if verbose:
         print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
 

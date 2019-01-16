@@ -32,6 +32,7 @@ Implementing Batch Normalization in Tensorflow:
 If you're just looking for a working implementation, `Tensorflow` has an easy to use `batch_normalization` layer 
 in the `tf.layers` module. Just be sure to wrap your training step in a 
 ```python
+import tensorflow as tf
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
     ... 
 ```

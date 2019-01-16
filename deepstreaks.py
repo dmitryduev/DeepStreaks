@@ -575,7 +575,8 @@ if __name__ == '__main__':
                                                           grayscale=grayscale,
                                                           resize=(144, 144),
                                                           test_size=0.1,
-                                                          verbose=args.verbose)
+                                                          verbose=args.verbose,
+                                                          random_state=42)
 
     # training data weights
     if args.class_weight:
