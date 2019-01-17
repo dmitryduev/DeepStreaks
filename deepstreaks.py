@@ -628,7 +628,7 @@ if __name__ == '__main__':
     model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
     # model.compile(optimizer=sgd, loss=loss, metrics=['accuracy'])
 
-    print(model.summary())
+    # print(model.summary())
 
     model_name = f'{project_id}_{model.name}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
