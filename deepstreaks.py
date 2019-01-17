@@ -538,7 +538,7 @@ if __name__ == '__main__':
                         default=200)
     parser.add_argument('--patience', type=int,
                         help='Early stop training if no val_acc improvement after this many epochs',
-                        default=50)
+                        default=150)
     parser.add_argument('--class_weight', action='store_true',
                         help='Weight training data by class depending on number of examples')
     parser.add_argument('--verbose', action='store_true',
