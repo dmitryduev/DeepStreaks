@@ -36,9 +36,9 @@ ADD models/ /app/models/
 # change working directory to /app
 WORKDIR /app
 
-# run flask server with gunicorn
 #CMD /bin/bash
-CMD /usr/local/bin/supervisord -n -c supervisord.conf
+# run fetcher only
+CMD /usr/local/bin/supervisord -n -c supervisord.fetcher.conf
 
 #CMD cron && crontab /etc/cron.d/fetch-cron && /bin/bash
 #CMD cron && crontab /etc/cron.d/fetch-cron && /usr/local/bin/supervisord -n -c supervisord.conf

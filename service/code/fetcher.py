@@ -104,7 +104,7 @@ class qaWatcher:
         # keep config data:
         self.config = config
 
-        ''' set up logging at init '''
+        # ''' set up logging at init '''
         # self.logger, self.logger_utc_date = self.set_up_logging(_name='fetcher', _mode='a')
         # print(self.logger, self.logger_utc_date)
 
