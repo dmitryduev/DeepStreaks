@@ -231,7 +231,7 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
                         password=secrets['deep_asteroids_mongodb']['pwd'])
 
         ''' training sets for the rb classifiers (real/bogus) '''
-        rb_classifiers = ('rb_vgg6', 'rb_resnet50')
+        rb_classifiers = ('rb_vgg6', 'rb_resnet50', 'rb_densenet121')
 
         # rb > 0.8: n_samples cutouts
         # high score by either of the classifiers in the family
@@ -286,7 +286,7 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
                 bar.update(iterations=1)
 
         ''' training sets for the sl classifier (short/long) '''
-        sl_classifiers = ('sl_vgg6', 'sl_resnet50')
+        sl_classifiers = ('sl_vgg6', 'sl_resnet50', 'sl_densenet121')
 
         # rb > 0.9, sl > 0.8: n_samples cutouts
         high_rb_score = [{rb_classifier: {'$gt': 0.9}} for rb_classifier in rb_classifiers]
@@ -404,6 +404,61 @@ def sample(date_start=datetime.datetime(2018, 5, 31),
             if _v:
                 bar.update(iterations=1)
 
+        ''' training sets for the os classifiers (one-shot real/bogus) '''
+        os_classifiers = ('os_vgg6', 'os_resnet50', 'os_densenet121')
+
+        # os > 0.8: n_samples cutouts
+        # high score by either of the classifiers in the family
+        high_os_score = [{os_classifier: {'$gt': 0.8}} for os_classifier in os_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': high_os_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'os_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '__os_gt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for os___os_gt_0.8', monitor=True)
+        for si, streak in enumerate(streaks):
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
+
+        # os < 0.8: n_samples cutouts
+        # low score by either of the classifiers in the family
+        low_os_score = [{classifier: {'$lt': 0.8}} for classifier in os_classifiers]
+        cursor = db['deep-asteroids'].aggregate([
+            {'$match': {'$and': [{'$or': low_os_score},
+                                 {'jd': {'$gt': jd_start, '$lt': jd_end}}
+                                 ]}},
+            {'$project': {'_id': 1, 'jd': 1}},
+            {'$sample': {'size': n_samples}}
+        ], allowDiskUse=True)
+
+        streaks = list(cursor)
+
+        path = os.path.join(path_out, 'os_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '__os_lt_0.8')
+        os.makedirs(path)
+
+        num_streaks = len(streaks)
+        if _v:
+            bar = pyprind.ProgBar(num_streaks, stream=1,
+                                  title='Fetching streaks for os___os_lt_0.8', monitor=True)
+        for si, streak in enumerate(streaks):
+            # print(f'fetching {streak["_id"]}: {si+1}/{num_streaks}')
+            fetch_cutout(streak['_id'], streak['jd'], path)
+            if _v:
+                bar.update(iterations=1)
+
         return {'status': 'success'}
 
     except Exception as e:
@@ -498,12 +553,13 @@ def main(date_start=datetime.datetime(2018, 5, 31),
     print('Uploading to Zwickyverse')
     project_ids = {'rb': '5b96af9c0354c9000b0aea36',
                    'sl': '5b99b2c6aec3c500103a14de',
-                   'kd': '5be0ae7958830a0018821794'}
+                   'kd': '5be0ae7958830a0018821794',
+                   'os_vgg6': '5c05bbdc826480000a95c0bf'}
     upload_to_zwickyverse(_project_ids=project_ids,
                           _campaign_name=campaign_name, _path_campaign=path_campaign,
                           _upload_reals=True, _upload_samples=True)
 
 
 if __name__ == '__main__':
-
-    main(date_start=datetime.datetime(2018, 11, 1))
+    # main(date_start=datetime.datetime(2018, 11, 1))
+    main(date_start=datetime.datetime(2018, 12, 1))
