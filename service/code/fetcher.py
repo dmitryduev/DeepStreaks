@@ -29,6 +29,15 @@ def utc_now():
     return datetime.datetime.now(pytz.utc)
 
 
+def time_stamps():
+    """
+    :return: local time, UTC time
+    """
+    return datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S'), \
+           datetime.datetime.utcnow().strftime('%Y%m%d_%H:%M:%S')
+
+
+
 @jit
 def deg2hms(x):
     """Transform degrees to *hours:minutes:seconds* strings.
@@ -96,7 +105,7 @@ class qaWatcher:
         self.config = config
 
         ''' set up logging at init '''
-        self.logger, self.logger_utc_date = self.set_up_logging(_name='fetcher', _mode='a')
+        # self.logger, self.logger_utc_date = self.set_up_logging(_name='fetcher', _mode='a')
         # print(self.logger, self.logger_utc_date)
 
         self.base_url = 'https://ztfweb.ipac.caltech.edu/ztf/depot/'
@@ -133,10 +142,11 @@ class qaWatcher:
         #
         # # mongo collection name:
         # self.collection_alerts = 'ZTF_alerts'
-        # self.db = None
+        self.db = None
         # self.connect_to_db()
 
-        self.logger.debug('init successful')
+        # self.logger.debug('init successful')
+        print(*time_stamps(), 'init successful')
 
     def set_up_logging(self, _name='fetcher', _mode='a'):
         """ Set up logging
@@ -213,30 +223,39 @@ class qaWatcher:
         _config = self.config
 
         try:
-            if self.logger is not None:
-                self.logger.debug('Connecting to the database at {:s}:{:d}'.
-                                  format(_config['database']['host'], _config['database']['port']))
+            # if self.logger is not None:
+            #     self.logger.debug('Connecting to the database at {:s}:{:d}'.
+            #                       format(_config['database']['host'], _config['database']['port']))
+            print(*time_stamps(),
+                  'Connecting to the database at {:s}:{:d}'.format(_config['database']['host'],
+                                                                   _config['database']['port']))
             # there's only one instance of DB, it's too big to be replicated
             _client = pymongo.MongoClient(host=_config['database']['host'],
                                           port=_config['database']['port'], connect=False)
             # grab main database:
             _db = _client[_config['database']['db']]
         except Exception as _e:
-            if self.logger is not None:
-                self.logger.error(_e)
-                self.logger.error('Failed to connect to the database at {:s}:{:d}'.
+            # if self.logger is not None:
+            #     self.logger.error(_e)
+            #     self.logger.error('Failed to connect to the database at {:s}:{:d}'.
+            #                       format(_config['database']['host'], _config['database']['port']))
+            print(*time_stamps(), 'Failed to connect to the database at {:s}:{:d}'.
                                   format(_config['database']['host'], _config['database']['port']))
             raise ConnectionRefusedError
         try:
             # authenticate
             _db.authenticate(_config['database']['user'], _config['database']['pwd'])
-            if self.logger is not None:
-                self.logger.debug('Successfully authenticated with the database at {:s}:{:d}'.
+            # if self.logger is not None:
+            #     self.logger.debug('Successfully authenticated with the database at {:s}:{:d}'.
+            #                       format(_config['database']['host'], _config['database']['port']))
+            print(*time_stamps(), 'Successfully authenticated with the database at {:s}:{:d}'.
                                   format(_config['database']['host'], _config['database']['port']))
         except Exception as _e:
-            if self.logger is not None:
-                self.logger.error(_e)
-                self.logger.error('Authentication failed for the database at {:s}:{:d}'.
+            # if self.logger is not None:
+            #     self.logger.error(_e)
+            #     self.logger.error('Authentication failed for the database at {:s}:{:d}'.
+            #                       format(_config['database']['host'], _config['database']['port']))
+            print(*time_stamps(), 'Authentication failed for the database at {:s}:{:d}'.
                                   format(_config['database']['host'], _config['database']['port']))
             raise ConnectionRefusedError
 
@@ -250,19 +269,23 @@ class qaWatcher:
             Disconnect from MongoDB database.
         :return:
         """
-        self.logger.debug('Disconnecting from the database.')
+        # self.logger.debug('Disconnecting from the database.')
+        print(*time_stamps(), 'Disconnecting from the database.')
         if self.db is not None:
             try:
                 self.db['client'].close()
-                self.logger.debug('Successfully disconnected from the database.')
+                # self.logger.debug('Successfully disconnected from the database.')
+                print(*time_stamps(), 'Successfully disconnected from the database.')
             except Exception as e:
-                self.logger.error('Failed to disconnect from the database.')
-                self.logger.error(e)
+                # self.logger.error('Failed to disconnect from the database.')
+                # self.logger.error(e)
+                print(*time_stamps(), 'Failed to disconnect from the database.')
             finally:
                 # reset
                 self.db = None
         else:
-            self.logger.debug('No connection found.')
+            # self.logger.debug('No connection found.')
+            print(*time_stamps(), 'No connection found.')
 
     # @timeout_decorator.timeout(60, use_signals=False)
     def check_db_connection(self):
@@ -270,14 +293,15 @@ class qaWatcher:
             Check if DB connection is alive/established.
         :return: True if connection is OK
         """
-        self.logger.debug('Checking database connection.')
+        # self.logger.debug('Checking database connection.')
+        print(*time_stamps(), 'Checking database connection.')
         if self.db is None:
             try:
                 self.connect_to_db()
             except Exception as e:
-                print('Lost database connection.')
-                self.logger.error('Lost database connection.')
-                self.logger.error(e)
+                # self.logger.error('Lost database connection.')
+                # self.logger.error(e)
+                print(*time_stamps(), 'Lost database connection.', str(e))
                 return False
         else:
             try:
@@ -285,10 +309,10 @@ class qaWatcher:
                 # to be useless here
                 self.db['client'].server_info()
             except pymongo.errors.ServerSelectionTimeoutError as e:
-                print('Lost database connection.')
                 self.db = None
-                self.logger.error('Lost database connection.')
-                self.logger.error(e)
+                # self.logger.error('Lost database connection.')
+                # self.logger.error(e)
+                print(*time_stamps(), 'Lost database connection.', str(e))
                 return False
 
         return True
@@ -374,8 +398,8 @@ class qaWatcher:
 
                     if self.transfer_to_local:
                         # fetch
-                        print(f'Downloading {txt}')
-                        self.logger.debug(f'Downloading {txt}')
+                        print(*time_stamps(), f'Downloading {txt}')
+                        # self.logger.debug(f'Downloading {txt}')
                         alerts_link = os.path.join(url, txt)
 
                         response = requests.get(alerts_link, auth=(secrets['ztf_depo']['user'],
@@ -394,8 +418,8 @@ class qaWatcher:
                                 pass
 
                         # untar
-                        print('Unpacking {:s}'.format(txt))
-                        self.logger.debug(f'Unpacking {txt}')
+                        print(*time_stamps(), 'Unpacking {:s}'.format(txt))
+                        # self.logger.debug(f'Unpacking {txt}')
                         try:
                             with tarfile.open(os.path.join(self.stamps_dir, txt)) as tar:
                                 tar.extractall(path=self.stamps_dir)
@@ -424,8 +448,8 @@ class qaWatcher:
 
                     if self.transfer_to_local:
                         # fetch
-                        print(f'Downloading {txt}')
-                        self.logger.debug(f'Downloading {txt}')
+                        print(*time_stamps(), f'Downloading {txt}')
+                        # self.logger.debug(f'Downloading {txt}')
                         alerts_link = os.path.join(url, txt)
                         response = requests.get(alerts_link, auth=(secrets['ztf_depo']['user'],
                                                                    secrets['ztf_depo']['pwd']))
@@ -444,15 +468,15 @@ class qaWatcher:
 
         except Exception as e:
             traceback.print_exc()
-            print(e)
-            self.logger.error(str(e))
+            print(*time_stamps(), str(e))
+            # self.logger.error(str(e))
 
     def clean_up(self):
         try:
             # stuff left in the last batch?
             if len(self.documents) > 0:
-                print(f'inserting batch')
-                self.logger.info(f'inserting batch')
+                print(*time_stamps(), f'inserting batch')
+                # self.logger.info(f'inserting batch')
                 self.insert_multiple_db_entries(_collection=self.collection_alerts, _db_entries=self.documents)
                 self.documents = []
 
@@ -467,8 +491,8 @@ class qaWatcher:
 
         except Exception as e:
             traceback.print_exc()
-            print(e)
-            self.logger.error(str(e))
+            print(*time_stamps(), str(e))
+            # self.logger.error(str(e))
 
         finally:
             try:

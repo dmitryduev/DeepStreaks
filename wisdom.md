@@ -53,3 +53,10 @@ Unzip datasets
 ```bash
 for f in *.zip; do unzip -d ${f%.zip} $f; done;
 ```
+
+---
+
+Train all
+```bash
+for p in 5b96af9c0354c9000b0aea36 5b99b2c6aec3c500103a14de 5be0ae7958830a0018821794 5c05bbdc826480000a95c0bf; do for m in VGG6 ResNet50 DenseNet121; do echo $p $m; python deepstreaks.py --project_id $p --model $m --class_weight --verbose; done; done
+```
