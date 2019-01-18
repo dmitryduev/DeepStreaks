@@ -14,7 +14,8 @@ if __name__ == '__main__':
     with open('/Users/dmitryduev/_caltech/python/deep-asteroids/service/code/config.json') as f:
         config = json.load(f)
 
-    models = config['models']
+    # models = config['models']
+    models = config['models_201901']
     model_names = list(models.keys())
 
     path_models = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models'
@@ -75,7 +76,7 @@ if __name__ == '__main__':
         ax2.legend(loc='best')
         ax2.grid(True)
 
-        # plt.show()
+        plt.show()
         fig.savefig(f'/Users/dmitryduev/_caltech/python/deep-asteroids/paper/{c_family}_acc.png', dpi=300)
 
     ''' Real zoo '''

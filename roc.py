@@ -77,6 +77,7 @@ if __name__ == '__main__':
 
     # ROC
     fig = plt.figure()
+    fig.subplots_adjust(bottom=0.09, left=0.05, right=0.76, top=0.98, wspace=0.2, hspace=0.2)
     lw = 1.6
     # ROCs
     ax = fig.add_subplot(1, 2, 1)
@@ -102,6 +103,7 @@ if __name__ == '__main__':
 
     # Confusion matrices
     fig2 = plt.figure()
+    fig2.subplots_adjust(bottom=0.06, left=0.01, right=1.0, top=0.93, wspace=0.0, hspace=0.12)
 
     cn = 0
 
@@ -202,5 +204,8 @@ if __name__ == '__main__':
 
     ax.legend(loc='lower right')
     ax2.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+
+    fig.savefig(f'./roc_rb_sl_kd.png', dpi=300)
+    fig2.savefig(f'./cm_rb_sl_kd.png', dpi=300)
 
     plt.show()
