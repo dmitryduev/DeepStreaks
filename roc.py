@@ -1,6 +1,6 @@
 import tensorflow as tf
 from keras.models import model_from_json
-import matplotlib.pyplot as plt
+
 import json
 import os
 from sklearn.metrics import roc_curve, auc, confusion_matrix
@@ -11,6 +11,9 @@ import itertools
 
 from utils import load_data
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 
 def load_model_helper(path, model_base_name):
     # return load_model(path)
