@@ -1,7 +1,7 @@
-# force keras/tf to use CPU
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# force keras/tf to use CPU:
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import tensorflow as tf
 from keras.models import model_from_json
@@ -153,10 +153,10 @@ if __name__ == '__main__':
                 x_ = np.interp(thr, thresholds[::-1], fpr)
                 y_ = np.interp(thr, thresholds[::-1], tpr)
                 # print(thr, x_, y_)
-                if cfi == 0:
-                    ax.plot(x_, y_, '.', markersize=0, color=colors[-(it + 1)], label=f'Threshold: {1-thr:.2f}')
+                if cfi == 0 and ii == 0:
+                    ax.plot(x_, y_, '.', markersize=8, color=colors[-(it + 1)], label=f'Threshold: {1-thr:.2f}')
                 else:
-                    ax.plot(x_, y_, '.', markersize=0, color=colors[-(it + 1)])
+                    ax.plot(x_, y_, '.', markersize=8, color=colors[-(it + 1)])
 
                 ax2.plot(x_, y_, 'o', markersize=8, color=colors[-(it + 1)])
 
@@ -185,13 +185,14 @@ if __name__ == '__main__':
             ax2_.axis('off')
 
             thresh = confusion_matr.max() / 2.
+            thresh_norm = confusion_matr_normalized.max() / 2.
             for i, j in itertools.product(range(confusion_matr.shape[0]), range(confusion_matr.shape[1])):
                 ax_.text(j, i, format(confusion_matr[i, j], 'd'),
                          horizontalalignment="center",
                          color="white" if confusion_matr[i, j] > thresh else "black")
                 ax2_.text(j, i, format(confusion_matr_normalized[i, j], '.2f'),
                           horizontalalignment="center",
-                          color="white" if confusion_matr_normalized[i, j] > thresh else "black")
+                          color="white" if confusion_matr_normalized[i, j] > thresh_norm else "black")
 
             # if ii == 0:
             #     break
