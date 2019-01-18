@@ -58,7 +58,10 @@ if __name__ == '__main__':
     #               'sl': '5b99b2c6aec3c500103a14de',
     #               'kd': '5be0ae7958830a0018821794',
     #               'os': '5c05bbdc826480000a95c0bf'}
-    c_families = {'rb': '5b96af9c0354c9000b0aea36'}
+    c_families = {'rb': '5b96af9c0354c9000b0aea36',
+                  'sl': '5b99b2c6aec3c500103a14de',
+                  'kd': '5be0ae7958830a0018821794'}
+    # c_families = {'rb': '5b96af9c0354c9000b0aea36'}
 
     path_data = './data'
 
