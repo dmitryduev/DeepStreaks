@@ -616,7 +616,8 @@ if __name__ == '__main__':
 
     # set up optimizer:
     if args.optimizer == 'adam':
-        optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        # optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        optimizer = Adam(lr=0.0005, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
         # optimizer = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     elif args.optimizer == 'sgd':
         optimizer = SGD(lr=0.01, momentum=0.9, decay=1e-6, nesterov=True)
