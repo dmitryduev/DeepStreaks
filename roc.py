@@ -5,7 +5,9 @@ import json
 import os
 from sklearn.metrics import roc_curve, auc, confusion_matrix
 import numpy as np
+import pandas as pd
 from copy import deepcopy
+import itertools
 
 from utils import load_data
 
@@ -31,14 +33,15 @@ def thres(v, thr: float = 0.5):
 
 if __name__ == '__main__':
 
-    # tf.keras.backend.clear_session()
+    tf.keras.backend.clear_session()
 
     path_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/'
 
     with open(os.path.join(path_base, 'service/code/config.json')) as f:
         config = json.load(f)
 
-    models = config['models']
+    # models = config['models']
+    models = config['models_201901']
     model_names = list(models.keys())
 
     path_models = os.path.join(path_base, 'service/models')
@@ -51,7 +54,47 @@ if __name__ == '__main__':
 
     path_data = './data'
 
-    for c_family in c_families:
+    # mpl colors:
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    # [u'#1f77b4', u'#ff7f0e', u'#2ca02c', u'#d62728', u'#9467bd',
+    #  u'#8c564b', u'#e377c2', u'#7f7f7f', u'#bcbd22', u'#17becf']
+    # line styles:
+    line_styles = ['-', '--', ':']
+
+    # thresholds
+    score_thresholds = [0.99, 0.9, 0.5, 0.1, 0.01]
+
+    # ROC
+    fig = plt.figure()
+    lw = 1.6
+    # ROCs
+    ax = fig.add_subplot(1, 2, 1)
+    # zoomed ROCs
+    ax2 = fig.add_subplot(1, 2, 2)
+
+    ax.plot([0, 1], [0, 1], color='#333333', lw=lw, linestyle='--')
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    # ax.legend(loc="lower right")
+    # ax.legend(loc="best")
+    ax.grid(True)
+
+    ax2.set_xlim([0.0, .2])
+    ax2.set_ylim([0.8, 1.0])
+    ax2.set_xlabel('False Positive Rate')
+    ax2.set_ylabel('True Positive Rate')
+    # ax.legend(loc="lower right")
+    # ax2.legend(loc="best")
+    ax2.grid(True)
+
+    # Confusion matrices
+    fig2 = plt.figure()
+
+    cn = 0
+
+    for cfi, c_family in enumerate(c_families):
 
         project_id = c_families[c_family]
 
@@ -71,48 +114,75 @@ if __name__ == '__main__':
         n_mn = len(mn)
 
         for ii, model_name in enumerate(mn):
-            tf.keras.backend.clear_session()
 
             print(f'loading model {model_name}: {models[model_name]}')
             m = load_model_helper(path_models, models[model_name])
 
             y = m.predict(x_test, batch_size=32, verbose=True)
 
-            labels_pred = thres(y, thr=0.5)
-            confusion_matr = confusion_matrix(y_test, labels_pred)
-            confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+            # for thr in (0.5, 0.9):
+            for thr in (0.5,):
+                labels_pred = thres(y, thr=thr)
+                confusion_matr = confusion_matrix(y_test, labels_pred)
+                confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
 
-            print('Threshold: 0.5')
-            print('Confusion matrix:')
-            print(confusion_matr)
+                print(f'Threshold: {thr}')
+                print('Confusion matrix:')
+                print(confusion_matr)
 
-            print('Normalized confusion matrix:')
-            print(confusion_matr_normalized)
-
-            labels_pred = thres(y, thr=0.9)
-            confusion_matr = confusion_matrix(y_test, labels_pred)
-            confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
-
-            print('Threshold: 0.9')
-            print('Confusion matrix:')
-            print(confusion_matr)
-
-            print('Normalized confusion matrix:')
-            print(confusion_matr_normalized)
+                print('Normalized confusion matrix:')
+                print(confusion_matr_normalized)
 
             fpr, tpr, thresholds = roc_curve(y_test, y)
             roc_auc = auc(fpr, tpr)
 
-            fig = plt.figure()
-            lw = 1.6
-            ax = fig.add_subplot(121)
-            ax.plot(fpr, tpr, lw=lw, label=f'{model_name} curve (area = {roc_auc:.5f})')
-            ax.plot([0, 1], [0, 1], color='#333333', lw=lw, linestyle='--')
-            ax.set_xlim([0.0, 1.0])
-            ax.set_ylim([0.0, 1.05])
-            ax.set_xlabel('False Positive Rate')
-            ax.set_ylabel('True Positive Rate')
-            ax.legend(loc="lower right")
-            ax.grid(True)
+            ax.plot(fpr, tpr, line_styles[ii], color=colors[cfi], lw=lw)
+            ax2.plot(fpr, tpr, line_styles[ii], color=colors[cfi], lw=lw,
+                     label=f'{model_name} curve (area = {roc_auc:.5f})')
 
-            plt.show()
+            # plot thresholds
+            for it, thr in enumerate(score_thresholds):
+                x_ = np.interp(thr, thresholds[::-1], fpr)
+                y_ = np.interp(thr, thresholds[::-1], tpr)
+                # print(thr, x_, y_)
+                ax.plot(x_, y_, '.',
+                        markersize=0, color=colors[-(it + 1)], label=f'Threshold: {1-thr:.2f}')
+                ax2.plot(x_, y_, 'o',
+                         markersize=8, color=colors[-(it + 1)])
+
+            # plot confusion matrices
+            # ax_ = fig2.add_subplot(3, 8, ii * 8 + cfi * 2 + 1)
+            # ax2_ = fig2.add_subplot(3, 8, ii * 8 + cfi * 2 + 2)
+
+            ax_ = fig2.add_subplot(3, 6, ii * 6 + cfi * 2 + 1)
+            ax2_ = fig2.add_subplot(3, 6, ii * 6 + cfi * 2 + 2)
+
+            ax_.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
+
+            tick_marks = np.arange(2)
+            ax_.xticks(tick_marks, tick_marks)
+            ax_.yticks(tick_marks, tick_marks)
+            ax2_.xticks(tick_marks, tick_marks)
+            ax2_.yticks(tick_marks, tick_marks)
+
+            ax_.xaxis.set_visible(False)
+            ax_.yaxis.set_visible(False)
+            ax2_.xaxis.set_visible(False)
+            ax2_.yaxis.set_visible(False)
+
+            thresh = confusion_matr.max() / 2.
+            for i, j in itertools.product(range(confusion_matr.shape[0]), range(confusion_matr.shape[1])):
+                ax_.text(j, i, format(confusion_matr[i, j], 'd'),
+                         horizontalalignment="center",
+                         color="white" if confusion_matr[i, j] > thresh else "black")
+                ax2_.text(j, i, format(confusion_matr[i, j], '.2f'),
+                          horizontalalignment="center",
+                          color="white" if confusion_matr[i, j] > thresh else "black")
+
+            if ii == 0:
+                break
+
+    ax.legend(loc='lower right')
+    ax2.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+
+    plt.show()
