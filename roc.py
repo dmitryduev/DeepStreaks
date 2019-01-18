@@ -35,7 +35,8 @@ if __name__ == '__main__':
 
     tf.keras.backend.clear_session()
 
-    path_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/'
+    # path_base = '/Users/dmitryduev/_caltech/python/deep-asteroids/'
+    path_base = './'
 
     with open(os.path.join(path_base, 'service/code/config.json')) as f:
         config = json.load(f)
