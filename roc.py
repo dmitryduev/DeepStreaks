@@ -1,3 +1,4 @@
+# force keras/tf to use CPU
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
@@ -6,7 +7,6 @@ import tensorflow as tf
 from keras.models import model_from_json
 
 import json
-import os
 from sklearn.metrics import roc_curve, auc, confusion_matrix
 import numpy as np
 import pandas as pd
@@ -193,8 +193,8 @@ if __name__ == '__main__':
                           horizontalalignment="center",
                           color="white" if confusion_matr_normalized[i, j] > thresh else "black")
 
-            # if ii == 0:
-            #     break
+            if ii == 0:
+                break
 
     ax.legend(loc='lower right')
     ax2.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
