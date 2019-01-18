@@ -15,8 +15,8 @@ import itertools
 
 from utils import load_data
 
-import matplotlib
-matplotlib.use('agg')
+# import matplotlib
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 def load_model_helper(path, model_base_name):
