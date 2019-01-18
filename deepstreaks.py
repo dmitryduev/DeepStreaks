@@ -642,7 +642,7 @@ if __name__ == '__main__':
     epochs = args.epochs
     model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, shuffle=True,
               class_weight=class_weight,
-              validation_split=0.05,
+              validation_split=0.2,
               verbose=1, callbacks=[tensorboard, early_stopping])
 
     # print('Evaluating on training set to check for BatchNorm behavior:')
