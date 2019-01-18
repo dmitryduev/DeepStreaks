@@ -145,10 +145,12 @@ if __name__ == '__main__':
                 x_ = np.interp(thr, thresholds[::-1], fpr)
                 y_ = np.interp(thr, thresholds[::-1], tpr)
                 # print(thr, x_, y_)
-                ax.plot(x_, y_, '.',
-                        markersize=0, color=colors[-(it + 1)], label=f'Threshold: {1-thr:.2f}')
-                ax2.plot(x_, y_, 'o',
-                         markersize=8, color=colors[-(it + 1)])
+                if cfi == 0:
+                    ax.plot(x_, y_, '.', markersize=0, color=colors[-(it + 1)], label=f'Threshold: {1-thr:.2f}')
+                else:
+                    ax.plot(x_, y_, '.', markersize=0, color=colors[-(it + 1)])
+
+                ax2.plot(x_, y_, 'o', markersize=8, color=colors[-(it + 1)])
 
             # plot confusion matrices
             # ax_ = fig2.add_subplot(3, 8, ii * 8 + cfi * 2 + 1)
@@ -158,29 +160,33 @@ if __name__ == '__main__':
             ax2_ = fig2.add_subplot(3, 6, ii * 6 + cfi * 2 + 2)
 
             ax_.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
+            ax2_.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
 
             tick_marks = np.arange(2)
-            ax_.xticks(tick_marks, tick_marks)
-            ax_.yticks(tick_marks, tick_marks)
-            ax2_.xticks(tick_marks, tick_marks)
-            ax2_.yticks(tick_marks, tick_marks)
+            # ax_.set_xticks(tick_marks, tick_marks)
+            # ax_.set_yticks(tick_marks, tick_marks)
+            # ax2_.set_xticks(tick_marks, tick_marks)
+            # ax2_.set_yticks(tick_marks, tick_marks)
+            #
+            # ax_.xaxis.set_visible(False)
+            # ax_.yaxis.set_visible(False)
+            # ax2_.xaxis.set_visible(False)
+            # ax2_.yaxis.set_visible(False)
 
-            ax_.xaxis.set_visible(False)
-            ax_.yaxis.set_visible(False)
-            ax2_.xaxis.set_visible(False)
-            ax2_.yaxis.set_visible(False)
+            ax_.axis('off')
+            ax2_.axis('off')
 
             thresh = confusion_matr.max() / 2.
             for i, j in itertools.product(range(confusion_matr.shape[0]), range(confusion_matr.shape[1])):
                 ax_.text(j, i, format(confusion_matr[i, j], 'd'),
                          horizontalalignment="center",
                          color="white" if confusion_matr[i, j] > thresh else "black")
-                ax2_.text(j, i, format(confusion_matr[i, j], '.2f'),
+                ax2_.text(j, i, format(confusion_matr_normalized[i, j], '.2f'),
                           horizontalalignment="center",
-                          color="white" if confusion_matr[i, j] > thresh else "black")
+                          color="white" if confusion_matr_normalized[i, j] > thresh else "black")
 
-            if ii == 0:
-                break
+            # if ii == 0:
+            #     break
 
     ax.legend(loc='lower right')
     ax2.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
