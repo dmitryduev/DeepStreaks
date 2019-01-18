@@ -193,8 +193,8 @@ if __name__ == '__main__':
                           horizontalalignment="center",
                           color="white" if confusion_matr_normalized[i, j] > thresh else "black")
 
-            if ii == 0:
-                break
+            # if ii == 0:
+            #     break
 
     ax.legend(loc='lower right')
     ax2.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
