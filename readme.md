@@ -4,7 +4,7 @@ DeepStreaks is a deep learning framework developed to efficiently identify strea
 the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), a wide-field time-domain survey using a dedicated 47 sq. deg. camera 
 attached to the Samuel Oschin Telescope at the Palomar Observatory in California, United States. 
 The performance is great: well above 95% accuracy when compared to the performance of human scanners, 
-reaching ~200% in some cases. The system is deployed and is adapted for usage within the ZTF Solar system framework.
+occasionally reaching ~200%. The system is deployed and is adapted for usage within the ZTF Solar system framework.
 
 From December 15, 2018 - January 15, 2018, over 10 NEAs were discovered with the help of DeepStreaks.
 
