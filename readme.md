@@ -14,15 +14,15 @@ For details, please see Duev et al., MNRAS, 2019 (in prep.).
 
 ### Network architecture
 
-We are using three "families' of binary classifiers. Individual classifiers from each such family are trained 
+We are using three "families' of binary CNN-based classifiers. Individual classifiers from each such family are trained 
 to answer one of the following questions, respectively:
 
-- "rb": bogus or real streak? All streak-like objects are marked as real, including actual streaks from 
+- "rb": bogus (rb=0) or real (rb=1) streak? All streak-like objects are marked as real, including actual streaks from 
 fast moving objects, long streaks from satellites, and cosmic rays.
 
-- "sl": long or short streak? 
+- "sl": long (sl=0) or short (sl=1) streak? 
 
-- "kd": ditch ot keep? Is this a real streak, or a cosmic ray/other artifact?
+- "kd": ditch (kd=0) ot keep (kd=1)? Is this a real streak, or a cosmic ray/some other artifact?
 
 <img src="doc/DeepStreaks.png" width="50%">
 
@@ -35,7 +35,7 @@ The models are implemented using `Keras` with a `TensorFlow` backend (GPU-enable
 
 The data were prepared using [Zwickyverse](https://github.com/dmitryduev/zwickyverse).
 
-todo: update to 2019.1
+todo: update stats to 2019.1
 
 #### bogus vs real (2018.9)
 
