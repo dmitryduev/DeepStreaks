@@ -24,9 +24,35 @@ if __name__ == '__main__':
 
     ''' training/validation accuracies '''
 
+    # mpl colors:
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    # [u'#1f77b4', u'#ff7f0e', u'#2ca02c', u'#d62728', u'#9467bd',
+    #  u'#8c564b', u'#e377c2', u'#7f7f7f', u'#bcbd22', u'#17becf']
+    # line styles:
+    line_styles = ['-', '--', ':']
+
     c_families = ('rb', 'sl', 'kd', 'os')
 
-    for c_family in c_families:
+    fig_all = plt.figure(figsize=(14, 5))
+    fig_all.tight_layout()
+    fig_all.subplots_adjust(top=0.966, bottom=0.117, left=0.063, right=0.828, hspace=0.2, wspace=0.198)
+    ax1_all = fig_all.add_subplot(121)
+    ax2_all = fig_all.add_subplot(122)
+
+    ax1_all.set_ylim([0.89, 1.01])
+    ax1_all.set_xlabel('Epoch')
+    ax1_all.set_ylabel('Training Accuracy')
+    # ax1_all.legend(loc='best')
+    ax1_all.grid(True)
+
+    # ax2_all.set_ylim([0.63, 1.02])
+    ax2_all.set_ylim([0.89, 1.01])
+    ax2_all.set_xlabel('Epoch')
+    ax2_all.set_ylabel('Validation Accuracy')
+    # ax2_all.legend(loc='best')
+    ax2_all.grid(True)
+
+    for cfi, c_family in enumerate(c_families):
 
         print(c_family)
         mn = [m_ for m_ in model_names if c_family in m_]
@@ -40,7 +66,7 @@ if __name__ == '__main__':
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
 
-        for model_name in mn:
+        for ii, model_name in enumerate(mn):
 
             # model_base_name = os.path.join(path_models, models[model_name])
             #
@@ -58,9 +84,20 @@ if __name__ == '__main__':
             acc[model_name] = pd.read_json(path_acc)
             val_acc[model_name] = pd.read_json(path_val_acc)
 
+            # print(val_acc[model_name])
+            # make the plots less crowded:
+            mask = val_acc[model_name][2] > 0.89
+
             # print(acc[model_name])
             ax1.plot(acc[model_name][2], '-', linewidth=1.8, markersize=3.0, label=model_name)
             ax2.plot(val_acc[model_name][2], '-', linewidth=1.8, markersize=3.0, label=model_name)
+
+            # global plot:
+
+            ax1_all.plot(acc[model_name][2][mask], line_styles[ii], color=colors[cfi],
+                         lw=1.6, markersize=3.0)
+            ax2_all.plot(val_acc[model_name][2][mask], line_styles[ii], color=colors[cfi],
+                         linewidth=1.6, markersize=3.0, label=model_name)
 
         # ax1.set_ylim([0.63, 1.02])
         ax1.set_ylim([0.89, 1.02])
@@ -76,8 +113,13 @@ if __name__ == '__main__':
         ax2.legend(loc='best')
         ax2.grid(True)
 
-        plt.show()
+        # plt.show()
         fig.savefig(f'/Users/dmitryduev/_caltech/python/deep-asteroids/paper/{c_family}_acc.png', dpi=300)
+
+    ax2_all.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+    fig_all.savefig(f'/Users/dmitryduev/_caltech/python/deep-asteroids/paper/all_acc.png', dpi=300)
+
+    plt.show()
 
     ''' Real zoo '''
     path_reals = '/Users/dmitryduev/_caltech/python/deep-asteroids/paper/reals_201812_201901'

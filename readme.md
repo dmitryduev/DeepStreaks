@@ -1,23 +1,41 @@
 # DeepStreaks: identifying Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
 
+DeepStreaks is a deep learning framework developed to efficiently identify streaking near-Earth objects in the data of 
+the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), a wide-field time-domain survey using a dedicated 47 sq. deg. camera 
+attached to the Samuel Oschin Telescope at the Palomar Observatory in California, United States. 
+The performance is great: well above 95% accuracy when compared to the performance of human scanners, 
+reaching ~200% in some cases. The system is deployed and is adapted for usage within the ZTF Solar system framework.
+
+From December 15, 2018 - January 15, 2018, over 10 NEAs were discovered with the help of DeepStreaks.
+
+For details, please see Duev et al., MNRAS, 2019 (in prep.).
+
 ## Models: architecture, data, training, and performance
 
 ### Network architecture
 
-We are using two deep residual networks (`ResNet50`):
+We are using three "families' of binary classifiers. Individual classifiers from each such family are trained 
+to answer one of the following questions, respectively:
 
-![](doc/resnet.png) 
+- "rb": bogus or real streak? All streak-like objects are marked as real, including actual streaks from 
+fast moving objects, long streaks from satellites, and cosmic rays.
+
+- "sl": long or short streak? 
+
+- "kd": ditch ot keep? Is this a real streak, or a cosmic ray/other artifact?
+
+![](doc/DeepStreaks.png) 
 
 Input image dimensions - `144x144x1` (gray scale).
-
-The first resnet outputs a real/bogus (`rb`) score (streak -- no streak); the second - short/long streak (`sl`) score.
 
 The models are implemented using `Keras` with a `TensorFlow` backend (GPU-enabled). 
 
 
 ### Data sets
 
-The data were prepared on `Zwickyverse` (`https://private.caltech.edu`).
+The data were prepared using [Zwickyverse](https://github.com/dmitryduev/zwickyverse).
+
+todo: update to 2019.1
 
 #### bogus vs real (2018.9)
 
@@ -32,41 +50,27 @@ The data were prepared on `Zwickyverse` (`https://private.caltech.edu`).
 - 905 synthetic short streaks from QZ (generated May 25, 2018)
 - 669 real short streaks from ZTF data from May 1 to Aug 31, 2018
 
+...
+
 
 ### Training and performance
 
-The models were trained on `rico`'s Nvidia Tesla P100 GPU (12G) 
-for 20 epochs with a mini-batch size of 32 (see `resnet50.py`), which takes 20 minutes for the `rb` model.
+The models were trained on-premise at Caltech on a Nvidia Tesla P100 GPU (12G) 
+for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the details).
 
-*rb: (0 is bogus, 1 is real) \[ResNet50_rb_20e_20181024_154924\]*
 
-Confusion matrix:
-```
-[[481   3]
- [ 19 982]]
-```
+![](doc/all_acc.png)
 
-Normalized confusion matrix:
-```
-[[0.99380165 0.00619835]
- [0.01898102 0.98101898]]
-```
+![](doc/roc_rb_sl_kd.png)
 
-*sl: (0 is long, 1 is short) \[ResNet50_sl_20e_20181024_163759\]*
+![](doc/cm_rb_sl_kd_annotated.png)
 
-Confusion matrix:
-```
-[[ 87   4]
- [  6 151]]
-```
+![](doc/venn3_rb_sl_kd_adapted.png)
 
-Normalized confusion matrix:
-```
-[[0.95604396 0.04395604]
- [0.03821656 0.96178344]]
-```
 
-The (mis)classifications are based on an `0.5` score cut: completeness can be increased by lowering the threshold.
+#### Example of real Near-Earth Objects identified by DeepStreaks
+
+![](doc/reals_zoo.png)
 
 ---
 
