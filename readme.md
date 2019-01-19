@@ -75,7 +75,7 @@ for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the detail
 <img src="doc/venn3_rb_sl_kd_adapted.png" width="50%">
 
 
-#### Example of real Near-Earth Objects identified by DeepStreaks
+#### Examples of real Near-Earth Objects identified by DeepStreaks
 
 ![](doc/reals_zoo.png)
 
