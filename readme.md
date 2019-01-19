@@ -24,7 +24,7 @@ fast moving objects, long streaks from satellites, and cosmic rays.
 
 - "kd": ditch ot keep? Is this a real streak, or a cosmic ray/other artifact?
 
-<img src="doc/DeepStreaks.png" width="50%"> 
+<center><img src="doc/DeepStreaks.png" width="50%"></center> 
 
 Input image dimensions - `144x144x1` (gray scale).
 
