@@ -24,6 +24,9 @@ fast moving objects, long streaks from satellites, and cosmic rays.
 
 - "kd": ditch (kd=0) ot keep (kd=1)? Is this a real streak, or a cosmic ray/some other artifact?
 
+For a streak to be declared a plausible candidate, for each family, the scores from at least one family member must
+be above the corresponding threshold (threshold_rb=0.9, threshold_sl=0.5, threshold_kd=0.5)
+
 <img src="doc/DeepStreaks.png" width="50%">
 
 Input image dimensions - `144x144x1` (gray scale).
