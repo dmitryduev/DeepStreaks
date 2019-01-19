@@ -154,4 +154,4 @@ docker run -it --rm --name deep-asteroids -p 8001:4000 -v /Users/dmitryduev/_cal
 
 ```
 
-The service will be available on port 8000 of the `Docker` host machine.
+The service will be available on port 8001 of the `Docker` host machine.
