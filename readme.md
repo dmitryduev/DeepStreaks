@@ -24,7 +24,7 @@ fast moving objects, long streaks from satellites, and cosmic rays.
 
 - "kd": ditch ot keep? Is this a real streak, or a cosmic ray/other artifact?
 
-<center><img src="doc/DeepStreaks.png" width="50%"></center> 
+<img src="doc/DeepStreaks.png" width="50%">
 
 Input image dimensions - `144x144x1` (gray scale).
 
@@ -58,14 +58,21 @@ todo: update to 2019.1
 The models were trained on-premise at Caltech on a Nvidia Tesla P100 GPU (12G) 
 for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the details).
 
+#### Training and validation accuracies
 
 ![](doc/all_acc.png)
 
+#### ROC curves
+
 ![](doc/roc_rb_sl_kd.png)
+
+#### Confusion matrices
 
 ![](doc/cm_rb_sl_kd_annotated.png)
 
-![](doc/venn3_rb_sl_kd_adapted.png)
+#### A Venn diagram of the number of streaks that pass DeepStreaks' sub-filters.
+
+<img src="doc/venn3_rb_sl_kd_adapted.png" width="50%">
 
 
 #### Example of real Near-Earth Objects identified by DeepStreaks
