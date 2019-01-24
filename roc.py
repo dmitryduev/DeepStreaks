@@ -19,6 +19,7 @@ from utils import load_data
 # matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
+
 def load_model_helper(path, model_base_name):
     # return load_model(path)
     with open(os.path.join(path, f'{model_base_name}.architecture.json'), 'r') as json_file:
@@ -87,16 +88,16 @@ if __name__ == '__main__':
     ax.plot([0, 1], [0, 1], color='#333333', lw=lw, linestyle='--')
     ax.set_xlim([0.0, 1.0])
     ax.set_ylim([0.0, 1.05])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
+    ax.set_xlabel('False Positive Rate (Contamination)')
+    ax.set_ylabel('True Positive Rate (Sensitivity)')
     # ax.legend(loc="lower right")
     # ax.legend(loc="best")
     ax.grid(True)
 
     ax2.set_xlim([0.0, .2])
     ax2.set_ylim([0.8, 1.0])
-    ax2.set_xlabel('False Positive Rate')
-    ax2.set_ylabel('True Positive Rate')
+    ax2.set_xlabel('False Positive Rate (Contamination)')
+    ax2.set_ylabel('True Positive Rate (Sensitivity)')
     # ax.legend(loc="lower right")
     # ax2.legend(loc="best")
     ax2.grid(True)
