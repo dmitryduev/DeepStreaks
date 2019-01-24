@@ -69,9 +69,6 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
 
     ''' Load test data for os classifiers that has not been used in training for other classifiers '''
 
-    superset = set.union(*[files[c] for c in files])
-    print(len(superset))
-
     # data:
     x = []
     # classifications:
@@ -122,7 +119,7 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
                 # resize and normalize:
                 image_path = os.path.join(path_dataset, k)
 
-                if os.path.exists(image_path):
+                if os.path.exists(image_path) and k in files['os']:
 
                     if grayscale:
                         # the assumption is that images are grayscale
@@ -163,20 +160,12 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
             print(f'{cs[1]}:', np.sum(y))
             print('\n')
 
-    if random_state is None:
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    else:
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=random_state)
-
-    if verbose:
-        print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-
-    return x_train, y_train, x_test, y_test, classes
+    return x, y
 
 
 if __name__ == '__main__':
 
-    load_data(project_ids={'os': '5c05bbdc826480000a95c0bf',
-                           'rb': '5b96af9c0354c9000b0aea36',
-                           'sl': '5b99b2c6aec3c500103a14de',
-                           'kd': '5be0ae7958830a0018821794'})
+    x, y = load_data(project_ids={'os': '5c05bbdc826480000a95c0bf',
+                                  'rb': '5b96af9c0354c9000b0aea36',
+                                  'sl': '5b99b2c6aec3c500103a14de',
+                                  'kd': '5be0ae7958830a0018821794'})
