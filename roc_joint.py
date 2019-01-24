@@ -69,6 +69,9 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
 
     ''' Load test data for os classifiers that has not been used in training for other classifiers '''
 
+    superset = set.intersection(*[files[c] for c in files])
+    print(len(superset))
+
     # data:
     x = []
     # classifications:
