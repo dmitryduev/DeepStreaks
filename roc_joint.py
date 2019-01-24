@@ -60,9 +60,12 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
         x = np.array(x)
         y = np.array(y)
 
-        _, x_test, _, _ = train_test_split(x, y, test_size=test_size, random_state=random_state)
+        x_train, x_test, _, _ = train_test_split(x, y, test_size=test_size, random_state=random_state)
 
-        files[classifier] = set(x_test)
+        if classifier == 'os':
+            files[classifier] = set(x_test)
+        else:
+            files[classifier] = set(x_train)
 
     for classifier in files:
         print(classifier, len(files[classifier]))
@@ -119,7 +122,8 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
                 # resize and normalize:
                 image_path = os.path.join(path_dataset, k)
 
-                if os.path.exists(image_path) and k in files['os']:
+                if os.path.exists(image_path) and (k in files['os']) and \
+                        (k not in files['rb']) and (k not in files['sl']) and (k not in files['kd']):
 
                     if grayscale:
                         # the assumption is that images are grayscale
