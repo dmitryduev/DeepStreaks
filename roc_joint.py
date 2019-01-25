@@ -1,9 +1,29 @@
-import json
 import os
+# force keras/tf to use CPU:
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
+import tensorflow as tf
+from keras.models import model_from_json
+
+import json
 import glob
 import numpy as np
 from PIL import Image, ImageOps
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_curve, auc, confusion_matrix
+
+import matplotlib.pyplot as plt
+
+
+def load_model_helper(path, model_base_name):
+    # return load_model(path)
+    with open(os.path.join(path, f'{model_base_name}.architecture.json'), 'r') as json_file:
+        loaded_model_json = json_file.read()
+    m = model_from_json(loaded_model_json)
+    m.load_weights(os.path.join(path, f'{model_base_name}.weights.h5'))
+
+    return m
 
 
 def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc826480000a95c0bf'},
@@ -199,7 +219,103 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
 
 if __name__ == '__main__':
 
+    tf.keras.backend.clear_session()
+
+    # load test data that has never been seen by either classifier at training stage
+
     x_, y_ = load_data(project_ids={'os': '5c05bbdc826480000a95c0bf',
                                     'rb': '5b96af9c0354c9000b0aea36',
                                     'sl': '5b99b2c6aec3c500103a14de',
                                     'kd': '5be0ae7958830a0018821794'})
+
+    path_base = './'
+
+    with open(os.path.join(path_base, 'service/code/config.json')) as f:
+        config = json.load(f)
+
+    # models = config['models']
+    models = config['models_201901']
+    model_names = list(models.keys())
+
+    path_models = os.path.join(path_base, 'service/models')
+
+    c_families = {'rb': '5b96af9c0354c9000b0aea36',
+                  'sl': '5b99b2c6aec3c500103a14de',
+                  'kd': '5be0ae7958830a0018821794',
+                  'os': '5c05bbdc826480000a95c0bf'}
+
+    # # mpl colors:
+    # colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    # # [u'#1f77b4', u'#ff7f0e', u'#2ca02c', u'#d62728', u'#9467bd',
+    # #  u'#8c564b', u'#e377c2', u'#7f7f7f', u'#bcbd22', u'#17becf']
+    # # line styles:
+    # line_styles = ['-', '--', ':']
+    #
+    # # thresholds
+    # score_thresholds = [0.99, 0.9, 0.5, 0.1, 0.01]
+    #
+    # # ROC
+    # fig = plt.figure()
+    # fig.subplots_adjust(bottom=0.09, left=0.05, right=0.76, top=0.98, wspace=0.2, hspace=0.2)
+    # lw = 1.6
+    # # ROCs
+    # ax = fig.add_subplot(1, 2, 1)
+    # # zoomed ROCs
+    # ax2 = fig.add_subplot(1, 2, 2)
+    #
+    # ax.plot([0, 1], [0, 1], color='#333333', lw=lw, linestyle='--')
+    # ax.set_xlim([0.0, 1.0])
+    # ax.set_ylim([0.0, 1.05])
+    # ax.set_xlabel('False Positive Rate (Contamination)')
+    # ax.set_ylabel('True Positive Rate (Sensitivity)')
+    # # ax.legend(loc="lower right")
+    # # ax.legend(loc="best")
+    # ax.grid(True)
+    #
+    # ax2.set_xlim([0.0, .2])
+    # ax2.set_ylim([0.8, 1.0])
+    # ax2.set_xlabel('False Positive Rate (Contamination)')
+    # ax2.set_ylabel('True Positive Rate (Sensitivity)')
+    # # ax.legend(loc="lower right")
+    # # ax2.legend(loc="best")
+    # ax2.grid(True)
+
+    predictions = dict()
+
+    for cfi, c_family in enumerate(c_families):
+
+        project_id = c_families[c_family]
+
+        print(c_family, project_id)
+
+        mn = [m_ for m_ in model_names if c_family in m_]
+        n_mn = len(mn)
+
+        predictions[c_family] = dict()
+
+        for ii, model_name in enumerate(mn):
+
+            print(f'loading model {model_name}: {models[model_name]}')
+            m = load_model_helper(path_models, models[model_name])
+
+            y_pred = m.predict(x_, batch_size=32, verbose=True)
+
+            predictions[c_family][model_name] = y_pred
+
+    y_deep_streaks_rb_sl_kd = None
+    y_deep_streaks_os = None
+
+    for fam in ('rb', 'sl', 'kd'):
+        yy = None
+        for model_name in predictions[fam]:
+            yy = np.logical_or(yy, predictions[fam][model_name]) if yy is not None else predictions[fam][model_name]
+
+        y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
+            else yy
+
+    for model_name in predictions['os']:
+        y_deep_streaks_os = np.logical_or(y_deep_streaks_os, predictions['os'][model_name]) \
+            if y_deep_streaks_os is not None else predictions['os'][model_name]
+
+    print(y_deep_streaks_rb_sl_kd)
+    print(y_deep_streaks_os)
