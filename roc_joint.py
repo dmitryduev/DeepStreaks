@@ -305,17 +305,38 @@ if __name__ == '__main__':
     y_deep_streaks_rb_sl_kd = None
     y_deep_streaks_os = None
 
+    thresholds = {'rb': 0.9, 'sl': 0.5, 'kd': 0.5}
+
     for fam in ('rb', 'sl', 'kd'):
         yy = None
         for model_name in predictions[fam]:
-            yy = np.logical_or(yy, predictions[fam][model_name]) if yy is not None else predictions[fam][model_name]
+            yyy = predictions[fam][model_name] > thresholds[fam]
+            yy = np.logical_or(yy, yyy) if yy is not None else yyy
 
         y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
             else yy
 
     for model_name in predictions['os']:
-        y_deep_streaks_os = np.logical_or(y_deep_streaks_os, predictions['os'][model_name]) \
-            if y_deep_streaks_os is not None else predictions['os'][model_name]
+        yyy = predictions['os'][model_name] > thresholds['os']
+        y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
 
-    print(y_deep_streaks_rb_sl_kd)
-    print(y_deep_streaks_os)
+    # print(y_deep_streaks_rb_sl_kd)
+    # print(y_deep_streaks_os)
+
+    confusion_matr = confusion_matrix(y_, y_deep_streaks_rb_sl_kd)
+    confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+    print('Confusion matrix for y_deep_streaks_rb_sl_kd:')
+    print(confusion_matr)
+
+    print('Normalized confusion matrix for y_deep_streaks_rb_sl_kd:')
+    print(confusion_matr_normalized)
+
+    confusion_matr = confusion_matrix(y_, y_deep_streaks_os)
+    confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+    print('Confusion matrix for y_deep_streaks_os:')
+    print(confusion_matr)
+
+    print('Normalized confusion matrix for y_deep_streaks_os:')
+    print(confusion_matr_normalized)
