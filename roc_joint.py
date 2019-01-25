@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
         predictions[c_family] = dict()
 
-        for ii, model_name in enumerate(mn):
+        for ii, model_name in enumerate(mn[:1]):
 
             print(f'loading model {model_name}: {models[model_name]}')
             m = load_model_helper(path_models, models[model_name])
@@ -316,7 +316,7 @@ if __name__ == '__main__':
         y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
             else yy
 
-    for model_name in list(predictions['os'].keys())[:2]:
+    for model_name in list(predictions['os'].keys())[:1]:
         yyy = predictions['os'][model_name] > thresholds['os']
         y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
 
