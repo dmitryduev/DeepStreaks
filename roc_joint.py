@@ -355,4 +355,5 @@ if __name__ == '__main__':
     print('Normalized confusion matrix for y_deep_streaks_os:')
     print(confusion_matr_normalized)
 
-
+    fig2.savefig(f'./cm_rb_sl_kd__vs__os.png', dpi=300)
+    plt.show()

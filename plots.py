@@ -143,8 +143,12 @@ if __name__ == '__main__':
     #           set_labels=('rb > 0.9', 'sl > 0.5', 'kd > 0.5'))
     # c = venn3_circles(subsets=(356304, 5819505, 219660, 149863, 39010, 126308, 19210),
     #                   linestyle='dashed', linewidth=1, color="grey")
-    v = venn3_unweighted(subsets=(356304, 5819505, 219660, 149863, 39010, 126308, 19210),
-                         set_labels=('rb > 0.9', 'sl > 0.5', 'kd > 0.5'))
+
+    # v = venn3_unweighted(subsets=(356304, 5819505, 219660, 149863, 39010, 126308, 19210),
+    #                      set_labels=('rb > 0.9', 'sl > 0.5', 'kd > 0.5'))
+    # total: 7M:
+    v = venn3_unweighted(subsets=(568887, 6436797, 402735, 181209, 57513, 153273, 33623),
+                         set_labels=('rb > 0.5', 'sl > 0.5', 'kd > 0.5'))
     c = venn3_circles(subsets=(1, 1, 1, 1, 1, 1, 1), linestyle='dashed', linewidth=1, color="grey")
 
     fig3.savefig('/Users/dmitryduev/_caltech/python/deep-asteroids/paper/venn3_rb_sl_kd.png', dpi=300)
