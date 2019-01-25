@@ -1,3 +1,4 @@
+import itertools
 import os
 # force keras/tf to use CPU:
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -335,6 +336,19 @@ if __name__ == '__main__':
     ax.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
     ax2.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
 
+    ax.axis('off')
+    ax2.axis('off')
+
+    thresh = confusion_matr.max() / 2.
+    thresh_norm = confusion_matr_normalized.max() / 2.
+    for i, j in itertools.product(range(confusion_matr.shape[0]), range(confusion_matr.shape[1])):
+        ax.text(j, i, format(confusion_matr[i, j], 'd'),
+                horizontalalignment="center",
+                color="white" if confusion_matr[i, j] > thresh else "black")
+        ax2.text(j, i, format(confusion_matr_normalized[i, j], '.2f'),
+                 horizontalalignment="center",
+                 color="white" if confusion_matr_normalized[i, j] > thresh_norm else "black")
+
     print('Confusion matrix for y_deep_streaks_rb_sl_kd:')
     print(confusion_matr)
 
@@ -348,6 +362,19 @@ if __name__ == '__main__':
     ax4 = fig2.add_subplot(2, 2, 4)
     ax3.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
     ax4.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
+
+    ax3.axis('off')
+    ax4.axis('off')
+
+    thresh = confusion_matr.max() / 2.
+    thresh_norm = confusion_matr_normalized.max() / 2.
+    for i, j in itertools.product(range(confusion_matr.shape[0]), range(confusion_matr.shape[1])):
+        ax3.text(j, i, format(confusion_matr[i, j], 'd'),
+                 horizontalalignment="center",
+                 color="white" if confusion_matr[i, j] > thresh else "black")
+        ax4.text(j, i, format(confusion_matr_normalized[i, j], '.2f'),
+                 horizontalalignment="center",
+                 color="white" if confusion_matr_normalized[i, j] > thresh_norm else "black")
 
     print('Confusion matrix for y_deep_streaks_os:')
     print(confusion_matr)
