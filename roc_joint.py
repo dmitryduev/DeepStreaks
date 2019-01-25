@@ -323,8 +323,17 @@ if __name__ == '__main__':
     # print(y_deep_streaks_rb_sl_kd)
     # print(y_deep_streaks_os)
 
+    # Plot confusion matrices
+    fig2 = plt.figure()
+    fig2.subplots_adjust(bottom=0.06, left=0.01, right=1.0, top=0.93, wspace=0.0, hspace=0.12)
+
     confusion_matr = confusion_matrix(y_, y_deep_streaks_rb_sl_kd)
     confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+    ax = fig2.add_subplot(2, 2, 1)
+    ax2 = fig2.add_subplot(2, 2, 2)
+    ax.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
+    ax2.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
 
     print('Confusion matrix for y_deep_streaks_rb_sl_kd:')
     print(confusion_matr)
@@ -335,8 +344,15 @@ if __name__ == '__main__':
     confusion_matr = confusion_matrix(y_, y_deep_streaks_os)
     confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
 
+    ax3 = fig2.add_subplot(2, 2, 1)
+    ax4 = fig2.add_subplot(2, 2, 2)
+    ax3.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
+    ax4.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
+
     print('Confusion matrix for y_deep_streaks_os:')
     print(confusion_matr)
 
     print('Normalized confusion matrix for y_deep_streaks_os:')
     print(confusion_matr_normalized)
+
+
