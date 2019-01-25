@@ -344,8 +344,8 @@ if __name__ == '__main__':
     confusion_matr = confusion_matrix(y_, y_deep_streaks_os)
     confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
 
-    ax3 = fig2.add_subplot(2, 2, 1)
-    ax4 = fig2.add_subplot(2, 2, 2)
+    ax3 = fig2.add_subplot(2, 2, 3)
+    ax4 = fig2.add_subplot(2, 2, 4)
     ax3.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
     ax4.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
 
