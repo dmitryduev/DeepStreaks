@@ -150,22 +150,27 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
 
         if os.path.exists(image_path):
 
-            if grayscale:
-                # the assumption is that images are grayscale
-                img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
-                img = np.expand_dims(img, 2)
+            try:
 
-            else:
-                # make it rgb:
-                img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
-                rgbimg = Image.new("RGB", img.size)
-                rgbimg.paste(img)
-                img = np.array(rgbimg) / 255.
+                if grayscale:
+                    # the assumption is that images are grayscale
+                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                    img = np.expand_dims(img, 2)
 
-            x.append(img)
+                else:
+                    # make it rgb:
+                    img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
+                    rgbimg = Image.new("RGB", img.size)
+                    rgbimg.paste(img)
+                    img = np.array(rgbimg) / 255.
 
-            image_class = 1
-            y.append(image_class)
+                x.append(img)
+
+                image_class = 1
+                y.append(image_class)
+
+            except:
+                continue
 
     # numpify
 
