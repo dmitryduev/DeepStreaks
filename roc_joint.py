@@ -142,7 +142,32 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
                     image_class = classes[v[0]]
                     y.append(image_class)
 
-    # numpy-fy and split to test/train
+    # load reals not used in training:
+    path_reals = './data-raw/reals_20181201_20190124'
+    reals = glob.glob(os.path.join(path_reals, '*.jpg'))
+
+    for image_path in reals:
+
+        if os.path.exists(image_path):
+
+            if grayscale:
+                # the assumption is that images are grayscale
+                img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                img = np.expand_dims(img, 2)
+
+            else:
+                # make it rgb:
+                img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
+                rgbimg = Image.new("RGB", img.size)
+                rgbimg.paste(img)
+                img = np.array(rgbimg) / 255.
+
+            x.append(img)
+
+            image_class = 1
+            y.append(image_class)
+
+    # numpify
 
     x = np.array(x)
     y = np.array(y)
@@ -169,7 +194,7 @@ def load_data(path: str = './data', project_ids: dict = {'os': '5c05bbdc82648000
 
 if __name__ == '__main__':
 
-    x, y = load_data(project_ids={'os': '5c05bbdc826480000a95c0bf',
-                                  'rb': '5b96af9c0354c9000b0aea36',
-                                  'sl': '5b99b2c6aec3c500103a14de',
-                                  'kd': '5be0ae7958830a0018821794'})
+    x_, y_ = load_data(project_ids={'os': '5c05bbdc826480000a95c0bf',
+                                    'rb': '5b96af9c0354c9000b0aea36',
+                                    'sl': '5b99b2c6aec3c500103a14de',
+                                    'kd': '5be0ae7958830a0018821794'})

@@ -12,10 +12,12 @@ if __name__ == '__main__':
     with open('./secrets.json') as sjson:
         secrets = json.load(sjson)
 
+    # date_start = datetime.datetime(2018, 1, 31)
     # date_start = datetime.datetime(2018, 5, 31)
     # date_start = datetime.datetime(2018, 11, 1)
-    # date_start = datetime.datetime(2018, 12, 1)
-    date_start = datetime.datetime(2018, 12, 15)
+    date_start = datetime.datetime(2018, 12, 1)
+    # date_start = datetime.datetime(2018, 12, 15)
+    # date_end = datetime.datetime(2018, 4, 30)
     date_end = datetime.datetime.utcnow()
 
     session = requests.Session()
@@ -29,6 +31,7 @@ if __name__ == '__main__':
         date = (date_start + datetime.timedelta(days=dd)).strftime('%Y%m%d')
 
         try:
+            # url = 'http://private.caltech.edu:8088/zstreak/shepherd.cgi'
             url = 'http://yupana.caltech.edu/cgi-bin/ptf/ssm/zsrs/shepherd.cgi'
             result = session.get(url, params={'date': date})
             if result.status_code == 200:
