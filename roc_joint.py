@@ -233,8 +233,8 @@ if __name__ == '__main__':
     with open(os.path.join(path_base, 'service/code/config.json')) as f:
         config = json.load(f)
 
-    # models = config['models']
-    models = config['models_201901']
+    models = config['models']
+    # models = config['models_201901']
     model_names = list(models.keys())
 
     path_models = os.path.join(path_base, 'service/models')
