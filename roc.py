@@ -55,13 +55,13 @@ if __name__ == '__main__':
 
     path_models = os.path.join(path_base, 'service/models')
 
-    # c_families = {'rb': '5b96af9c0354c9000b0aea36',
-    #               'sl': '5b99b2c6aec3c500103a14de',
-    #               'kd': '5be0ae7958830a0018821794',
-    #               'os': '5c05bbdc826480000a95c0bf'}
     c_families = {'rb': '5b96af9c0354c9000b0aea36',
                   'sl': '5b99b2c6aec3c500103a14de',
-                  'kd': '5be0ae7958830a0018821794'}
+                  'kd': '5be0ae7958830a0018821794',
+                  'os': '5c05bbdc826480000a95c0bf'}
+    # c_families = {'rb': '5b96af9c0354c9000b0aea36',
+    #               'sl': '5b99b2c6aec3c500103a14de',
+    #               'kd': '5be0ae7958830a0018821794'}
     # c_families = {'rb': '5b96af9c0354c9000b0aea36'}
 
     path_data = './data'
@@ -167,11 +167,8 @@ if __name__ == '__main__':
                 ax2.plot(x_, y_, 'o', markersize=8, color=colors[-(it + 1)])
 
             # plot confusion matrices
-            # ax_ = fig2.add_subplot(3, 8, ii * 8 + cfi * 2 + 1)
-            # ax2_ = fig2.add_subplot(3, 8, ii * 8 + cfi * 2 + 2)
-
-            ax_ = fig2.add_subplot(3, 6, ii * 6 + cfi * 2 + 1)
-            ax2_ = fig2.add_subplot(3, 6, ii * 6 + cfi * 2 + 2)
+            ax_ = fig2.add_subplot(3, 2 * len(c_families), ii * 8 + cfi * 2 + 1)
+            ax2_ = fig2.add_subplot(3, 2 * len(c_families), ii * 8 + cfi * 2 + 2)
 
             ax_.imshow(confusion_matr, interpolation='nearest', cmap=plt.cm.Blues)
             ax2_.imshow(confusion_matr_normalized, interpolation='nearest', cmap=plt.cm.Blues)
