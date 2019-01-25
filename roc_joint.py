@@ -305,7 +305,7 @@ if __name__ == '__main__':
     y_deep_streaks_rb_sl_kd = None
     y_deep_streaks_os = None
 
-    thresholds = {'rb': 0.9, 'sl': 0.5, 'kd': 0.5, 'os': 0.9}
+    thresholds = {'rb': 0.5, 'sl': 0.5, 'kd': 0.5, 'os': 0.5}
 
     for fam in ('rb', 'sl', 'kd'):
         yy = None
