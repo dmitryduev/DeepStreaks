@@ -309,14 +309,14 @@ if __name__ == '__main__':
 
     for fam in ('rb', 'sl', 'kd'):
         yy = None
-        for model_name in predictions[fam]:
+        for model_name in list(predictions[fam])[:1]:
             yyy = predictions[fam][model_name] > thresholds[fam]
             yy = np.logical_or(yy, yyy) if yy is not None else yyy
 
         y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
             else yy
 
-    for model_name in predictions['os']:
+    for model_name in list(predictions['os'])[:2]:
         yyy = predictions['os'][model_name] > thresholds['os']
         y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
 
