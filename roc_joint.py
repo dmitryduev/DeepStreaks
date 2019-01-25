@@ -313,7 +313,7 @@ if __name__ == '__main__':
             yyy = predictions[fam][model_name] > thresholds[fam]
             yy = np.logical_or(yy, yyy) if yy is not None else yyy
 
-        y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
+        y_deep_streaks_rb_sl_kd = np.logical_or(y_deep_streaks_rb_sl_kd, yy) if y_deep_streaks_rb_sl_kd is not None \
             else yy
 
     for model_name in predictions['os']:
