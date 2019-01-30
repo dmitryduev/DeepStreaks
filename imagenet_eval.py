@@ -8,7 +8,7 @@ import json
 from PIL import Image, ImageOps
 
 import tensorflow as tf
-from tensorflow.keras.models import model_from_json
+from keras.models import model_from_json
 from sklearn.metrics import confusion_matrix
 
 
