@@ -14,7 +14,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.fetch:
-        path_imagenet = '/Users/dmitryduev/_caltech/python/deep-asteroids/paper/imagenet'
+        path_imagenet = './paper/imagenet'
 
         category_urls = glob.glob(os.path.join(path_imagenet, '*.txt'))
 
