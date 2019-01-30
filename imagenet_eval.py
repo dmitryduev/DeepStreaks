@@ -49,22 +49,28 @@ def load_imagenet_data(path: str = './paper/imagenet', resize: tuple = (144, 144
 
             if os.path.exists(image_path):
 
-                if grayscale:
-                    # the assumption is that images are grayscale
-                    img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
-                    img = np.expand_dims(img, 2)
+                try:
 
-                else:
-                    # make it rgb:
-                    img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
-                    rgbimg = Image.new("RGB", img.size)
-                    rgbimg.paste(img)
-                    img = np.array(rgbimg) / 255.
+                    if grayscale:
+                        # the assumption is that images are grayscale
+                        img = np.array(ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)) / 255.
+                        img = np.expand_dims(img, 2)
 
-                data[cat]['x'].append(img)
+                    else:
+                        # make it rgb:
+                        img = ImageOps.grayscale(Image.open(image_path)).resize(resize, Image.BILINEAR)
+                        rgbimg = Image.new("RGB", img.size)
+                        rgbimg.paste(img)
+                        img = np.array(rgbimg) / 255.
+
+                    data[cat]['x'].append(img)
+
+                except Exception as e:
+                    print(str(e))
+                    continue
 
         data[cat]['x'] = np.array(data[cat]['x'])
-        data[cat]['y'] = np.zeros_like(data[cat]['x'])
+        # data[cat]['y'] = np.zeros_like(data[cat]['x'])
 
     return data
 
@@ -135,7 +141,6 @@ if __name__ == '__main__':
 
             for cat in data:
                 x_test = data[cat]['x']
-                y_test = data[cat]['y']
 
                 y = m.predict(x_test, batch_size=32, verbose=True)
 
@@ -143,7 +148,7 @@ if __name__ == '__main__':
                 # for thr in (0.5,):
                 thr = 0.5
                 labels_pred = thres(y, thr=thr)
-                confusion_matr = confusion_matrix(y_test, labels_pred)
+                confusion_matr = confusion_matrix(np.zeros_like(labels_pred), labels_pred)
                 confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
 
                 print(f'Threshold: {thr}')
