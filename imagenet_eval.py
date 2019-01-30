@@ -131,29 +131,90 @@ if __name__ == '__main__':
         # models = config['models_201901']
         model_names = list(models.keys())
 
+        c_families = {'rb': '5b96af9c0354c9000b0aea36',
+                      'sl': '5b99b2c6aec3c500103a14de',
+                      'kd': '5be0ae7958830a0018821794',
+                      'os': '5c05bbdc826480000a95c0bf'}
+
         # load data
         data = load_imagenet_data()
 
-        for ii, model_name in enumerate(model_names):
+        predictions = dict()
 
-            print(f'loading model {model_name}: {models[model_name]}')
-            m = load_model_helper(path_models, models[model_name])
+        for cfi, c_family in enumerate(c_families):
 
-            for cat in data:
-                x_test = data[cat]['x']
+            project_id = c_families[c_family]
 
-                y = m.predict(x_test, batch_size=32, verbose=True)
+            print(c_family, project_id)
 
-                # for thr in (0.5, 0.9):
-                # for thr in (0.5,):
-                thr = 0.5
-                labels_pred = thres(y, thr=thr)
-                confusion_matr = confusion_matrix(np.zeros_like(labels_pred), labels_pred)
-                confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+            mn = [m_ for m_ in model_names if c_family in m_]
+            n_mn = len(mn)
 
-                print(f'Threshold: {thr}')
-                print('Confusion matrix:')
-                print(confusion_matr)
+            predictions[c_family] = dict()
 
-                print('Normalized confusion matrix:')
-                print(confusion_matr_normalized)
+            for ii, model_name in enumerate(mn):
+                print(f'loading model {model_name}: {models[model_name]}')
+                m = load_model_helper(path_models, models[model_name])
+
+                predictions[c_family][model_name] = dict()
+
+                for cat in data:
+                    x_test = data[cat]['x']
+
+                    y = m.predict(x_test, batch_size=32, verbose=True)
+
+                    # for thr in (0.5, 0.9):
+                    # for thr in (0.5,):
+                    thr = 0.5
+                    labels_pred = thres(y, thr=thr)
+                    confusion_matr = confusion_matrix(np.zeros_like(labels_pred), labels_pred)
+                    confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:,
+                                                                                 np.newaxis]
+
+                    print(f'Threshold: {thr}')
+                    print('Confusion matrix:')
+                    print(confusion_matr)
+
+                    print('Normalized confusion matrix:')
+                    print(confusion_matr_normalized)
+
+                    predictions[c_family][model_name][cat] = y
+
+        y_deep_streaks_rb_sl_kd = None
+        y_deep_streaks_os = None
+
+        thresholds = {'rb': 0.5, 'sl': 0.5, 'kd': 0.5, 'os': 0.5}
+
+        for cat in data:
+
+            for fam in ('rb', 'sl', 'kd'):
+                yy = None
+                for model_name in predictions[fam]:
+                    yyy = predictions[fam][model_name][cat] > thresholds[fam]
+                    yy = np.logical_or(yy, yyy) if yy is not None else yyy
+
+                y_deep_streaks_rb_sl_kd = np.logical_and(y_deep_streaks_rb_sl_kd, yy) \
+                    if y_deep_streaks_rb_sl_kd is not None \
+                    else yy
+
+            for model_name in predictions['os']:
+                yyy = predictions['os'][model_name][cat] > thresholds['os']
+                y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
+
+            confusion_matr = confusion_matrix(np.zeros_like(y_deep_streaks_rb_sl_kd), y_deep_streaks_rb_sl_kd)
+            confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+            print('Confusion matrix for y_deep_streaks_rb_sl_kd:')
+            print(confusion_matr)
+
+            print('Normalized confusion matrix for y_deep_streaks_rb_sl_kd:')
+            print(confusion_matr_normalized)
+
+            confusion_matr = confusion_matrix(np.zeros_like(y_deep_streaks_os), y_deep_streaks_os)
+            confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+            print('Confusion matrix for y_deep_streaks_os:')
+            print(confusion_matr)
+
+            print('Normalized confusion matrix for y_deep_streaks_os:')
+            print(confusion_matr_normalized)
