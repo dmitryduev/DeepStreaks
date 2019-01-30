@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     c_families = ('rb', 'sl', 'kd', 'os')
 
-    fig_all = plt.figure(figsize=(14, 5))
+    fig_all = plt.figure(figsize=(14, 3.2))
     fig_all.tight_layout()
     fig_all.subplots_adjust(top=0.966, bottom=0.117, left=0.063, right=0.828, hspace=0.2, wspace=0.198)
     ax1_all = fig_all.add_subplot(121)
