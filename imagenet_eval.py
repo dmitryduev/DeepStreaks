@@ -36,7 +36,7 @@ if __name__ == '__main__':
             for url in urls:
                 try:
                     if url.endswith('.jpg'):
-                        r = requests.get(url)
+                        r = requests.get(url, timeout=2)
                         if r.status_code == 200:
                             print(f'downloading image #{ni:04d} in {category} category')
                             with open(os.path.join(path_category, f'{ni:04d}.jpg'), 'wb') as f:
