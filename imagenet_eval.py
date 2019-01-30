@@ -186,6 +186,7 @@ if __name__ == '__main__':
         thresholds = {'rb': 0.5, 'sl': 0.5, 'kd': 0.5, 'os': 0.5}
 
         for cat in data:
+            print(f'\n\nCategory: {cat}')
 
             for fam in ('rb', 'sl', 'kd'):
                 yy = None
