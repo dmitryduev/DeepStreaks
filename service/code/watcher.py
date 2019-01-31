@@ -321,7 +321,7 @@ class Manager(object):
             if top_level_only:
                 break
 
-    def run(self):
+    def run(self, loop_once=False):
         """
             This could be replaced with a Kafka watcher in the future
         :return:
@@ -430,6 +430,8 @@ class Manager(object):
 
                     print(*time_stamps(), f'Done. Processed meta files for {obsdate} so far:',
                           len(self.processed_meta[obsdate]))
+                    if loop_once:
+                        break
                     # take a nap when done
                     print(*time_stamps(), 'Sleeping for 1 minute...')
                     time.sleep(60 * 1)
@@ -873,6 +875,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Digest ZTF nightly streak data')
     parser.add_argument('--obsdate', help='observing date')
     parser.add_argument('--enforce', action='store_true', help='enforce execution')
+    parser.add_argument('--looponce', action='store_true', help='loop once and exit')
 
     parser.add_argument('config_file', metavar='config_file',
                         action='store', help='path to config file.', type=str)
@@ -885,6 +888,6 @@ if __name__ == '__main__':
 
     manager.subscribe(watcher_meta)
     manager.subscribe(watcher_img)
-    manager.run()
+    manager.run(loop_once=args.looponce)
 
     # python watcher.py config.json --obsdate 20180927 --enforce

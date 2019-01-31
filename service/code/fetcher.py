@@ -503,7 +503,7 @@ class qaWatcher:
                 pass
 
 
-def main(time_skip=False, obsdate=None):
+def main(time_skip=False, obsdate=None, looponce=False):
 
     y = qaWatcher(obsdate=obsdate, data_dir='/data/streaks/', batch_size=128)
     s = time.time()
@@ -560,15 +560,19 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Ingest AVRO packet into DB')
     parser.add_argument('--obsdate', help='observing date')
     parser.add_argument('--enforce', action='store_true', help='enforce execution')
+    parser.add_argument('--looponce', action='store_true', help='loop once and exit')
 
     args = parser.parse_args()
     obs_date = args.obsdate
+    loop_once = args.looponce
     # print(obs_date)
 
     while True:
         if args.enforce or datetime.datetime.utcnow().hour < 20:
             try:
                 main(obsdate=obs_date)
+                if loop_once:
+                    break
             except Exception as e:
                 print(str(e))
                 time.sleep(60)
