@@ -175,6 +175,109 @@ def deg2dms(x):
     return dms
 
 
+@jit
+def cart2sph(xyz):
+    """
+    Cartesian to spherical crd transformation
+    Input - an N (rows) by 3 (columns) array
+    """
+    if not isinstance(xyz, np.ndarray):
+        xyz = np.array(xyz)
+    rpt = np.zeros(xyz.shape)
+    # print(xyz.shape)
+    if xyz.shape != (3,):
+        xy = xyz[:, 0] ** 2 + xyz[:, 1] ** 2
+        rpt[:, 0] = np.sqrt(xy + xyz[:, 2] ** 2)  # rho
+        # for elevation angle defined from Z-axis down:
+        # rpt[:,1] = np.arctan2(np.sqrt(xy), xyz[:,2])
+        # for elevation angle defined from XY-plane up:
+        # rpt[:,1] = np.arctan2(xyz[:,2], np.sqrt(xy)) # phi
+        rpt[:, 1] = np.arctan2(xyz[:, 2], np.sqrt(xy))  # phi ('elevation')
+        rpt[:, 2] = np.arctan2(xyz[:, 1], xyz[:, 0])  # theta ('azimuth')
+    else:
+        xy = xyz[0] ** 2 + xyz[1] ** 2
+        rpt[0] = np.sqrt(xy + xyz[2] ** 2)  # rho
+        rpt[1] = np.arctan2(xyz[2], np.sqrt(xy))  # phi ('elevation')
+        rpt[2] = np.arctan2(xyz[1], xyz[0])  # theta ('azimuth')
+    return rpt
+
+
+@jit
+def sph2cart(rpt):
+    """
+    Spherical to cartesian crd transformation
+    Input - an N (rows) by 3 (columns) array
+    """
+    if not isinstance(rpt, np.ndarray):
+        rpt = np.array(rpt)
+    xyz = np.zeros_like(rpt)
+    if xyz.shape != (3,):
+        xyz[:, 0] = rpt[:, 0] * np.cos(rpt[:, 1]) * np.cos(rpt[:, 2])
+        xyz[:, 1] = rpt[:, 0] * np.cos(rpt[:, 1]) * np.sin(rpt[:, 2])
+        xyz[:, 2] = rpt[:, 0] * np.sin(rpt[:, 1])
+    else:
+        xyz[0] = rpt[0] * np.cos(rpt[1]) * np.cos(rpt[2])
+        xyz[1] = rpt[0] * np.cos(rpt[1]) * np.sin(rpt[2])
+        xyz[2] = rpt[0] * np.sin(rpt[1])
+    return xyz
+
+
+@jit
+def great_circle_segment_midpoint(_ra_beg, _dec_beg, _ra_end, _dec_end):
+    """
+        'Split' great circle segment in halves
+    :return:
+    """
+    # first convert RA/Dec's on a unit sphere to Cartesian coordinates:
+    rdecra_beg = np.array([1.0, _dec_beg*np.pi/180.0, _ra_beg*np.pi/180.0])
+    cart_beg = sph2cart(rdecra_beg)
+
+    rdecra_end = np.array([1.0, _dec_end*np.pi/180.0, _ra_end*np.pi/180.0])
+    cart_end = sph2cart(rdecra_end)
+
+    # compute midpoint of the _shorter_ segment of GC passing through _beg and _end
+    # negate the result to get the same for the _longer_ segment
+    lamb = 1 + np.dot(cart_beg, cart_end) / 1.0 ** 2
+    middle_cart = (cart_beg + cart_end) / np.sqrt(2.0 * lamb)
+    rdecra_middle = cart2sph(middle_cart)
+    radec_middle = rdecra_middle[:-3:-1]
+    # print(radec_middle)
+
+    if radec_middle[0] < 0:
+        radec_middle[0] += 2.0 * np.pi
+
+    radec_middle_deg = radec_middle*180.0/np.pi
+
+    return radec_middle_deg
+
+
+def mongo_coord(radec, mjd):
+
+    d = dict()
+
+    # GeoJSON for 2D indexing
+    d['midpoint_coordinates'] = dict()
+    d['midpoint_coordinates']['epoch'] = mjd
+    _ra = radec[0]
+    _dec = radec[1]
+    _radec = [_ra, _dec]
+    # string format: H:M:S, D:M:S
+    # tic = time.time()
+    _radec_str = [deg2hms(_ra), deg2dms(_dec)]
+    # print(time.time() - tic)
+    # print(_radec_str)
+    d['midpoint_coordinates']['radec_str'] = _radec_str
+    # for GeoJSON, must be lon:[-180, 180], lat:[-90, 90] (i.e. in deg)
+    _radec_geojson = [_ra - 180.0, _dec]
+    d['midpoint_coordinates']['radec_geojson'] = {'type': 'Point',
+                                                  'coordinates': _radec_geojson}
+    # radians and degrees:
+    d['midpoint_coordinates']['radec_rad'] = [_ra * np.pi / 180.0, _dec * np.pi / 180.0]
+    d['midpoint_coordinates']['radec_deg'] = [_ra, _dec]
+
+    return d
+
+
 class Manager(object):
 
     def __init__(self, _config_file='config.json', _obsdate=None, _enforce=False):
@@ -360,6 +463,12 @@ class AbstractObserver(ABC):
             print(*time_stamps(), 'Creating/checking indices')
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
                                                                                background=True)
+
+        self.db['db'][self.config['database']['collection_main']].create_index([('midpoint_coordinates.radec_geojson',
+                                                                                 '2dsphere'),
+                                                                                ('_id', pymongo.ASCENDING)],
+                                                                               background=True)
+
         # index default model scores
         for model in self.config['default_models']:
             self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
@@ -580,6 +689,13 @@ class WatcherMeta(AbstractObserver):
                     doc_id = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
 
                     # doc['base_name'] = base_name
+
+                    # streak midpoint
+                    radec_midpoint = great_circle_segment_midpoint(doc['ra1'], doc['dec1'], doc['ra2'], doc['dec2'])
+                    mjd_midpoint = doc['startmjd'] + (doc['endmjd'] - doc['startmjd']) / 2
+
+                    coord = mongo_coord(radec_midpoint, mjd_midpoint)
+                    doc['midpoint_coordinates'] = coord['midpoint_coordinates']
 
                     # parse ADES:
                     path_streak = os.path.join(self.path_data, 'stamps', f'stamps_{obsdate}')
