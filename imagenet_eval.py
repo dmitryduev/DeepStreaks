@@ -220,6 +220,7 @@ if __name__ == '__main__':
             print('Normalized confusion matrix for y_deep_streaks_os:')
             print(confusion_matr_normalized)
 
+            y_deep_streaks_os = None
             for model_name in predictions['os']:
                 if 'VGG6' in model_name:
                     continue
