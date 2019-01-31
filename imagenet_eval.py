@@ -221,7 +221,7 @@ if __name__ == '__main__':
             print(confusion_matr_normalized)
 
             for model_name in predictions['os']:
-                if model_name == 'os_vgg6':
+                if 'VGG6' in model_name:
                     continue
                 yyy = predictions['os'][model_name][cat] > thresholds['os']
                 y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
