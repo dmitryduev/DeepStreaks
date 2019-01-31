@@ -223,7 +223,7 @@ if __name__ == '__main__':
             y_deep_streaks_os = None
             for model_name in predictions['os']:
                 print(model_name)
-                if 'VGG6' in model_name:
+                if 'vgg6' in model_name:
                     continue
                 yyy = predictions['os'][model_name][cat] > thresholds['os']
                 y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
