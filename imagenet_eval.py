@@ -198,10 +198,6 @@ if __name__ == '__main__':
                     if y_deep_streaks_rb_sl_kd is not None \
                     else yy
 
-            for model_name in predictions['os']:
-                yyy = predictions['os'][model_name][cat] > thresholds['os']
-                y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
-
             confusion_matr = confusion_matrix(np.zeros_like(y_deep_streaks_rb_sl_kd), y_deep_streaks_rb_sl_kd)
             confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
 
@@ -210,6 +206,25 @@ if __name__ == '__main__':
 
             print('Normalized confusion matrix for y_deep_streaks_rb_sl_kd:')
             print(confusion_matr_normalized)
+
+            for model_name in predictions['os']:
+                yyy = predictions['os'][model_name][cat] > thresholds['os']
+                y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
+
+            confusion_matr = confusion_matrix(np.zeros_like(y_deep_streaks_os), y_deep_streaks_os)
+            confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
+
+            print('Confusion matrix for y_deep_streaks_os:')
+            print(confusion_matr)
+
+            print('Normalized confusion matrix for y_deep_streaks_os:')
+            print(confusion_matr_normalized)
+
+            for model_name in predictions['os']:
+                if model_name == 'os_vgg6':
+                    continue
+                yyy = predictions['os'][model_name][cat] > thresholds['os']
+                y_deep_streaks_os = np.logical_or(y_deep_streaks_os, yyy) if y_deep_streaks_os is not None else yyy
 
             confusion_matr = confusion_matrix(np.zeros_like(y_deep_streaks_os), y_deep_streaks_os)
             confusion_matr_normalized = confusion_matr.astype('float') / confusion_matr.sum(axis=1)[:, np.newaxis]
