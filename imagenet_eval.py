@@ -222,7 +222,7 @@ if __name__ == '__main__':
 
             y_deep_streaks_os = None
             for model_name in predictions['os']:
-                print(model_name)
+                # print(model_name)
                 if 'vgg6' in model_name:
                     continue
                 yyy = predictions['os'][model_name][cat] > thresholds['os']
