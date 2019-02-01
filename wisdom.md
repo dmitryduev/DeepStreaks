@@ -60,3 +60,12 @@ Train all
 ```bash
 for p in 5b96af9c0354c9000b0aea36 5b99b2c6aec3c500103a14de 5be0ae7958830a0018821794 5c05bbdc826480000a95c0bf; do for m in VGG6 ResNet50 DenseNet121; do echo $p $m; python deepstreaks.py --project_id $p --model $m --class_weight --verbose; done; done
 ```
+
+---
+
+Iterate over range of dates:
+```bash
+for d in {49..275}; do echo `date +%Y%m%d -d "$d day ago"`; done
+python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
+python watcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
+```
