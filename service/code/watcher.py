@@ -762,8 +762,6 @@ class WatcherImg(AbstractObserver):
     @staticmethod
     def load_data_predict(path_images=(), grayscale: bool = True, resize: tuple = (144, 144)):
 
-        # todo: parallelize it
-
         num_images = len(path_images)
         num_channels = 1 if grayscale else 3
 
@@ -802,6 +800,51 @@ class WatcherImg(AbstractObserver):
 
         return data, img_ids
 
+    @staticmethod
+    def data_generator(path_images=(), batch_size: int = 128, grayscale: bool = True, resize: tuple = (144, 144)):
+
+        num_images = len(path_images)
+        num_channels = 1 if grayscale else 3
+
+        num_batches = int(np.ceil(num_images / batch_size))
+
+        for batch_num in range(num_batches):
+
+            # allocate:
+            data = np.zeros((batch_size, *resize, num_channels))
+            img_ids = np.zeros(batch_size, dtype=object)
+
+            failed_ii = []
+
+            for ii, path_image in enumerate(path_images[batch_num*batch_size: (batch_num + 1)*batch_size]):
+                try:
+                    image_basename = os.path.basename(path_image)
+                    img_id = image_basename.split('_scimref.jpg')[0]
+                    img_ids[ii] = img_id
+
+                    if grayscale:
+                        img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
+                        img = np.expand_dims(img, 2)
+                    else:
+                        img = ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)
+                        rgbimg = Image.new("RGB", img.size)
+                        rgbimg.paste(img)
+                        img = np.array(rgbimg) / 255.
+
+                    data[ii, :] = img
+
+                except Exception as e:
+                    print(str(e))
+                    failed_ii.append(ii)
+                    continue
+
+            # remove rows that raised errors:
+            if len(failed_ii) > 0:
+                data = np.delete(data, failed_ii, axis=0)
+                img_ids = np.delete(img_ids, failed_ii, axis=0)
+
+            yield data, img_ids
+
     def update(self, message):
         datatype = message['datatype'] if 'datatype' in message else None
         assert datatype is not None, (*time_stamps(), 'Bad message: no datatype.')
@@ -820,7 +863,9 @@ class WatcherImg(AbstractObserver):
             if self.verbose:
                 print(*time_stamps(), 'loading image data')
                 tic = time.time()
-            images, image_ids = self.load_data_predict(path_images=path_images)
+            # images, image_ids = self.load_data_predict(path_images=path_images)
+            # generator:
+            images, image_ids = self.data_generator(path_images=path_images, batch_size=128)
             if self.verbose:
                 toc = time.time()
                 print(*time_stamps(), images.shape)
@@ -832,8 +877,9 @@ class WatcherImg(AbstractObserver):
 
             for model in self.config['models']:
                 tic = time.time()
-                # todo: replace with predict_generator
-                scores[model] = self.models[model].predict(images, batch_size=batch_size, verbose=self.verbose)
+                # scores[model] = self.models[model].predict(images, batch_size=batch_size, verbose=self.verbose)
+                scores[model] = self.models[model].predict_generator(images, batch_size=batch_size,
+                                                                     verbose=self.verbose)
                 toc = time.time()
                 if self.verbose:
                     print(*time_stamps(),
