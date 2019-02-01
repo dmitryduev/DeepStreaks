@@ -17,6 +17,7 @@ import traceback
 with open('/app/config.json') as cjson:
     config = json.load(cjson)
 
+# with open('/Users/dmitryduev/_caltech/python/deep-asteroids/service/secrets.json') as sjson:
 with open('/app/secrets.json') as sjson:
     secrets = json.load(sjson)
 
@@ -50,7 +51,6 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
 
             night_url = os.path.join(base_url, obsdate)
 
-            sub_dir_list = []
             time_range_links = []
 
             processed_stamps = [os.path.basename(x) for x in glob.glob(os.path.join(stamps_dir, '*strkcutouts*gz'))]
