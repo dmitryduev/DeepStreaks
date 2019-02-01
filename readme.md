@@ -1,12 +1,12 @@
 # DeepStreaks: identifying Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
 
-DeepStreaks is a deep learning framework developed to efficiently identify streaking near-Earth objects in the data of 
-the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), a wide-field time-domain survey using a dedicated 47 sq. deg. camera 
-attached to the Samuel Oschin Telescope at the Palomar Observatory in California, United States. 
-The performance is great: well above 95% accuracy when compared to the performance of human scanners, 
-occasionally reaching ~200%. The system is deployed and is adapted for usage within the ZTF Solar system framework.
-
-From December 15, 2018 - January 15, 2018, over 10 NEAs were discovered with the help of DeepStreaks.
+DeepStreaks is a convolutional neural network-based deep learning system designed to efficiently identify 
+streaking near-Earth objects in the data of the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), 
+a wide-field time-domain survey using a dedicated 47 deg$^2$ camera attached to the Samuel Oschin 48-inch 
+telescope at the Palomar Observatory in California, United States. The system demonstrates 95-98\% true positive rate 
+while keeping the false positive rate below 1\%, which significantly reduces human involvement in the streak 
+identification process. The system is deployed and is adapted for usage within the ZTF Solar system framework. 
+During its first month of operation, DeepStreaks discovered 10 near-Earth asteroids.
 
 For details, please see Duev et al., MNRAS, 2019 (in prep.).
 
@@ -25,7 +25,7 @@ fast moving objects, long streaks from satellites, and cosmic rays.
 - "kd": ditch (kd=0) ot keep (kd=1)? Is this a real streak, or a cosmic ray/some other artifact?
 
 For a streak to be declared a plausible candidate, for each family, the scores from at least one family member must
-be above the corresponding threshold (threshold_rb=0.9, threshold_sl=0.5, threshold_kd=0.5)
+be above the corresponding threshold (threshold_rb=0.5, threshold_sl=0.5, threshold_kd=0.5)
 
 <img src="doc/DeepStreaks.png" width="50%">
 
@@ -38,23 +38,9 @@ The models are implemented using `Keras` with a `TensorFlow` backend (GPU-enable
 
 The data were prepared using [Zwickyverse](https://github.com/dmitryduev/zwickyverse).
 
-todo: update stats to 2019.1
-
-#### bogus vs real (2018.9)
-
-- 905 long streaks from ZTF data
-- 5000 bogus cutouts from ZTF data
-- 8270 (4135 + 4135) synthetic short streaks from QZ (generated May 25, 2018)
-- 669 real short streaks from ZTF data from May 1 to Aug 31, 2018
-
-#### long streak vs short streak (2018.9)  
-
-- 905 long streaks from ZTF data
-- 905 synthetic short streaks from QZ (generated May 25, 2018)
-- 669 real short streaks from ZTF data from May 1 to Aug 31, 2018
-
-...
-
+As of January 2019, the training set for the "rb" classifiers contains 11,857 streak and 13,449 non-streak images; 
+for the "sl" classifiers -- 5,168 long and 11,246 short streak images; 
+for the ""kd" classifiers -- 12,288 "false" and 9,769 "true" images
 
 ### Training and performance
 

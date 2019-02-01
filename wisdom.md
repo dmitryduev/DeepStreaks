@@ -65,7 +65,10 @@ for p in 5b96af9c0354c9000b0aea36 5b99b2c6aec3c500103a14de 5be0ae7958830a0018821
 
 Iterate over range of dates:
 ```bash
-for d in {49..275}; do echo `date +%Y%m%d -d "$d day ago"`; done
+for d in {50..279}; do echo `date +%Y%m%d -d "$d day ago"`; done
+for d in {50..279}; do echo `date +%Y%m%d -d "$d day ago"`; python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce; python watcher.py config.json --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce; done
 python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
-python watcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
+python watcher.py config.json --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
+python fetcher.py --obsdate 20181213 --enforce --looponce
+python watcher.py config.json --obsdate 20181213 --enforce --looponce
 ```
