@@ -2,9 +2,9 @@
 
 DeepStreaks is a convolutional neural network-based deep learning system designed to efficiently identify 
 streaking near-Earth objects in the data of the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), 
-a wide-field time-domain survey using a dedicated 47 deg$^2$ camera attached to the Samuel Oschin 48-inch 
-telescope at the Palomar Observatory in California, United States. The system demonstrates 95-98\% true positive rate 
-while keeping the false positive rate below 1\%, which significantly reduces human involvement in the streak 
+a wide-field time-domain survey using a dedicated 47 deg^2 camera attached to the Samuel Oschin 48-inch 
+telescope at the Palomar Observatory in California, United States. The system demonstrates 95-98% true positive rate 
+while keeping the false positive rate below 1%, which significantly reduces human involvement in the streak 
 identification process. The system is deployed and is adapted for usage within the ZTF Solar system framework. 
 During its first month of operation, DeepStreaks discovered 10 near-Earth asteroids.
 
