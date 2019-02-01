@@ -832,6 +832,7 @@ class WatcherImg(AbstractObserver):
 
             for model in self.config['models']:
                 tic = time.time()
+                # todo: replace with predict_generator
                 scores[model] = self.models[model].predict(images, batch_size=batch_size, verbose=self.verbose)
                 toc = time.time()
                 if self.verbose:

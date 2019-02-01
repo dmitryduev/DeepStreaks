@@ -67,6 +67,7 @@ Iterate over range of dates:
 ```bash
 for d in {50..279}; do echo `date +%Y%m%d -d "$d day ago"`; done
 for d in {50..279}; do echo `date +%Y%m%d -d "$d day ago"`; python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce; python watcher.py config.json --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce; done
+for d in {50..279}; do echo `date +%Y%m%d -d "$d day ago"`; python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce; done
 python fetcher.py --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
 python watcher.py config.json --obsdate `date +%Y%m%d -d "$d day ago"` --enforce --looponce
 python fetcher.py --obsdate 20181213 --enforce --looponce
