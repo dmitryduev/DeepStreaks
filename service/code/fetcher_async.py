@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import aiohttp
 import asyncio
 import aiofiles
@@ -13,11 +14,10 @@ import traceback
 
 
 ''' load config and secrets '''
-# with open('/app/config.json') as cjson:
-with open('/Users/dmitryduev/_caltech/python/deep-asteroids/service/code/config.json') as cjson:
+with open('/app/config.json') as cjson:
     config = json.load(cjson)
 
-with open('/Users/dmitryduev/_caltech/python/deep-asteroids/secrets.json') as sjson:
+with open('/app/secrets.json') as sjson:
     secrets = json.load(sjson)
 
 
@@ -92,13 +92,13 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
 
                                         # fetch
                                         print(*time_stamps(), f'Downloading {txt}')
-                                        strkcutout_link = os.path.join(link, txt)
+                                        strkcutout_link = os.path.join(time_range_ccd_link, txt)
 
                                         # try saving:
                                         try:
                                             async with session.get(strkcutout_link) as resp2:
                                                 tmp = await resp2.read()
-                                                async with aiofiles.open(os.path.join(stamps_dir, txt), 'wb') as f:
+                                                with open(os.path.join(stamps_dir, txt), 'wb') as f:
                                                     f.write(tmp)
                                         except Exception as _e:
                                             print(str(_e))
@@ -140,7 +140,7 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
 
                                         # fetch
                                         print(*time_stamps(), f'Downloading {txt}')
-                                        meta_link = os.path.join(link, txt)
+                                        meta_link = os.path.join(time_range_ccd_link, txt)
 
                                         # try saving:
                                         try:
@@ -171,7 +171,13 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser(description='Fetch ZTF streak data from IPAC depo')
+    parser.add_argument('--obsdate', help='observing date')
+    parser.add_argument('--looponce', action='store_true', help='loop once and exit')
+
+    args = parser.parse_args()
+    obs_date = args.obsdate
+    loop_once = args.looponce
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(obsdate='20181121', looponce=True,
-                                 data_dir='/Users/dmitryduev/_caltech/python/deep-asteroids/_tmp'))
+    loop.run_until_complete(main(obsdate=obs_date, looponce=loop_once))
