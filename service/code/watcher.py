@@ -901,8 +901,10 @@ class WatcherImg(AbstractObserver):
             #     tic = time.time()
             # images, image_ids = self.load_data_predict(path_images=path_images)
             # generators:
-            images = self.data_generator(path_images=path_images, batch_size=128)
-            image_ids = self.data_id_generator(path_images=path_images, batch_size=128)
+            batch_size_data_generator = 128
+            images = self.data_generator(path_images=path_images, batch_size=batch_size_data_generator)
+            image_ids = self.data_id_generator(path_images=path_images, batch_size=batch_size_data_generator)
+            num_batches = int(np.ceil(len(path_images) / batch_size_data_generator))
             # if self.verbose:
             #     toc = time.time()
             #     print(*time_stamps(), images.shape)
@@ -915,8 +917,7 @@ class WatcherImg(AbstractObserver):
             for model in self.config['models']:
                 tic = time.time()
                 # scores[model] = self.models[model].predict(images, batch_size=batch_size, verbose=self.verbose)
-                scores[model] = self.models[model].predict_generator(images, batch_size=batch_size,
-                                                                     verbose=self.verbose)
+                scores[model] = self.models[model].predict_generator(images, steps=num_batches, verbose=self.verbose)
                 toc = time.time()
                 if self.verbose:
                     print(*time_stamps(),
