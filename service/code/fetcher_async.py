@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 import aiohttp
 import asyncio
-import aiofiles
 import time
 import os
 import shutil
@@ -146,7 +145,7 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
                                         try:
                                             async with session.get(meta_link) as resp2:
                                                 tmp = await resp2.read()
-                                                async with aiofiles.open(os.path.join(meta_dir, txt), 'wb') as f:
+                                                with open(os.path.join(meta_dir, txt), 'wb') as f:
                                                     f.write(tmp)
                                         except Exception as _e:
                                             print(str(_e))
