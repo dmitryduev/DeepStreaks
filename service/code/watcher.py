@@ -747,15 +747,13 @@ class WatcherImg(AbstractObserver):
 
         # DL models:
         self.models = dict()
-        sss = 1
+        # sss = 1
         for model in self.config['models']:
             if self.verbose:
                 print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
             self.models[model] = load_model_helper(self.config['path']['path_models'], self.config['models'][model])
-            # self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
-            #                                              self.config['models'][model]))
-            if sss == 1:
-                break
+            # if sss == 1:
+            #     break
 
         self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
 
@@ -895,22 +893,21 @@ class WatcherImg(AbstractObserver):
             obsdate = message['obsdate'] if 'obsdate' in message else None
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
+            batch_size = int(self.config['misc']['batch_size'])
+
             # digest
             # if self.verbose:
             #     print(*time_stamps(), 'loading image data')
             #     tic = time.time()
             # images, image_ids = self.load_data_predict(path_images=path_images)
             # generators:
-            batch_size_data_generator = 128
-            images = self.data_generator(path_images=path_images, batch_size=batch_size_data_generator)
-            image_ids = self.data_id_generator(path_images=path_images, batch_size=batch_size_data_generator)
-            num_batches = int(np.ceil(len(path_images) / batch_size_data_generator))
+            images = self.data_generator(path_images=path_images, batch_size=batch_size)
+            image_ids = self.data_id_generator(path_images=path_images, batch_size=batch_size)
+            num_batches = int(np.ceil(len(path_images) / batch_size))
             # if self.verbose:
             #     toc = time.time()
             #     print(*time_stamps(), images.shape)
             #     print(*time_stamps(), f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
-
-            batch_size = int(self.config['misc']['batch_size'])
 
             scores = dict()
 
