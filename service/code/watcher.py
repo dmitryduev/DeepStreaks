@@ -747,12 +747,15 @@ class WatcherImg(AbstractObserver):
 
         # DL models:
         self.models = dict()
+        sss = 1
         for model in self.config['models']:
             if self.verbose:
                 print(*time_stamps(), f'loading model {model}: {self.config["models"][model]}')
             self.models[model] = load_model_helper(self.config['path']['path_models'], self.config['models'][model])
             # self.models[model] = load_model(os.path.join(self.config['path']['path_models'],
             #                                              self.config['models'][model]))
+            if sss == 1:
+                break
 
         self.model_input_shape = self.models[self.config['default_models']['rb']].input_shape[1:3]
 
@@ -808,19 +811,18 @@ class WatcherImg(AbstractObserver):
 
         num_batches = int(np.ceil(num_images / batch_size))
 
+        image_list = list(path_images)
+
         for batch_num in range(num_batches):
 
             # allocate:
             data = np.zeros((batch_size, *resize, num_channels))
-            img_ids = np.zeros(batch_size, dtype=object)
 
             failed_ii = []
 
-            for ii, path_image in enumerate(path_images[batch_num*batch_size: (batch_num + 1)*batch_size]):
+            for ii, path_image in enumerate(image_list[batch_num * batch_size: (batch_num + 1) * batch_size]):
                 try:
                     image_basename = os.path.basename(path_image)
-                    img_id = image_basename.split('_scimref.jpg')[0]
-                    img_ids[ii] = img_id
 
                     if grayscale:
                         img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
@@ -841,9 +843,43 @@ class WatcherImg(AbstractObserver):
             # remove rows that raised errors:
             if len(failed_ii) > 0:
                 data = np.delete(data, failed_ii, axis=0)
+
+            yield data
+
+    @staticmethod
+    def data_id_generator(path_images=(), batch_size: int = 128):
+
+        num_images = len(path_images)
+
+        num_batches = int(np.ceil(num_images / batch_size))
+
+        image_list = list(path_images)
+
+        for batch_num in range(num_batches):
+
+            # allocate:
+            img_ids = np.zeros(batch_size, dtype=object)
+
+            failed_ii = []
+
+            for ii, path_image in enumerate(image_list[batch_num * batch_size: (batch_num + 1) * batch_size]):
+                try:
+                    image_basename = os.path.basename(path_image)
+                    img_id = image_basename.split('_scimref.jpg')[0]
+                    img_ids[ii] = img_id
+
+                    Image.open(path_image)
+
+                except Exception as e:
+                    print(str(e))
+                    failed_ii.append(ii)
+                    continue
+
+            # remove rows that raised errors:
+            if len(failed_ii) > 0:
                 img_ids = np.delete(img_ids, failed_ii, axis=0)
 
-            yield data, img_ids
+            yield img_ids
 
     def update(self, message):
         datatype = message['datatype'] if 'datatype' in message else None
@@ -860,16 +896,17 @@ class WatcherImg(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # digest
-            if self.verbose:
-                print(*time_stamps(), 'loading image data')
-                tic = time.time()
+            # if self.verbose:
+            #     print(*time_stamps(), 'loading image data')
+            #     tic = time.time()
             # images, image_ids = self.load_data_predict(path_images=path_images)
-            # generator:
-            images, image_ids = self.data_generator(path_images=path_images, batch_size=128)
-            if self.verbose:
-                toc = time.time()
-                print(*time_stamps(), images.shape)
-                print(*time_stamps(), f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
+            # generators:
+            images = self.data_generator(path_images=path_images, batch_size=128)
+            image_ids = self.data_id_generator(path_images=path_images, batch_size=128)
+            # if self.verbose:
+            #     toc = time.time()
+            #     print(*time_stamps(), images.shape)
+            #     print(*time_stamps(), f'done. loaded {len(image_ids)} images, which took {toc-tic} seconds.')
 
             batch_size = int(self.config['misc']['batch_size'])
 
