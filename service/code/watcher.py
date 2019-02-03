@@ -845,39 +845,24 @@ class WatcherImg(AbstractObserver):
             yield data
 
     @staticmethod
-    def data_id_generator(path_images=(), batch_size: int = 128):
+    def data_id_generator(path_images=()):
 
         num_images = len(path_images)
 
-        num_batches = int(np.ceil(num_images / batch_size))
-
         image_list = list(path_images)
 
-        for batch_num in range(num_batches):
+        for ii, path_image in enumerate(image_list):
+            try:
+                image_basename = os.path.basename(path_image)
+                img_id = image_basename.split('_scimref.jpg')[0]
 
-            # allocate:
-            img_ids = np.zeros(batch_size, dtype=object)
+                Image.open(path_image)
 
-            failed_ii = []
+            except Exception as e:
+                print(str(e))
+                continue
 
-            for ii, path_image in enumerate(image_list[batch_num * batch_size: (batch_num + 1) * batch_size]):
-                try:
-                    image_basename = os.path.basename(path_image)
-                    img_id = image_basename.split('_scimref.jpg')[0]
-                    img_ids[ii] = img_id
-
-                    Image.open(path_image)
-
-                except Exception as e:
-                    print(str(e))
-                    failed_ii.append(ii)
-                    continue
-
-            # remove rows that raised errors:
-            if len(failed_ii) > 0:
-                img_ids = np.delete(img_ids, failed_ii, axis=0)
-
-            yield img_ids
+            yield img_id
 
     def update(self, message):
         datatype = message['datatype'] if 'datatype' in message else None
@@ -901,7 +886,9 @@ class WatcherImg(AbstractObserver):
             #     tic = time.time()
             # images, image_ids = self.load_data_predict(path_images=path_images)
             # generators:
-            image_ids = self.data_id_generator(path_images=path_images, batch_size=batch_size)
+            image_ids = self.data_id_generator(path_images=path_images)
+            for ii, image_id in enumerate(image_ids):
+                print(ii, image_id)
             num_batches = int(np.ceil(len(path_images) / batch_size))
             # if self.verbose:
             #     toc = time.time()
