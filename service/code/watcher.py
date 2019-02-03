@@ -887,8 +887,8 @@ class WatcherImg(AbstractObserver):
             # images, image_ids = self.load_data_predict(path_images=path_images)
             # generators:
             image_ids = self.data_id_generator(path_images=path_images)
-            for ii, image_id in enumerate(image_ids):
-                print(ii, image_id)
+            # for ii, image_id in enumerate(image_ids):
+            #     print(ii, image_id)
             num_batches = int(np.ceil(len(path_images) / batch_size))
             # if self.verbose:
             #     toc = time.time()
