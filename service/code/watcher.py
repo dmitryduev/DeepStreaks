@@ -17,6 +17,7 @@ from xml.etree import ElementTree
 from keras.models import model_from_json
 from PIL import Image, ImageOps
 from copy import deepcopy
+from tqdm import tqdm
 
 
 class XmlListConfig(list):
@@ -394,11 +395,12 @@ class Manager(object):
                         print(*time_stamps(), f'Apparently already looked at all available meta files for {obsdate}')
 
                     else:
+                        print(f'processing {num_meta_files} meta files for {obsdate}')
 
-                        for fi, filename in enumerate(meta_files):
+                        for fi, filename in enumerate(tqdm(meta_files)):
                             try:
-                                print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
-                                      f'processing {filename}')
+                                # print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                #       f'processing {filename}')
 
                                 # strip file name:
                                 meta_name = os.path.basename(filename)
@@ -413,12 +415,13 @@ class Manager(object):
                                     self.processed_meta[obsdate].add(meta_name)
 
                                 else:
-                                    print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
-                                          f'{filename} already checked, skipping')
+                                    # print(*time_stamps(), f'{obsdate}', f'{fi+1}/{num_meta_files}',
+                                    #       f'{filename} already checked, skipping')
+                                    pass
 
                             except Exception as _e:
-                                traceback.print_exc()
-                                print(*time_stamps(), str(_e))
+                                # traceback.print_exc()
+                                # print(*time_stamps(), str(_e))
                                 try:
                                     with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
                                         _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
@@ -722,8 +725,8 @@ class WatcherMeta(AbstractObserver):
                                          _filter={'_id': doc_id}, _db_entry_upd={'$set': doc},
                                          _upsert=True)
 
-                    if self.verbose:
-                        print(*time_stamps(), f'Successfully processed {doc_id}.')
+                    # if self.verbose:
+                    #     print(*time_stamps(), f'Successfully processed {doc_id}.')
 
                 except Exception as _e:
                     traceback.print_exc()
