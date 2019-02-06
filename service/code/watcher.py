@@ -1,6 +1,6 @@
+import os
 from abc import ABC, abstractmethod
 import argparse
-import os
 import glob
 import inspect
 import time
@@ -13,11 +13,10 @@ from numba import jit
 import numpy as np
 import datetime
 from xml.etree import ElementTree
-# from keras.models import load_model
-from keras.models import model_from_json
 from PIL import Image, ImageOps
 from copy import deepcopy
 from tqdm import tqdm
+from keras.models import model_from_json
 
 
 class XmlListConfig(list):
@@ -426,7 +425,7 @@ class Manager(object):
                                     with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
                                         _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
                                         f_issues.write(_issue)
-                                finally:
+                                except:
                                     pass
 
                                 continue
@@ -729,8 +728,14 @@ class WatcherMeta(AbstractObserver):
                     #     print(*time_stamps(), f'Successfully processed {doc_id}.')
 
                 except Exception as _e:
-                    traceback.print_exc()
-                    print(_e)
+                    # traceback.print_exc()
+                    # print(_e)
+                    try:
+                        with open(os.path.join(self.path_data, 'issues.log'), 'a+') as f_issues:
+                            _issue = '{:s} {:s} {:s}\n'.format(*time_stamps(), str(_e))
+                            f_issues.write(_issue)
+                    except:
+                        pass
 
 
 def load_model_helper(path, model_base_name):
