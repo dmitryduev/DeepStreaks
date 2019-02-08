@@ -941,7 +941,7 @@ class WatcherImg(AbstractObserver):
 
                 self.update_db_entry(_collection=self.config['database']['collection_main'],
                                      _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
-                                     _upsert=True)
+                                     _upsert=True, _bypass_document_validation=True)
             if self.verbose:
                 toc = time.time()
                 print(*time_stamps(), f'done ingesting results into db, operation took {toc-tic} seconds')
