@@ -122,7 +122,7 @@ Launch the MongoDB container. Feel free to change u/p for the admin,
 but make sure to change `config.json` correspondingly.
 ```bash
 docker run -d --restart always --name deep-asteroids-mongo -p 27023:27017 -v deep-asteroids-mongo-volume:/data/db \
-       -e MONGO_INITDB_ROOT_USERNAME=mongoadmin -e MONGO_INITDB_ROOT_PASSWORD=mongoadminsecret \
+       -e MONGO_INITDB_ROOT_USERNAME=mongoadmin -e MONGO_INITDB_ROOT_PASSWORD=mongoadminsecret --no-cache\
        mongo:latest
 ```
 
