@@ -673,7 +673,7 @@ class WatcherMeta(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # digest
-            df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
+            df = pd.read_csv(filename, sep='|', header=0, skipfooter=1, engine='python')
             df = df.drop(0)
             for index, row in df.iterrows():
                 try:
@@ -722,7 +722,7 @@ class WatcherMeta(AbstractObserver):
                     #                                 _db_entry=doc)
                     self.update_db_entry(_collection=self.config['database']['collection_main'],
                                          _filter={'_id': doc_id}, _db_entry_upd={'$set': doc},
-                                         _upsert=True)
+                                         _upsert=True, _bypass_document_validation=True)
 
                     # if self.verbose:
                     #     print(*time_stamps(), f'Successfully processed {doc_id}.')
@@ -941,7 +941,7 @@ class WatcherImg(AbstractObserver):
 
                 self.update_db_entry(_collection=self.config['database']['collection_main'],
                                      _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
-                                     _upsert=True, _bypass_document_validation=True)
+                                     _upsert=True)
             if self.verbose:
                 toc = time.time()
                 print(*time_stamps(), f'done ingesting results into db, operation took {toc-tic} seconds')
