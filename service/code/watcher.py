@@ -9,7 +9,7 @@ import traceback
 import pymongo
 import pytz
 import pandas as pd
-from numba import jit
+# from numba import jit
 import numpy as np
 import datetime
 from xml.etree import ElementTree
