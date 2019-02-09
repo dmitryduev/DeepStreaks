@@ -35,12 +35,12 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
     while True:
         try:
             if obsdate is not None:
-                obsdate = obsdate
+                obsdate_current = obsdate
             else:
-                obsdate = datetime.datetime.utcnow().strftime('%Y%m%d')
+                obsdate_current = datetime.datetime.utcnow().strftime('%Y%m%d')
 
-            stamps_dir = os.path.join(data_dir, 'stamps', f'stamps_{obsdate}')
-            meta_dir = os.path.join(data_dir, 'meta', obsdate)
+            stamps_dir = os.path.join(data_dir, 'stamps', f'stamps_{obsdate_current}')
+            meta_dir = os.path.join(data_dir, 'meta', obsdate_current)
 
             # Check that the directory exists
             if not os.path.exists(stamps_dir):
@@ -48,7 +48,7 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
             if not os.path.exists(meta_dir):
                 os.makedirs(meta_dir)
 
-            night_url = os.path.join(base_url, obsdate)
+            night_url = os.path.join(base_url, obsdate_current)
 
             time_range_links = []
 
@@ -73,7 +73,7 @@ async def main(obsdate=None, looponce=False, data_dir='/data/streaks/'):
 
                     # iterate over individual time ranges:
                     for time_range_link in time_range_links:
-                        print(f'Checking {time_range_link} of {obsdate}')
+                        print(f'Checking {time_range_link} of {obsdate_current}')
                         for ccd in range(16):
                             time_range_ccd_link = os.path.join(night_url, time_range_link, f'ccd{ccd+1:02d}')
                             # print(time_range_ccd_link)
