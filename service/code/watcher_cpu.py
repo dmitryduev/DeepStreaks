@@ -9,7 +9,7 @@ import traceback
 import pymongo
 import pytz
 import pandas as pd
-from numba import jit
+# from numba import jit
 import numpy as np
 import datetime
 from xml.etree import ElementTree
@@ -129,7 +129,7 @@ def time_stamps():
            datetime.datetime.utcnow().strftime('%Y%m%d_%H:%M:%S')
 
 
-@jit
+# @jit
 def deg2hms(x):
     """Transform degrees to *hours:minutes:seconds* strings.
     Parameters
@@ -154,7 +154,7 @@ def deg2hms(x):
     return hms
 
 
-@jit
+# @jit
 def deg2dms(x):
     """Transform degrees to *degrees:arcminutes:arcseconds* strings.
     Parameters
@@ -178,7 +178,7 @@ def deg2dms(x):
     return dms
 
 
-@jit
+# @jit
 def cart2sph(xyz):
     """
     Cartesian to spherical crd transformation
@@ -205,7 +205,7 @@ def cart2sph(xyz):
     return rpt
 
 
-@jit
+# @jit
 def sph2cart(rpt):
     """
     Spherical to cartesian crd transformation
@@ -225,7 +225,7 @@ def sph2cart(rpt):
     return xyz
 
 
-@jit
+# @jit
 def great_circle_segment_midpoint(_ra_beg, _dec_beg, _ra_end, _dec_end):
     """
         'Split' great circle segment in halves
@@ -676,7 +676,7 @@ class WatcherMeta(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # digest
-            df = pd.read_table(filename, sep='|', header=0, skipfooter=1, engine='python')
+            df = pd.read_csv(filename, sep='|', header=0, skipfooter=1, engine='python')
             df = df.drop(0)
             for index, row in df.iterrows():
                 try:
