@@ -152,7 +152,7 @@
 {% endblock %}
 
 {% block js %}
-    <script type="text/javascript" src="{{-script_root-}}/dev/static/js/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="{{-script_root-}}/static/js/jquery.tablesorter.min.js"></script>
     <script>
         // for AJAX requests [absolute website's uri]:
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
