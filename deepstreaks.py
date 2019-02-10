@@ -11,6 +11,7 @@ from keras.callbacks import TensorBoard, EarlyStopping
 from keras.optimizers import Adam, SGD
 from keras.initializers import glorot_uniform
 import keras.utils as keras_utils
+from keras.preprocessing.image import ImageDataGenerator
 import datetime
 import numpy as np
 
@@ -641,10 +642,26 @@ if __name__ == '__main__':
     batch_size = args.batch_size
 
     epochs = args.epochs
-    model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, shuffle=True,
-              class_weight=class_weight,
-              validation_split=0.05,
-              verbose=1, callbacks=[tensorboard, early_stopping])
+
+    # training without data augmentation
+    # model.fit(X_train, Y_train, epochs=epochs, batch_size=batch_size, shuffle=True,
+    #           class_weight=class_weight,
+    #           validation_split=0.05,
+    #           verbose=1, callbacks=[tensorboard, early_stopping])
+
+    # training with data augmentation:
+    datagen = ImageDataGenerator(horizontal_flip=True, vertical_flip=True, validation_split=0.05)
+
+    training_generator = datagen.flow(X_train, Y_train, batch_size=batch_size, subset='training')
+    validation_generator = datagen.flow(X_train, Y_train, batch_size=batch_size, subset='validation')
+
+    model.fit_generator(training_generator,
+                        steps_per_epoch=training_generator.samples // batch_size,
+                        validation_data=validation_generator,
+                        validation_steps=validation_generator.samples // batch_size,
+                        class_weight=class_weight,
+                        epochs=epochs,
+                        verbose=1, callbacks=[tensorboard, early_stopping])
 
     # print('Evaluating on training set to check for BatchNorm behavior:')
     # preds = model.evaluate(X_train, Y_train, batch_size=batch_size)
