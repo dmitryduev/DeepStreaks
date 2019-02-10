@@ -656,9 +656,9 @@ if __name__ == '__main__':
     validation_generator = datagen.flow(X_train, Y_train, batch_size=batch_size, subset='validation')
 
     model.fit_generator(training_generator,
-                        steps_per_epoch=training_generator.samples // batch_size,
+                        steps_per_epoch=len(X_train) // batch_size,
                         validation_data=validation_generator,
-                        validation_steps=validation_generator.samples // batch_size,
+                        validation_steps=(len(X_train)*0.05) // batch_size,
                         class_weight=class_weight,
                         epochs=epochs,
                         verbose=1, callbacks=[tensorboard, early_stopping])
