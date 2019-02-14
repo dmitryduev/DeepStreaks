@@ -1,16 +1,102 @@
 import os
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 import pathlib
 import json
 import pymongo
 import math
 import datetime
 import numpy as np
-import requests
+import time
 from typing import Union
 from tqdm import tqdm
+from shutil import copyfile
+from PIL import Image, ImageOps
+from keras.models import model_from_json
 
 
 date_type = Union[datetime.datetime, float]
+
+
+def load_model_helper(path, model_base_name):
+    # return load_model(path)
+    with open(os.path.join(path, f'{model_base_name}.architecture.json'), 'r') as json_file:
+        loaded_model_json = json_file.read()
+    m = model_from_json(loaded_model_json)
+    m.load_weights(os.path.join(path, f'{model_base_name}.weights.h5'))
+
+    return m
+
+
+def data_generator(path_images=(), batch_size: int = 128, grayscale: bool = True, resize: tuple = (144, 144)):
+
+    num_images = len(path_images)
+    num_channels = 1 if grayscale else 3
+
+    num_batches = int(np.ceil(num_images / batch_size))
+
+    image_list = list(path_images)
+
+    for batch_num in range(num_batches):
+
+        # allocate:
+        data = np.zeros((batch_size, *resize, num_channels))
+
+        failed_ii = []
+
+        for ii, path_image in enumerate(image_list[batch_num * batch_size: (batch_num + 1) * batch_size]):
+            try:
+                image_basename = os.path.basename(path_image)
+
+                if grayscale:
+                    img = np.array(ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)) / 255.
+                    img = np.expand_dims(img, 2)
+                else:
+                    img = ImageOps.grayscale(Image.open(path_image)).resize(resize, Image.BILINEAR)
+                    rgbimg = Image.new("RGB", img.size)
+                    rgbimg.paste(img)
+                    img = np.array(rgbimg) / 255.
+
+                data[ii, :] = img
+
+            except Exception as e:
+                print(str(e))
+                failed_ii.append(ii)
+                continue
+
+        # remove rows that raised errors:
+        if len(failed_ii) > 0:
+            data = np.delete(data, failed_ii, axis=0)
+
+        yield data
+
+
+def data_id_generator(path_images=()):
+
+    num_images = len(path_images)
+
+    image_list = list(path_images)
+
+    for ii, path_image in enumerate(image_list):
+        try:
+            image_basename = os.path.basename(path_image)
+            img_id = image_basename.split('_scimref.jpg')[0]
+
+            Image.open(path_image)
+
+        except Exception as e:
+            print(str(e))
+            continue
+
+        yield img_id
+
+
+def time_stamps():
+    """
+    :return: local time, UTC time
+    """
+    return datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S'), \
+           datetime.datetime.utcnow().strftime('%Y%m%d_%H:%M:%S')
 
 
 def days_to_hmsm(days):
@@ -167,9 +253,7 @@ def jd2date(jd):
 
 
 def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
-    _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
-                f"private.caltech.edu:{secrets['deep_asteroids_service']['port']}"
-    _base_url = os.path.join(_base_url, 'data/stamps')
+    _base_path = '/data/streaks/stamps'
 
     if _v:
         print(type(date))
@@ -180,19 +264,11 @@ def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
         date_utc = jd2date(date).strftime('%Y%m%d')
 
     try:
-        url = os.path.join(_base_url, f'stamps_{date_utc}/{_id}_scimref.jpg')
-
-        if _v:
-            print(url)
+        f_path = os.path.join(_base_path, f'stamps_{date_utc}/{_id}_scimref.jpg')
 
         filename = os.path.join(_path_out, f'{_id}_scimref.jpg')
-        r = requests.get(url, timeout=10)
 
-        if r.status_code == 200:
-            with open(filename, 'wb') as f:
-                f.write(r.content)
-
-                return True
+        copyfile(f_path, filename)
 
     except Exception as e:
         print(str(e))
@@ -446,19 +522,76 @@ if __name__ == '__main__':
                  'strkid7405201662150001_pid740520166215',
                  'strkid7412887451150006_pid741288745115')
 
-    fetch = True
+    fetch = False
+    evaluate = True
+
+    p_data = pathlib.Path('/app/known_fmo')
+    path_images = list(pathlib.Path('/app/known_fmo/').glob('*.jpg'))
+    if not p_data.exists():
+        os.makedirs(p_data)
 
     if fetch:
-        p_data = pathlib.Path('/app/known_fmo')
-        if not p_data.exists():
-            os.makedirs(p_data)
-
         strks = dict()
 
         c = db['deep-asteroids'].find({'_id': {'$in': streakids}}, {'_id': 1, 'jd': 1})
 
         for strk in c:
-            print(strk['_id'], strk['jd'])
+            # print(strk['_id'], strk['jd'])
             strks[strk['_id']] = strk['jd']
 
         fetch_streaks(strks, _path_out=p_data)
+
+    if evaluate:
+        # DL models:
+        models = dict()
+        sss = 1
+        for model in config['models']:
+            print(*time_stamps(), f'loading model {model}: {config["models"][model]}')
+            models[model] = load_model_helper(config['path']['path_models'], config['models'][model])
+            if sss == 1:
+                break
+
+        model_input_shape = models[config['default_models']['rb']].input_shape[1:3]
+
+        batch_size = 32
+
+        image_ids = data_id_generator(path_images=path_images)
+
+        num_batches = int(np.ceil(len(path_images) / batch_size))
+
+        scores = dict()
+
+        for model in config['models']:
+            images = data_generator(path_images=path_images, batch_size=batch_size)
+            tic = time.time()
+            scores[model] = models[model].predict_generator(images, steps=num_batches, verbose=True)
+            toc = time.time()
+            print(*time_stamps(),
+                  f'{model}: forward prop with batch_size={batch_size} took {toc - tic} seconds.')
+            print(*time_stamps(), scores[model].shape)
+
+        print(*time_stamps(), 'ingesting results into db')
+        tic = time.time()
+        for ii, image_id in enumerate(image_ids):
+            # build doc to upsert into bd:
+            doc = dict()
+            # doc_models = {model: float(scores[model][ii]) for model in self.config['models']}
+
+            # default DL models
+            for dl in config['default_models']:
+                doc[dl] = float(scores[config['default_models'][dl]][ii])
+
+            # current working models, for the ease of db access:
+            for model in models:
+                doc[model] = float(scores[model][ii])
+
+            # book-keeping for the future [if a model is retrained]
+            doc['scores'] = dict()
+            for model in models:
+                doc['scores'][model] = {config['models'][model].split('.')[0]: float(scores[model][ii])}
+
+            doc['last_modified'] = datetime.datetime.utcnow()
+
+            # update_db_entry(_collection=config['database']['collection_main'],
+            #                 _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
+            #                 _upsert=True)
