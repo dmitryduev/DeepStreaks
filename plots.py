@@ -14,8 +14,11 @@ if __name__ == '__main__':
     with open('/Users/dmitryduev/_caltech/python/deep-asteroids/service/code/config.json') as f:
         config = json.load(f)
 
-    # models = config['models']
+    # models_kd = config['models']
     models = config['models_201901']
+    # models['kd_vgg6'] = models_kd['kd_vgg6']
+    # models['kd_resnet50'] = models_kd['kd_resnet50']
+    # models['kd_densenet121'] = models_kd['kd_densenet121']
     model_names = list(models.keys())
 
     path_models = '/Users/dmitryduev/_caltech/python/deep-asteroids/service/models'
@@ -35,7 +38,7 @@ if __name__ == '__main__':
 
     fig_all = plt.figure(figsize=(14, 3.2))
     fig_all.tight_layout()
-    fig_all.subplots_adjust(top=0.966, bottom=0.117, left=0.063, right=0.828, hspace=0.2, wspace=0.198)
+    fig_all.subplots_adjust(top=0.966, bottom=0.142, left=0.063, right=0.828, hspace=0.2, wspace=0.198)
     ax1_all = fig_all.add_subplot(121)
     ax2_all = fig_all.add_subplot(122)
 
@@ -95,9 +98,9 @@ if __name__ == '__main__':
             # global plot:
 
             ax1_all.plot(acc[model_name][2][mask], line_styles[ii], color=colors[cfi],
-                         lw=1.6, markersize=3.0)
+                         lw=1.4, markersize=3.0, alpha=0.8)
             ax2_all.plot(val_acc[model_name][2][mask], line_styles[ii], color=colors[cfi],
-                         linewidth=1.6, markersize=3.0, label=model_name)
+                         linewidth=1.4, markersize=3.0, label=model_name, alpha=0.8)
 
         # ax1.set_ylim([0.63, 1.02])
         ax1.set_ylim([0.89, 1.02])
