@@ -77,7 +77,7 @@ if __name__ == '__main__':
     score_thresholds = [0.99, 0.9, 0.5, 0.1, 0.01]
 
     # ROC
-    fig = plt.figure()
+    fig = plt.figure(14, 5)
     fig.subplots_adjust(bottom=0.09, left=0.05, right=0.76, top=0.98, wspace=0.2, hspace=0.2)
     lw = 1.6
     # ROCs
