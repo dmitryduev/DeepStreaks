@@ -409,7 +409,7 @@ if __name__ == '__main__':
                  'strkid7141212358150004_pid714121235815',
                  'strkid7141349458150002_pid714134945815',
                  'strkid7141792541150007_pid714179254115',
-                 'strkid7141820041150009_pid714182004115',
+                 # 'strkid7141820041150009_pid714182004115',
                  'strkid7153782624150002_pid715378262415',
                  'strkid7153800924150003_pid715380092415',
                  'strkid7153810024150002_pid715381002415',
@@ -516,7 +516,7 @@ if __name__ == '__main__':
                  'strkid7202821659150004_pid720282165915',
                  'strkid7211194427150001_pid721119442715',
                  'strkid7211518830150003_pid721151883015',
-                 'strkid7215380663150001_pid721538066315',
+                 # 'strkid7215380663150001_pid721538066315',
                  'strkid7264724424150001_pid726472442415',
                  'strkid7274251740150001_pid727425174015',
                  'strkid7274256212150001_pid727425621215',
@@ -529,7 +529,7 @@ if __name__ == '__main__':
                  'strkid7362031407150002_pid736203140715',
                  'strkid7374170916150001_pid737417091615',
                  'strkid7374307119150001_pid737430711915',
-                 'strkid7385107861150013_pid738510786115',
+                 # 'strkid7385107861150013_pid738510786115',
                  'strkid7392635635150001_pid739263563515',
                  'strkid7392676746150002_pid739267674615',
                  'strkid7394373448150001_pid739437344815',
@@ -538,7 +538,7 @@ if __name__ == '__main__':
                  'strkid7401755619150001_pid740175561915',
                  'strkid7401769330150001_pid740176933015',
                  'strkid7402187644150001_pid740218764415',
-                 'strkid7402589524150003_pid740258952415',
+                 # 'strkid7402589524150003_pid740258952415',
                  'strkid7404437333150001_pid740443733315',
                  'strkid7404460633150001_pid740446063315',
                  'strkid7404841751150001_pid740484175115',
@@ -548,8 +548,9 @@ if __name__ == '__main__':
                  'strkid7412887451150006_pid741288745115')
 
     fetch = False
-    evaluate = True
+    evaluate = False
     ingest_scores = True
+    filtr = True
 
     p_data = pathlib.Path('/app/known_fmo')
     path_images = list(pathlib.Path('/app/known_fmo/').glob('*.jpg'))
@@ -622,3 +623,24 @@ if __name__ == '__main__':
                 update_db_entry(_collection=config['database']['collection_main'],
                                 _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
                                 _upsert=True)
+
+    if filtr:
+        streak_data = dict()
+
+        c = list(db['deep-asteroids'].find({'_id': {'$in': streakids}}))
+
+        ss = dict()
+
+        print('DeepStreaks:')
+        for s in c:
+            plausible = ((s['rb_vgg6'] > 0.5) or (s['rb_resnet50'] > 0.5) or (s['rb_densenet121'] > 0.5)) and \
+                        ((s['sl_vgg6'] > 0.5) or (s['sl_resnet50'] > 0.5) or (s['sl_densenet121'] > 0.5)) and \
+                        ((s['kd_vgg6'] > 0.5) or (s['kd_resnet50'] > 0.5) or (s['kd_densenet121'] > 0.5))
+            if not plausible:
+                print(s['_id'])
+
+        print('\nRF:')
+        for s in c:
+            plausible = s['prob'] > 0.05
+            if not plausible:
+                print(s['_id'])
