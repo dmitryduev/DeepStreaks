@@ -235,6 +235,11 @@ if __name__ == '__main__':
 
     models = config['models']
     # models = config['models_201901']
+
+    models["os_vgg6"] = "5c05bbdc826480000a95c0bf_VGG6_20190117_232340"
+    models["os_resnet50"] = "5c05bbdc826480000a95c0bf_ResNet50_20190118_000629"
+    models["os_densenet121"] = "5c05bbdc826480000a95c0bf_densenet121_20190118_043746"
+
     model_names = list(models.keys())
 
     path_models = os.path.join(path_base, 'service/models')
