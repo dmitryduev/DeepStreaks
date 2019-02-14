@@ -13,6 +13,7 @@ from tqdm import tqdm
 from shutil import copyfile
 from PIL import Image, ImageOps
 from keras.models import model_from_json
+import traceback
 
 
 date_type = Union[datetime.datetime, float]
@@ -292,6 +293,30 @@ def fetch_streaks(streaks, _path_out='./'):
             continue
 
 
+def update_db_entry(_collection=None, _filter=None, _db_entry_upd=None,
+                    _upsert=True, _bypass_document_validation=False):
+    """
+        Update/upsert a document matching _filter to collection _collection in DB.
+    :param _collection:
+    :param _filter:
+    :param _db_entry_upd:
+    :param _upsert:
+    :param _bypass_document_validation:
+    :return:
+    """
+    assert _collection is not None, 'Must specify collection'
+    assert _filter is not None, 'Must specify filter'
+    assert _db_entry_upd is not None, 'Must specify update statement'
+    try:
+        db[_collection].update_one(_filter, _db_entry_upd,
+                                   upsert=_upsert,
+                                   bypass_document_validation=_bypass_document_validation)
+    except Exception as _e:
+        print(*time_stamps(), f'Error: updating/upserting in {_collection}: {_filter}  {_db_entry_upd}')
+        traceback.print_exc()
+        print(_e)
+
+
 ''' load config and secrets '''
 with open('/app/config.json') as cjson:
     config = json.load(cjson)
@@ -544,12 +569,12 @@ if __name__ == '__main__':
     if evaluate:
         # DL models:
         models = dict()
-        sss = 1
+        # sss = 1
         for model in config['models']:
             print(*time_stamps(), f'loading model {model}: {config["models"][model]}')
             models[model] = load_model_helper(config['path']['path_models'], config['models'][model])
-            if sss == 1:
-                break
+            # if sss == 1:
+            #     break
 
         model_input_shape = models[config['default_models']['rb']].input_shape[1:3]
 
@@ -592,6 +617,6 @@ if __name__ == '__main__':
 
             doc['last_modified'] = datetime.datetime.utcnow()
 
-            # update_db_entry(_collection=config['database']['collection_main'],
-            #                 _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
-            #                 _upsert=True)
+            update_db_entry(_collection=config['database']['collection_main'],
+                            _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
+                            _upsert=True)
