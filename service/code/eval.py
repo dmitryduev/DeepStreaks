@@ -168,7 +168,7 @@ def jd2date(jd):
 
 def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
     _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
-                f"{secrets['deep_asteroids_service']['host']}:{secrets['deep_asteroids_service']['port']}"
+                f"private.caltech.edu:{secrets['deep_asteroids_service']['port']}"
     _base_url = os.path.join(_base_url, 'data/stamps')
 
     if _v:
@@ -208,8 +208,8 @@ def fetch_streaks(streaks, _path_out='./'):
     for streak_id in tqdm(streaks):
         try:
             # print(f'fetching {streak_id}')
-            date = streaks['streak_id']
-            fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out, _v=False)
+            date = streaks[streak_id]
+            fetch_cutout(streak_id, date, _path_out, _v=False)
 
         except Exception as e:
             print(str(e))
@@ -226,14 +226,14 @@ with open('/app/secrets.json') as sjson:
 
 if __name__ == '__main__':
 
-    client = pymongo.MongoClient(host=secrets['deep_asteroids_mongodb']['host'],
-                                 port=secrets['deep_asteroids_mongodb']['port'])
+    client = pymongo.MongoClient(host=config['database']['host'],
+                                 port=config['database']['port'])
 
     db = client['deep-asteroids']
     db.authenticate(name=secrets['deep_asteroids_mongodb']['user'],
                     password=secrets['deep_asteroids_mongodb']['pwd'])
 
-    streakids = {'strkid6433375921150001_pid643337592115',
+    streakids = ('strkid6433375921150001_pid643337592115',
                  'strkid6433978705150001_pid643397870515',
                  'strkid6692218501150002_pid669221850115',
                  'strkid6692380552150001_pid669238055215',
@@ -444,7 +444,7 @@ if __name__ == '__main__':
                  'strkid7404851151150001_pid740485115115',
                  'strkid7405192062150001_pid740519206215',
                  'strkid7405201662150001_pid740520166215',
-                 'strkid7412887451150006_pid741288745115'}
+                 'strkid7412887451150006_pid741288745115')
 
     fetch = True
 
