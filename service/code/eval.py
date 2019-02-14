@@ -549,6 +549,7 @@ if __name__ == '__main__':
 
     fetch = False
     evaluate = True
+    ingest_scores = True
 
     p_data = pathlib.Path('/app/known_fmo')
     path_images = list(pathlib.Path('/app/known_fmo/').glob('*.jpg'))
@@ -617,6 +618,7 @@ if __name__ == '__main__':
 
             doc['last_modified'] = datetime.datetime.utcnow()
 
-            update_db_entry(_collection=config['database']['collection_main'],
-                            _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
-                            _upsert=True)
+            if ingest_scores:
+                update_db_entry(_collection=config['database']['collection_main'],
+                                _filter={'_id': image_id}, _db_entry_upd={'$set': doc},
+                                _upsert=True)
