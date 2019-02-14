@@ -4,7 +4,13 @@ import json
 import pymongo
 import math
 import datetime
+import numpy as np
 import requests
+from typing import Union
+from tqdm import tqdm
+
+
+date_type = Union[datetime.datetime, float]
 
 
 def days_to_hmsm(days):
@@ -151,6 +157,63 @@ def jd_to_datetime(_jd):
     hour, min_, sec, micro = days_to_hmsm(frac_days)
 
     return datetime.datetime(year, month, day, hour, min_, sec, micro)
+
+
+def jd2date(jd):
+
+    year, month, day = jd_to_date(jd)
+
+    return datetime.datetime(year, month, int(np.floor(day)))
+
+
+def fetch_cutout(_id: str, date: date_type, _path_out: str='./', _v=False):
+    _base_url = f"{secrets['deep_asteroids_service']['protocol']}://" + \
+                f"{secrets['deep_asteroids_service']['host']}:{secrets['deep_asteroids_service']['port']}"
+    _base_url = os.path.join(_base_url, 'data/stamps')
+
+    if _v:
+        print(type(date))
+
+    if isinstance(date, datetime.datetime) or isinstance(date, datetime.date):
+        date_utc = date.strftime('%Y%m%d')
+    elif isinstance(date, float):
+        date_utc = jd2date(date).strftime('%Y%m%d')
+
+    try:
+        url = os.path.join(_base_url, f'stamps_{date_utc}/{_id}_scimref.jpg')
+
+        if _v:
+            print(url)
+
+        filename = os.path.join(_path_out, f'{_id}_scimref.jpg')
+        r = requests.get(url, timeout=10)
+
+        if r.status_code == 200:
+            with open(filename, 'wb') as f:
+                f.write(r.content)
+
+                return True
+
+    except Exception as e:
+        print(str(e))
+
+    return False
+
+
+def fetch_streaks(streaks, _path_out='./'):
+
+    if not os.path.exists(_path_out):
+        os.makedirs(_path_out)
+
+    for streak_id in tqdm(streaks):
+        try:
+            # print(f'fetching {streak_id}')
+            date = streaks['streak_id']
+            fetch_cutout(streak_id, datetime.datetime.strptime(date, '%Y%m%d'), _path_out, _v=False)
+
+        except Exception as e:
+            print(str(e))
+            continue
 
 
 ''' load config and secrets '''
@@ -390,7 +453,12 @@ if __name__ == '__main__':
         if not p_data.exists():
             os.makedirs(p_data)
 
+        strks = dict()
+
         c = db['deep-asteroids'].find({'_id': {'$in': streakids}}, {'_id': 1, 'jd': 1})
 
         for strk in c:
             print(strk['_id'], strk['jd'])
+            strks[strk['_id']] = strk['jd']
+
+        fetch_streaks(strks, _path_out=p_data)
