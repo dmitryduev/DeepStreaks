@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # ROC
     fig = plt.figure(figsize=(14, 5))
-    fig.subplots_adjust(bottom=0.09, left=0.05, right=0.76, top=0.98, wspace=0.2, hspace=0.2)
+    fig.subplots_adjust(bottom=0.09, left=0.05, right=0.70, top=0.98, wspace=0.2, hspace=0.2)
     lw = 1.6
     # ROCs
     ax = fig.add_subplot(1, 2, 1)
