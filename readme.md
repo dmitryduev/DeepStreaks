@@ -6,7 +6,7 @@ a wide-field time-domain survey using a dedicated 47 deg^2 camera attached to th
 telescope at the Palomar Observatory in California, United States. The system demonstrates 95-98% true positive rate 
 while keeping the false positive rate below 1%, which significantly reduces human involvement in the streak 
 identification process. The system is deployed and is adapted for usage within the ZTF Solar system framework. 
-During its first month of operation, DeepStreaks discovered 10 near-Earth asteroids.
+As of February 1, 2019 DeepStreaks discovered 15 near-Earth asteroids.
 
 For details, please see Duev et al., MNRAS, 2019 (in prep.).
 
