@@ -57,7 +57,7 @@ for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the detail
 
 #### Confusion matrices
 
-![](doc/cm_rb_sl_kd_annotated.png)
+<img src="doc/cm_rb_sl_kd_annotated.png" width="50%">
 
 #### A Venn diagram of the number of streaks that pass DeepStreaks' sub-filters.
 
