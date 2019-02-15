@@ -38,9 +38,9 @@ The models are implemented using `Keras` with a `TensorFlow` backend (GPU-enable
 
 The data were prepared using [Zwickyverse](https://github.com/dmitryduev/zwickyverse).
 
-As of January 2019, the training set for the "rb" classifiers contains 11,857 streak and 13,449 non-streak images; 
+As of February 2019, the training set for the "rb" classifiers contains 11,857 streak and 13,449 non-streak images; 
 for the "sl" classifiers -- 5,168 long and 11,246 short streak images; 
-for the ""kd" classifiers -- 12,288 "false" and 9,769 "true" images
+for the ""kd" classifiers -- 14,154 "false" and 10,621 "true" images
 
 ### Training and performance
 
@@ -67,6 +67,12 @@ for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the detail
 #### Examples of real Near-Earth Objects identified by DeepStreaks
 
 ![](doc/reals_zoo.png)
+
+#### Completeness of DeepStreaks detection using known NEAs observed by ZTF in October 2018 – January 2019. 
+
+Out of 210 streaks from real NEAs detected by the ZTF Streak pipeline at IPAC, 202 (96%) are correctly classified.
+
+![](doc/fmo_completeness.png)
 
 ---
 
