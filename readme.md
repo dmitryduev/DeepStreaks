@@ -72,7 +72,7 @@ for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the detail
 
 Out of 210 streaks from real NEAs detected by the ZTF Streak pipeline at IPAC, 202 (96%) are correctly classified.
 
-![](doc/fmo_completeness.png)
+<img src="doc/fmo_completeness.png" width="50%">
 
 ---
 
