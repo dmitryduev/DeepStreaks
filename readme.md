@@ -10,11 +10,12 @@ performance on the test data sets as well as using known near-Earth objects obse
 The system is deployed and adapted for usage within the ZTF Solar-System framework and has 
 significantly reduced human involvement in the streak identification process, from several hours to 
 typically under 10 minutes per day.
+
 As of February 1, 2019 DeepStreaks has discovered 15 near-Earth asteroids.
 
 For details, please see Duev et al., MNRAS, 2019 (submitted).
 
-Note that this repository contains pre-trained model used in DeepStreaks (total size: ~280 MB).
+Note that this repository contains pre-trained models used in DeepStreaks (total size: ~280 MB).
 
 ## Models: architecture, data, training, and performance
 
