@@ -1,20 +1,24 @@
-# DeepStreaks: identifying Near-Earth Asteroids (NEAs) in the Zwicky Transient Facility (ZTF) data with deep learning
+# DeepStreaks: identifying fast-moving near-Earth Objects in the Zwicky Transient Facility (ZTF) data with deep learning
 
-DeepStreaks is a convolutional neural network-based deep learning system designed to efficiently identify 
-streaking near-Earth objects in the data of the [Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), 
-a wide-field time-domain survey using a dedicated 47 deg^2 camera attached to the Samuel Oschin 48-inch 
-telescope at the Palomar Observatory in California, United States. The system demonstrates 96-98% true positive rate 
-while keeping the false positive rate below 1%, which significantly reduces human involvement in the streak 
-identification process. The system is deployed and is adapted for usage within the ZTF Solar system framework. 
-As of February 1, 2019 DeepStreaks discovered 15 near-Earth asteroids.
+DeepStreaks is a convolutional neural-network, deep-learning system designed to efficiently identify 
+streaking fast-moving near-Earth objects that are detected in the data of the 
+[Zwicky Transient Facilty (ZTF)](https://ztf.caltech.edu), a wide-field, time-domain survey using a 
+dedicated 47 square degrees camera attached to the Samuel Oschin 48-inch Telescope at the Palomar Observatory
+in California, United States. The system demonstrates a 96-98% true positive rate, depending on the night, 
+while keeping the false positive rate below 1%. The sensitivity of DeepStreaks is quantified by the 
+performance on the test data sets as well as using known near-Earth objects observed by ZTF. 
+The system is deployed and adapted for usage within the ZTF Solar-System framework and has 
+significantly reduced human involvement in the streak identification process, from several hours to 
+typically under 10 minutes per day.
+As of February 1, 2019 DeepStreaks has discovered 15 near-Earth asteroids.
 
-For details, please see Duev et al., MNRAS, 2019 (in prep.).
+For details, please see Duev et al., MNRAS, 2019 (submitted).
 
 ## Models: architecture, data, training, and performance
 
 ### Network architecture
 
-We are using three "families' of binary CNN-based classifiers. Individual classifiers from each such family are trained 
+We are using three "families" of binary CNN-based classifiers. Individual classifiers from each such family are trained 
 to answer one of the following questions, respectively:
 
 - "rb": bogus (rb=0) or real (rb=1) streak? All streak-like objects are marked as real, including actual streaks from 
