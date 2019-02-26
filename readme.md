@@ -14,6 +14,8 @@ As of February 1, 2019 DeepStreaks has discovered 15 near-Earth asteroids.
 
 For details, please see Duev et al., MNRAS, 2019 (submitted).
 
+Note that this repository contains pre-trained model used in DeepStreaks (total size: ~280 MB).
+
 ## Models: architecture, data, training, and performance
 
 ### Network architecture
@@ -49,7 +51,7 @@ for the ""kd" classifiers -- 14,154 "false" and 10,621 "true" images
 ### Training and performance
 
 The models were trained on-premise at Caltech on a Nvidia Tesla P100 GPU (12G) 
-for 200 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the details).
+for about 200-300 epochs with a mini-batch size of 32 (see `deepstreaks.py` for the details).
 
 #### Training and validation accuracies
 
