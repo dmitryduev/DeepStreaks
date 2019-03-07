@@ -552,7 +552,7 @@ def main(time_skip=False, obsdate=None, looponce=False):
     # clean up
     # y.clean_up()
     # sleep
-    time.sleep(10)
+    time.sleep(30)
 
 
 if __name__ == '__main__':
