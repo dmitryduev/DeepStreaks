@@ -122,7 +122,7 @@ RUN mkdir -p /app && \
 # install python libs
 #RUN pip install Cython && pip install numpy
 COPY code/requirements.txt /app/
-RUN pip install -r /app/requirements.txt && pip install tensorflow_gpu>=1.10.0
+RUN pip install numpy>=1.15.1 && pip install -r /app/requirements.txt && pip install tensorflow_gpu>=1.10.0
 
 # copy over the secrets:
 COPY secrets.json /app/
