@@ -284,4 +284,5 @@ if __name__ == '__main__':
     ax1.invert_yaxis()
     # ax2.invert_yaxis()
 
+    fig.savefig(f'/Users/dmitryduev/_caltech/python/deep-asteroids/paper/neo_completeness.png', dpi=300)
     plt.show()
