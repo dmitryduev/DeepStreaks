@@ -1,8 +1,8 @@
-FROM python:3.6-slim
+FROM python:3.6
 
 # Install vim, git, and cron
-RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
-    apt-get -y install cron && apt-get -y install git
+RUN apt-get update && apt-get -y install apt-file && apt-file update && \
+    apt-get -y install cron git gcc vim
 
 # place to keep our app and the data:
 RUN mkdir -p /app && \
