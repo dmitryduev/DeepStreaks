@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.0-devel
+FROM nvidia/cuda:9.0-devel
 
 # Install vim, git, cron, wget
 RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get -y install vim && \
@@ -6,12 +6,12 @@ RUN apt-get update && apt-get -y install apt-file && apt-file update && apt-get 
 
 # Install libcudnn
 
-ENV CUDNN_VERSION 7.5.0.56
+ENV CUDNN_VERSION 7.4.1.5
 LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-            libcudnn7=$CUDNN_VERSION-1+cuda10.0 \
-            libcudnn7-dev=$CUDNN_VERSION-1+cuda10.0 && \
+            libcudnn7=$CUDNN_VERSION-1+cuda9.0 \
+            libcudnn7-dev=$CUDNN_VERSION-1+cuda9.0 && \
     apt-mark hold libcudnn7
     # && rm -rf /var/lib/apt/lists/*
 
@@ -82,7 +82,7 @@ RUN cd /usr/local/bin \
 	&& ln -s python3-config python-config
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 19.0.3
+ENV PYTHON_PIP_VERSION 19.
 
 RUN set -ex; \
 	\
