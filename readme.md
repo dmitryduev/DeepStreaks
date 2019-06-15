@@ -13,7 +13,7 @@ typically under 10 minutes per day.
 
 As of June 1, 2019 DeepStreaks has discovered 35 near-Earth asteroids.
 
-For details, please see Duev et al., MNRAS, 2019 (accepted).
+For details, please see [Duev et al., MNRAS.486.4158D, 2019](https://academic.oup.com/mnras/article-abstract/486/3/4158/5472913).
 
 [arXiv:1904.05920](https://arxiv.org/pdf/1904.05920.pdf)
 
