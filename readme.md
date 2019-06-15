@@ -11,7 +11,7 @@ The system is deployed and adapted for usage within the ZTF Solar-System framewo
 significantly reduced human involvement in the streak identification process, from several hours to 
 typically under 10 minutes per day.
 
-As of February 1, 2019 DeepStreaks has discovered 15 near-Earth asteroids.
+As of June 1, 2019 DeepStreaks has discovered 35 near-Earth asteroids.
 
 For details, please see Duev et al., MNRAS, 2019 (accepted).
 
