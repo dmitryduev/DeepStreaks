@@ -673,21 +673,18 @@ class WatcherMeta(AbstractObserver):
             assert obsdate is not None, (*time_stamps(), 'Bad message: no obsdate.')
 
             # digest
-            df = pd.read_csv(filename, sep='|', header=0, skipfooter=1, engine='python')
-            df = df.drop(0)
+            cols = ['jd', 'fid', 'pid', 'diffmaglim', 'pdiffimfilename', 'programpi',
+                    'programid', 'streakid', 'strid', 'ra1', 'dec1', 'ra2', 'dec2',
+                    'startmjd', 'endmjd', 'flux', 'bg', 'length', 'sigma', 'lengtherr',
+                    'sigmaerr', 'paerr', 'bgerr', 'fitmagerr', 'apsnr', 'apmagerr', 'dmag',
+                    'dmagerr', 'chi2', 'numfit', 'prob', 'ra1err', 'dec1err', 'corr1',
+                    'ra2err', 'dec2err', 'corr2']
+            df = pd.read_csv(filename, sep='|', header=None, names=cols, skiprows=2, skipfooter=1,
+                             skipinitialspace=True, engine='python')
             for index, row in df.iterrows():
                 try:
                     _tmp = row.to_dict()
                     doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
-                    # manually fix types
-                    if 'jd' in doc:
-                        doc['jd'] = float(doc['jd'])
-                    if 'pid' in doc:
-                        doc['pid'] = int(doc['pid'])
-                    if 'streakid' in doc:
-                        doc['streakid'] = int(doc['streakid'])
-                    if 'strid' in doc:
-                        doc['strid'] = int(doc['strid'])
 
                     # doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
                     doc_id = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
