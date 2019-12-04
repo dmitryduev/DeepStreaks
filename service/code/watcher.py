@@ -680,7 +680,7 @@ class WatcherMeta(AbstractObserver):
                     'dmagerr', 'chi2', 'numfit', 'prob', 'ra1err', 'dec1err', 'corr1',
                     'ra2err', 'dec2err', 'corr2']
             df = pd.read_csv(filename, sep='|', header=None, names=cols, skiprows=2, skipfooter=1,
-                             skipinitialspace=True, engine='python', float_precision='round_trip')
+                             skipinitialspace=True, engine='c', float_precision='round_trip')
             for index, row in df.iterrows():
                 try:
                     _tmp = row.to_dict()
