@@ -951,6 +951,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Digest ZTF nightly streak data')
     parser.add_argument('--obsdate', help='observing date')
+    parser.add_argument('--meta', action='store_true', help='process metadata only')
     parser.add_argument('--enforce', action='store_true', help='enforce execution')
     parser.add_argument('--looponce', action='store_true', help='loop once and exit')
 
@@ -961,10 +962,12 @@ if __name__ == '__main__':
 
     manager = Manager(_config_file=args.config_file, _obsdate=args.obsdate, _enforce=args.enforce)
     watcher_meta = WatcherMeta(_config_file=args.config_file)
-    watcher_img = WatcherImg(_config_file=args.config_file)
+    if not args.meta:
+        watcher_img = WatcherImg(_config_file=args.config_file)
 
     manager.subscribe(watcher_meta)
-    manager.subscribe(watcher_img)
+    if not args.meta:
+        manager.subscribe(watcher_img)
     manager.run(loop_once=args.looponce)
 
     # python watcher.py config.json --obsdate 20180927 --enforce
