@@ -468,11 +468,17 @@ class AbstractObserver(ABC):
 
         if self.verbose:
             print(*time_stamps(), 'Creating/checking indices')
+
+        self.db['db'][self.config['database']['collection_main']].create_index([('streakid', pymongo.ASCENDING)],
+                                                                               background=True)
+
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
                                                                                background=True)
 
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING),
-                                                                                ('plausible', pymongo.DESCENDING)],
+                                                                                ('plausible', pymongo.DESCENDING),
+                                                                                ('streakid', pymongo.DESCENDING)
+                                                                                ],
                                                                                background=True)
 
         self.db['db'][self.config['database']['collection_main']].create_index([('midpoint_coordinates.radec_geojson',
