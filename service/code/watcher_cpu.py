@@ -471,19 +471,23 @@ class AbstractObserver(ABC):
         self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING)],
                                                                                background=True)
 
+        self.db['db'][self.config['database']['collection_main']].create_index([('jd', pymongo.DESCENDING),
+                                                                                ('plausible', pymongo.DESCENDING)],
+                                                                               background=True)
+
         self.db['db'][self.config['database']['collection_main']].create_index([('midpoint_coordinates.radec_geojson',
                                                                                  '2dsphere'),
                                                                                 ('_id', pymongo.ASCENDING)],
                                                                                background=True)
 
         # index default model scores
-        for model in self.config['default_models']:
-            self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
-                                                                                   background=True)
-        # index working model scores
-        for model in self.config['models']:
-            self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
-                                                                                   background=True)
+        # for model in self.config['default_models']:
+        #     self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
+        #                                                                            background=True)
+        # # index working model scores
+        # for model in self.config['models']:
+        #     self.db['db'][self.config['database']['collection_main']].create_index([(model, pymongo.DESCENDING)],
+        #                                                                            background=True)
 
     def init_db(self):
         _client = pymongo.MongoClient(username=self.config['database']['admin'],
@@ -933,9 +937,15 @@ class WatcherImg(AbstractObserver):
                     doc[model] = float(scores[model][ii])
 
                 # book-keeping for the future [if a model is retrained]
-                doc['scores'] = dict()
-                for model in self.models:
-                    doc['scores'][model] = {self.config['models'][model].split('.')[0]: float(scores[model][ii])}
+                # doc['scores'] = dict()
+                # for model in self.models:
+                #     doc['scores'][model] = {self.config['models'][model].split('.')[0]: float(scores[model][ii])}
+
+                # single pass/no-pass label
+                psl = ((doc['rb_vgg6'] >= 0.5 or doc['rb_resnet50'] >= 0.5 or doc['rb_densenet121'] >= 0.5) and
+                       (doc['sl_vgg6'] >= 0.5 or doc['sl_resnet50'] >= 0.5 or doc['sl_densenet121'] >= 0.5) and
+                       (doc['kd_vgg6'] >= 0.5 or doc['kd_resnet50'] >= 0.5 or doc['kd_densenet121'] >= 0.5))
+                doc['plausible'] = 1 if psl else 0
 
                 doc['last_modified'] = utc_now()
 
