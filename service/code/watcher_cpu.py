@@ -683,11 +683,11 @@ class WatcherMeta(AbstractObserver):
                     'dmagerr', 'chi2', 'numfit', 'prob', 'ra1err', 'dec1err', 'corr1',
                     'ra2err', 'dec2err', 'corr2']
             df = pd.read_csv(filename, sep='|', header=None, names=cols, skiprows=2, skipfooter=1,
-                             skipinitialspace=True, engine='c', float_precision='round_trip')
-            for index, row in df.iterrows():
+                             skipinitialspace=True, engine='python')
+            for tup in df.itertuples(index=False):
                 try:
-                    _tmp = row.to_dict()
-                    doc = {k.strip(): v.strip() if isinstance(v, str) else v for k, v in _tmp.items()}
+                    doc = {c: getattr(tup, c).strip() if isinstance(getattr(tup, c), str) else getattr(tup, c)
+                           for c in cols}
 
                     # doc['_id'] = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
                     doc_id = f'strkid{doc["streakid"]}_pid{doc["pid"]}'
