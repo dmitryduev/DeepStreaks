@@ -12,7 +12,6 @@ import inspect
 import json
 import numpy as np
 import pymongo
-from numba import jit
 import traceback
 import logging
 
@@ -38,7 +37,6 @@ def time_stamps():
 
 
 
-@jit
 def deg2hms(x):
     """Transform degrees to *hours:minutes:seconds* strings.
 
@@ -66,7 +64,6 @@ def deg2hms(x):
     return hms
 
 
-@jit
 def deg2dms(x):
     """Transform degrees to *degrees:arcminutes:arcseconds* strings.
 
