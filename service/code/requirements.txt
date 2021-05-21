@@ -19,7 +19,7 @@ numpy==1.15.1
 pandas==0.23.4
 pillow==7.1.0
 pymongo==3.10.1
-tensorflow==1.12.0
+tensorflow==2.5.0
 tqdm==4.46.0
 supervisor==4.0
 penquins==2.1
