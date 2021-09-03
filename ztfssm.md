@@ -2,8 +2,10 @@
 
 ## Setting up DeepStreaks
 
+See [readme.md](readme.md)::Sentinel service::Set-up instructions.
+
 If DS gets stalled for no apparent reason (happens once in ~3-6 months),
-restart the container:
+restart the `deep-asteroids` container:
 
 ```shell
 docker stop deep-asteroids && docker start deep-asteroids
@@ -43,3 +45,16 @@ If the apache server throws errors, exec into the running container and inspect 
 docker exec -it ztfsolarsystemmarshal_ztfssm bash
 vi /var/log/apache2/error.log
 ```
+
+## Issues on the ztfss machine at IPAC
+
+The system unnecessarily blocks most of the in/outbound traffic, 
+which causes multiple problems. For example:
+
+- Can't pip-install python packages into the system
+- Some ZTFSSM's scripts don't function because external resources are unreachable,
+  for example, www.tle.info. 
+
+I cannot provide an explicit IP whitelist, because 
+1) I don't know everything that is needed.
+2) Underlying resource IPs may change.
