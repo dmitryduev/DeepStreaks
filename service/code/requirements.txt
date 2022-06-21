@@ -15,7 +15,7 @@ h5py==2.10.0
 keras==2.2.4
 matplotlib==2.2.2
 numba==0.36.2
-numpy==1.15.1
+numpy==1.22.0
 pandas==0.23.4
 pillow==7.1.0
 pymongo==3.10.1
