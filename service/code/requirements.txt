@@ -5,7 +5,7 @@ aplpy==1.1.1
 astropy==3.0.3
 beautifulsoup4==4.6.0
 cchardet==2.1.1
-flask==1.0.2
+flask==2.3.2
 flask_jwt_extended==3.12.1
 flask_login==0.4.1
 flask_pymongo==2.1.0
